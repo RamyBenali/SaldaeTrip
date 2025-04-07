@@ -150,61 +150,61 @@ class BeachScreen extends StatelessWidget {
         'name': 'Melbou, Béjaïa',
         'top': 263,
         'left': 17,
-        'image': 'assets/images/Rectangle2(1).png'
+        'image': 'assets/Rectangle2(1).png'
       },
       {
         'name': 'Ait Mendil, Jijel',
         'top': 263,
         'left': MediaQuery.of(context).size.width / 2 + 4,
-        'image': 'assets/images/Rectangle3.png'
+        'image': 'assets/Rectangle3.png'
       },
       {
         'name': 'Les Aiguades, Béjaïa',
         'top': 389,
         'left': 17,
-        'image': 'assets/images/Rectangle9.png'
+        'image': 'assets/Rectangle9.png'
       },
       {
         'name': 'Afaghir, Tizi Ouzou',
         'top': 389,
         'left': MediaQuery.of(context).size.width / 2 + 4,
-        'image': 'assets/images/Rectangle10.png'
+        'image': 'assets/Rectangle10.png'
       },
       {
         'name': 'Boulimat, Béjaïa',
         'top': 516,
         'left': 17,
-        'image': 'assets/images/Rectangle2(2).png'
+        'image': 'assets/Rectangle2(2).png'
       },
       {
         'name': 'Acherchour, Tipaza',
         'top': 516,
         'left': MediaQuery.of(context).size.width / 2 + 4,
-        'image': 'assets/images/Rectanglex.png'
+        'image': 'assets/Rectanglex.png'
       },
       {
         'name': 'Saket, bejaia',
         'top': 642,
         'left': 17,
-        'image': 'assets/images/Rectangle9(1).png'
+        'image': 'assets/Rectangle9(1).png'
       },
       {
         'name': 'Aokas, Béjaïa',
         'top': 642,
         'left': MediaQuery.of(context).size.width / 2 + 4,
-        'image': 'assets/images/Rectangle10(1).png'
+        'image': 'assets/Rectangle10(1).png'
       },
       {
         'name': 'Boukhelifa, Tipaza',
         'top': 768,
         'left': 17,
-        'image': 'assets/images/Rectangle9(2).png'
+        'image': 'assets/Rectangle9(2).png'
       },
       {
         'name': 'Tamelaht, bejaia',
         'top': 768,
         'left': MediaQuery.of(context).size.width / 2 + 4,
-        'image': 'assets/images/Rectangle9(3).png'
+        'image': 'assets/Rectangle9(3).png'
       },
     ];
 
