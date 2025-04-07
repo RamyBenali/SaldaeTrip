@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class DatabaseService {
-  final SupabaseClient supabase = Supabase.instance.client;
+  final supabase = Supabase.instance.client;
 
   Future<void> ajouterPersonne({
     required String nom,
@@ -12,33 +12,34 @@ class DatabaseService {
     required String adresse,
     required String role,
   }) async {
-    try {
-      // Création de l'utilisateur dans Supabase Auth
-      final authResponse = await supabase.auth.signUp(
-        email: email,
-        password: motdepasse,
-      );
+    // Étape 1 : Création de l’utilisateur avec Supabase Auth
+    final authResponse = await supabase.auth.signUp(
+      email: email,
+      password: motdepasse,
+    );
 
-      // Vérification que l'utilisateur a bien été créé
-      if (authResponse.user == null) {
-        throw Exception('Erreur de création de compte dans Supabase Auth');
-      }
+    final user = authResponse.user;
+    if (user == null) throw Exception("Erreur lors de l’inscription Supabase.");
 
-      final response = await supabase.from('personne').insert([
-        {
-          'nom': nom,
-          'prenom': prenom,
-          'email': email,
-          'motdepasse': motdepasse,
-          'datenaiss': datenaiss,
-          'adresse': adresse,
-          'role': role,
-        }
-      ]);
-      print('✅ Insertion réussie : $response');
-    } catch (error) {
-      print('❌ Erreur lors de l\'ajout : $error');
-      throw Exception('Erreur lors de l\'ajout : $error'); // 🔹 On lève une exception
-    }
+    final insertResponse = await supabase.from('personne').insert({
+      'nom': nom,
+      'prenom': prenom,
+      'email': email,
+      'motdepasse': motdepasse,
+      'datenaiss': datenaiss,
+      'adresse': adresse,
+      'role': role,
+    }).select('idpersonne');
+
+    if (insertResponse.isEmpty) throw Exception("Insertion dans `personne` échouée.");
+
+    final idpersonne = insertResponse.first['idpersonne'];
+
+    await supabase.from('profiles').insert({
+      'id': idpersonne,
+      'profile_photo': null,
+      'banner_photo': null,
+      'description': 'Aucune description pour le moment',
+    });
   }
 }

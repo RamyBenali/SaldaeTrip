@@ -4,8 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'login.dart';
 import 'signin.dart';
-import 'map.dart';
-import 'profile.dart';
+import 'weather_main.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,7 +102,38 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
               ),
             ),
           ),
-          // 📌 Logo + Texte animés
+          Positioned(
+            bottom: 50,
+            left: 100,
+            child: GestureDetector(
+              onTap: () async {
+                try {
+                  final response = await Supabase.instance.client.auth.signInAnonymously();
+                  if (response.user != null) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => HomePage()),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erreur en mode invité : $e')),
+                  );
+                }
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  'Continuer sans se connecter',
+                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+          ),
           Center(
             child: AnimatedBuilder(
               animation: _controller,

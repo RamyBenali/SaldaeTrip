@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'profile.dart'; // Assurez-vous d'importer votre page Profile
+import 'profile.dart';
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -14,41 +14,50 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   File? _profileImage;
-  File? _bannerImage;  // Ajout de la variable pour la bannière
+  File? _bannerImage;
   final ImagePicker _picker = ImagePicker();
   bool isLoading = true;
+  int? userId;
 
-  // Fonction pour récupérer les informations actuelles du profil
+
   Future<void> _fetchCurrentProfile() async {
-    final userId = '5'; // ID fixe pour les tests
+    final user = Supabase.instance.client.auth.currentUser;
+    final email = user?.email;
+
+    if (email == null) {
+      print("Utilisateur non connecté.");
+      return;
+    }
+
     try {
-      // Récupérer les données de la table `personne`
       final personneResponse = await Supabase.instance.client
           .from('personne')
-          .select('prenom, nom')
-          .eq('idpersonne', userId)
+          .select('idpersonne, prenom, nom, email')
+          .eq('email', email)
           .maybeSingle();
 
-      // Récupérer la description de la table `profiles`
+      if (personneResponse == null) {
+        print("Aucun utilisateur trouvé avec cet email.");
+        setState(() {
+          isLoading = false;
+        });
+        return;
+      }
+
+      userId = personneResponse['idpersonne'];
+
       final profileResponse = await Supabase.instance.client
           .from('profiles')
           .select('description')
-          .eq('id', userId)  // Utilisation de l'ID utilisateur pour récupérer la description
+          .eq('id', userId as Object)
           .maybeSingle();
 
-      if (personneResponse != null && profileResponse != null) {
-        setState(() {
-          _firstNameController.text = personneResponse['prenom'] ?? '';
-          _lastNameController.text = personneResponse['nom'] ?? '';
-          _descriptionController.text = profileResponse['description'] ?? '';
-          isLoading = false;
-        });
-      } else {
-        setState(() {
-          isLoading = false;
-        });
-        print("Aucun profil ou description trouvé");
-      }
+      setState(() {
+        _firstNameController.text = personneResponse['prenom'] ?? '';
+        _lastNameController.text = personneResponse['nom'] ?? '';
+        _descriptionController.text = profileResponse?['description'] ?? '';
+        isLoading = false;
+      });
     } catch (e) {
       setState(() {
         isLoading = false;
@@ -57,13 +66,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
+
+
   @override
   void initState() {
     super.initState();
-    _fetchCurrentProfile();  // Charger les informations actuelles dès le début
+    _fetchCurrentProfile();
   }
 
-  // Fonction pour choisir une photo de profil
   Future<void> _pickProfileImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -73,7 +83,29 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  // Fonction pour choisir une photo de bannière
+  Future<String> _uploadImageToStorage(File image, String fileName) async {
+    try {
+      // Téléchargement de l'image dans Supabase en utilisant un objet File
+      final storageResponse = await Supabase.instance.client.storage
+          .from('profile-images') // Nom du bucket
+          .upload(
+        fileName,
+        image,  // Utilisation du fichier directement, pas des bytes
+      );
+
+      // Obtenir l'URL publique du fichier téléchargé
+      final publicUrlResponse = Supabase.instance.client.storage
+          .from('profile-images')
+          .getPublicUrl(fileName);
+
+      // Retourner l'URL publique
+      return publicUrlResponse.toString();
+    } catch (e) {
+      print("Erreur lors du téléchargement de l'image : $e");
+      return "";
+    }
+  }
+
   Future<void> _pickBannerImage() async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
@@ -83,44 +115,58 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  // Fonction pour enregistrer les informations modifiées
   Future<void> _saveProfile() async {
-    final userId = '5';  // ID fixe pour les tests
+    if (userId == null) return;
+
     try {
-      // Mettre à jour les données dans la table `personne`
-      final personneResponse = await Supabase.instance.client
+      String? profileImageUrl;
+      String? bannerImageUrl;
+
+      // Télécharger l'image de profil si elle est présente
+      if (_profileImage != null) {
+        profileImageUrl = await _uploadImageToStorage(_profileImage!, 'profile_${userId}_image.jpg');
+      }
+
+      // Télécharger l'image de bannière si elle est présente
+      if (_bannerImage != null) {
+        bannerImageUrl = await _uploadImageToStorage(_bannerImage!, 'banner_${userId}_image.jpg');
+      }
+
+      // Mise à jour des données utilisateur
+      await Supabase.instance.client
           .from('personne')
           .update({
         'prenom': _firstNameController.text,
         'nom': _lastNameController.text,
       })
-          .eq('idpersonne', userId);
+          .eq('idpersonne', userId as Object);
 
-      // Mettre à jour la description dans la table `profiles`
-      final profileResponse = await Supabase.instance.client
+      // Mise à jour des données de profil avec l'URL des images
+      await Supabase.instance.client
           .from('profiles')
           .update({
         'description': _descriptionController.text,
+        'profile_photo': profileImageUrl ?? '',  // Utilise l'URL de l'image de profil
+        'banner_photo': bannerImageUrl ?? '',    // Utilise l'URL de l'image de bannière
       })
-          .eq('id', userId);
+          .eq('id', userId as Object);
 
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => ProfilePage()),  // ProfilePage() doit être la page d'affichage du profil
+        MaterialPageRoute(builder: (context) => ProfilePage()),
       );
     } catch (e) {
       print("Erreur lors de la sauvegarde du profil : $e");
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Modifier le profil"),
-      ),
+      appBar: AppBar(title: Text("Modifier le profil")),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())  // Affichage du loader pendant le chargement
+          ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -168,7 +214,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             SizedBox(height: 20),
             ElevatedButton(
-              onPressed: _saveProfile,  // Enregistrer les informations modifiées
+              onPressed: _saveProfile,
               child: Text("Enregistrer les modifications"),
             ),
           ],

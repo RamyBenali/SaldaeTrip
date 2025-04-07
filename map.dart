@@ -124,7 +124,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       setState(() {
-        _locationError = 'Location services are disabled';
+        _locationError = 'Les services de localisation sont désactivés';
+      });
+      // Show message for 3 seconds
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _locationError = '';
+          });
+        }
       });
       return false;
     }
@@ -132,7 +140,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.deniedForever) {
       setState(() {
-        _locationError = 'Location permissions are permanently denied';
+        _locationError = 'Les permissions de localisation sont définitivement refusées';
+      });
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _locationError = '';
+          });
+        }
       });
       return false;
     }
@@ -142,7 +157,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (permission != LocationPermission.whileInUse &&
           permission != LocationPermission.always) {
         setState(() {
-          _locationError = 'Location permissions are denied';
+          _locationError = 'Les permissions de localisation sont refusées';
+        });
+        Future.delayed(const Duration(seconds: 3), () {
+          if (mounted) {
+            setState(() {
+              _locationError = '';
+            });
+          }
         });
         return false;
       }
@@ -177,25 +199,30 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     } on TimeoutException {
       setState(() {
-        _locationError = 'Location request timed out';
+        _locationError = 'La demande de localisation a expiré';
+      });
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _locationError = '';
+          });
+        }
       });
     } catch (e) {
       setState(() {
-        _locationError = 'Error getting location: ${e.toString()}';
+        _locationError = 'Erreur lors de la localisation: ${e.toString()}';
+      });
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _locationError = '';
+          });
+        }
       });
     } finally {
       setState(() {
         _isLoadingLocation = false;
       });
-
-      if (_locationError.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_locationError),
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
     }
   }
 
@@ -244,7 +271,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         if (_searchResults.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('No results found in Béjaïa'),
+              content: Text('Aucun résultat trouvé à Béjaïa'),
               duration: Duration(seconds: 2),
             ),
           );
@@ -255,7 +282,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error searching location: ${e.toString()}'),
+          content: Text('Erreur lors de la recherche: ${e.toString()}'),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -281,7 +308,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     if (_currentLocation == null || _searchedLocation == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select both your location and a destination'),
+          content: Text('Veuillez sélectionner votre position et une destination'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -321,7 +348,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error calculating route: ${e.toString()}'),
+          content: Text('Erreur lors du calcul de l\'itinéraire: ${e.toString()}'),
           duration: const Duration(seconds: 3),
         ),
       );
@@ -343,6 +370,30 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Navigation logic
+    switch (index) {
+      case 0:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+        break;
+      case 1:
+      // Already on map screen
+        break;
+      case 2:
+      // Favoris (not implemented yet)
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfilePage()),
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   Widget _buildLocationMarker() {
@@ -556,7 +607,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(10),
-
                     ),
                     child: Column(
                       children: _searchResults.map((result) => ListTile(
@@ -626,58 +676,69 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ),
               ),
             ),
+
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 16,
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildNavItem(0, Icons.home, "Accueil"),
+                  _buildNavItem(1, Icons.map, "Carte"),
+                  _buildNavItem(2, Icons.favorite, "Favoris"),
+                  _buildNavItem(3, Icons.person, "Profil"),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+    );
+  }
 
-          // Navigation avec push pour chaque index
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
-              break;
-            case 1:
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _selectedIndex == index;
 
-              break;
-            case 2:
-            // Favoris (pas encore créée)
-              break;
-            case 3:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ProfilePage()),
-              );
-              break;
-            default:
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Accueil",
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.blue : Colors.grey,
+              size: 22,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: "Carte",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favoris",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profil",
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isSelected ? Colors.blue : Colors.grey,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ],
       ),

@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'EditprofilePage.dart';
 import 'map.dart';
 import 'weather_main.dart';
+import 'parametres.dart';
 
 void main() async {
   // Initialisation de Supabase
@@ -29,11 +30,14 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  String? profileImageUrl;
+  String? bannerImageUrl;
   int _selectedIndex = 3;
   String? firstName;
   String? lastName;
   String? description;  // Nouvelle variable pour la description
   bool isLoading = true;  // Ajout d'un état pour le chargement
+  bool isAnonymous = false;
 
   @override
   void initState() {
@@ -41,7 +45,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _fetchUserProfile(); // Charger le profil de l'utilisateur
   }
 
-  // Fonction pour rediriger vers la page de modification
   void _navigateToEditProfile() {
     Navigator.push(
       context,
@@ -49,43 +52,55 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // Fonction pour récupérer les informations du profil
-  // Fonction pour récupérer les informations du profil
   Future<void> _fetchUserProfile() async {
-    final userId = '5';  // ID fixe pour tester
-    if (userId != null) {
-      try {
-        print("Utilisateur connecté: ${userId}");
+    final user = Supabase.instance.client.auth.currentUser;
 
-        // Récupérer les données depuis la table 'personne'
+    if (user != null) {
+      if (user.isAnonymous == true) {
+        setState(() {
+          isAnonymous = true;
+          firstName = "Anonyme";
+          lastName = "";
+          description = "Aucune description disponible";
+          isLoading = false;
+        });
+        return;
+      }
+
+      final userEmail = user.email;
+
+      try {
+        print("Utilisateur connecté avec email : $userEmail");
+
+        // Récupère les infos dans la table 'personne' à partir de l'email
         final responsePersonne = await Supabase.instance.client
             .from('personne')
-            .select('nom, prenom')
-            .eq('idpersonne', userId)
-            .maybeSingle();  // Utilisation de maybeSingle() pour éviter les erreurs si aucun profil n'est trouvé
-
-        // Récupérer la description depuis la table 'profiles'
-        final responseProfile = await Supabase.instance.client
-            .from('profiles')
-            .select('description')
-            .eq('id', userId)
+            .select('idpersonne, nom, prenom, email')
+            .eq('email', userEmail as Object)
             .maybeSingle();
 
-        // Ajouter un log pour voir la réponse de Supabase
-        print("Réponse de profile: $responseProfile");
+        if (responsePersonne != null) {
+          final userId = responsePersonne['idpersonne'];
 
-        if (responsePersonne != null && responseProfile != null) {
+          final responseProfile = await Supabase.instance.client
+              .from('profiles')
+              .select('description, profile_photo, banner_photo' )
+              .eq('id', userId)
+              .maybeSingle();
+
           setState(() {
-            firstName = responsePersonne['prenom'];  // Accéder aux données
-            lastName = responsePersonne['nom'];      // Accéder aux données
-            description = responseProfile['description']; // Récupérer la description
-            isLoading = false;  // On passe à l'état non-chargement
+            firstName = responsePersonne['prenom'];
+            lastName = responsePersonne['nom'];
+            description = responseProfile?['description'] ?? "Pas de description disponible";
+            profileImageUrl = responseProfile?['profile_photo'];
+            bannerImageUrl = responseProfile?['banner_photo'];
+            isLoading = false;
           });
         } else {
           setState(() {
             isLoading = false;
           });
-          print("Aucun profil trouvé pour cet utilisateur");
+          print("Aucune correspondance trouvée dans la table personne pour l'email.");
         }
       } catch (e) {
         setState(() {
@@ -106,6 +121,30 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _selectedIndex = index;
     });
+
+    // Navigation logic
+    switch (index) {
+      case 0:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
+        );
+        break;
+      case 2:
+      // Favoris (not implemented yet)
+        break;
+      case 3:
+
+        break;
+      default:
+        break;
+    }
   }
 
   @override
@@ -122,7 +161,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     height: 200,
                     decoration: BoxDecoration(
                       image: DecorationImage(
-                        image: AssetImage('assets/images/banniere.jpg'),
+                        image: profileImageUrl != null
+                            ? NetworkImage(bannerImageUrl!)
+                            : AssetImage('assets/images/banniere.jpg') as ImageProvider,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -147,7 +188,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: IconButton(
                       icon: Icon(Icons.menu, color: Colors.white, size: 30),
                       onPressed: () {
-                        print("Paramètres appuyés");
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => ParametresPage()),
+                        );
                       },
                     ),
                   ),
@@ -155,7 +199,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               SizedBox(height: 5),
               Padding(
-                padding: const EdgeInsets.only(left: 40),
+                padding: isAnonymous ? const EdgeInsets.only(left: 150) : const EdgeInsets.only(left: 150),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -171,29 +215,34 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                     ),
                     SizedBox(height: 5),
-                    Text(
-                      description != null && description!.isNotEmpty
-                          ? description!  // Afficher la description si elle est disponible
-                          : 'Pas de description disponible',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
+                    // Remplacer Expanded par un widget Container ou un SizedBox
+                    Container(
+                      width: double.infinity, // Assure que le container occupe toute la largeur disponible
+                      child: Text(
+                        description != null && description!.isNotEmpty
+                            ? description!
+                            : 'Pas de description disponible',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                        softWrap: true,  // Assure que le texte se casse bien à la ligne
                       ),
                     ),
-
                   ],
                 ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 50),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
-                    onPressed: _navigateToEditProfile,  // Redirige vers la page de modification
+                    onPressed: isAnonymous ? null : _navigateToEditProfile,
                     child: Text("Modifier"),
                   ),
                   ElevatedButton(
-                    onPressed: () {},  // Action pour partager le profil
+                    onPressed: isAnonymous ? null : () {
+                    },
                     child: Text("Partager le profil"),
                   ),
                 ],
@@ -205,61 +254,72 @@ class _ProfilePageState extends State<ProfilePage> {
             top: 170,
             child: CircleAvatar(
               radius: 60,
-              backgroundImage: AssetImage('assets/images/profile.jpg'),
+              backgroundImage: profileImageUrl != null
+                  ? NetworkImage(profileImageUrl!)  // Utiliser l'URL de l'image du profil
+                  : AssetImage('assets/images/profile.jpg') as ImageProvider,  // Image par défaut si l'URL est null
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 16,
+            child: Container(
+              height: 60,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildNavItem(0, Icons.home, "Accueil"),
+                  _buildNavItem(1, Icons.map, "Carte"),
+                  _buildNavItem(2, Icons.favorite, "Favoris"),
+                  _buildNavItem(3, Icons.person, "Profil"),
+                ],
+              ),
             ),
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
+    );
+  }
+  Widget _buildNavItem(int index, IconData icon, String label) {
+    final isSelected = _selectedIndex == index;
 
-          // Navigation avec push pour chaque index
-          switch (index) {
-            case 0:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()),
-              );
-              break;
-            case 1:
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MapScreen()), // Page Carte
-              );
-              break;
-            case 2:
-            // Favoris (pas encore créée)
-              break;
-            case 3:
-
-              break;
-            default:
-              break;
-          }
-        },
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Accueil",
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? Colors.blue.withOpacity(0.2) : Colors.transparent,
+            ),
+            child: Icon(
+              icon,
+              color: isSelected ? Colors.blue : Colors.grey,
+              size: 22,
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: "Carte",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: "Favoris",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: "Profil",
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isSelected ? Colors.blue : Colors.grey,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            ),
           ),
         ],
       ),
