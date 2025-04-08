@@ -104,7 +104,7 @@ class _HomePageState extends State<HomePage> {
 
   String getWeatherLabel(String code) {
     final int hour = DateTime.now().hour;
-    bool isNight = hour >= 19 || hour < 6;
+    bool isNight = hour >= 20 || hour < 6;
     if (isNight) {
       return "Nuit";
     }
@@ -134,7 +134,7 @@ class _HomePageState extends State<HomePage> {
 
   IconData _getWeatherIcon(String code) {
     final int hour = DateTime.now().hour;
-    bool isNight = hour >= 19 || hour < 6;
+    bool isNight = hour >= 20 || hour < 6;
     if (isNight) {
       return Icons.nights_stay;
     }
@@ -300,7 +300,7 @@ class _HomePageState extends State<HomePage> {
           ),
           Positioned(
             right: 25,
-            bottom: 80,
+            bottom: 100,
             child: FloatingActionButton(
               onPressed: () {},
               backgroundColor: Colors.white,

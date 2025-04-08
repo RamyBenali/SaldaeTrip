@@ -4,6 +4,7 @@ import 'EditprofilePage.dart';
 import 'map.dart';
 import 'weather_main.dart';
 import 'parametres.dart';
+import 'main.dart';
 
 void main() async {
   // Initialisation de Supabase
@@ -115,7 +116,62 @@ class _ProfilePageState extends State<ProfilePage> {
       print("Aucun utilisateur connecté");
     }
   }
+  Drawer _buildSideMenu() {
+    return Drawer(
+      backgroundColor: Colors.white.withOpacity(0.95),
 
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+            ),
+            child: Text(
+              'Paramètres',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+              ),
+            ),
+          ),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Général'),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ParametresPage()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.lock),
+            title: Text('Sécurité'),
+            onTap: () {
+              // Tu peux ajouter d'autres pages ici
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Déconnexion'),
+            onTap: () async {
+              await Supabase.instance.client.auth.signOut();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Déconnecté")),
+              );
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => SplashScreen()),
+                    (route) => false,
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -150,6 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: _buildSideMenu(),
       body: Stack(
         children: [
           Column(
@@ -185,14 +242,13 @@ class _ProfilePageState extends State<ProfilePage> {
                   Positioned(
                     right: 16,
                     top: 50,
-                    child: IconButton(
-                      icon: Icon(Icons.menu, color: Colors.white, size: 30),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ParametresPage()),
-                        );
-                      },
+                    child: Builder(
+                      builder: (context) => IconButton(
+                        icon: Icon(Icons.menu, color: Colors.white, size: 30),
+                        onPressed: () {
+                          Scaffold.of(context).openDrawer();
+                        },
+                      ),
                     ),
                   ),
                 ],
@@ -257,6 +313,21 @@ class _ProfilePageState extends State<ProfilePage> {
               backgroundImage: profileImageUrl != null
                   ? NetworkImage(profileImageUrl!)  // Utiliser l'URL de l'image du profil
                   : AssetImage('assets/images/profile.jpg') as ImageProvider,  // Image par défaut si l'URL est null
+            ),
+          ),
+          Visibility(
+            visible: isAnonymous,
+            child: Positioned(
+              left: 24,
+              top: 500,
+              child: Text(
+                'Veuillez vous connecter ou créer un compte\n afin de pouvoir personnaliser votre profil',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.black.withOpacity(0.6),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ),
           Positioned(
