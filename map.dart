@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'profile.dart';
 import 'weather_main.dart';
+import 'favoris.dart';
 
 void main() {
   runApp(const MyApp());
@@ -34,6 +35,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
+  bool _isLoadingMap = true;
   final MapController _mapController = MapController();
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -62,6 +64,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
+    _initLocation();
 
     // Pulse animation for location markers
     _pulseAnimationController = AnimationController(
@@ -96,6 +99,25 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       }
     });
   }
+
+  Future<void> _initLocation() async {
+    setState(() {
+      _isLoadingMap = true;
+    });
+
+    try {
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      _currentLocation = LatLng(position.latitude, position.longitude);
+      _accuracy = position.accuracy;
+    } catch (e) {
+      _locationError = 'Erreur de localisation : $e';
+    }
+
+    setState(() {
+      _isLoadingMap = false;
+    });
+  }
+
 
   void _updateAnimatedRoute() {
     if (_routePoints.isEmpty) return;
@@ -383,6 +405,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       // Already on map screen
         break;
       case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FavorisPage()),
+        );
       // Favoris (not implemented yet)
         break;
       case 3:
@@ -514,30 +540,40 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.blueGrey[50],
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(
-              initialCenter: const LatLng(36.7509, 5.0566),
-              initialZoom: 12.0,
-              minZoom: 11.0,
-              bounds: LatLngBounds(
-                const LatLng(minLat, minLon),
-                const LatLng(maxLat, maxLon),
+          // 👉 Si la carte est en cours de chargement, afficher le loader
+          if (_isLoadingMap)
+            const Center(
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: Colors.blue,
               ),
-              boundsOptions: const FitBoundsOptions(
-                padding: EdgeInsets.all(8.0),
+            )
+          else
+            FlutterMap(
+              mapController: _mapController,
+              options: MapOptions(
+                initialCenter: const LatLng(36.7509, 5.0566),
+                initialZoom: 12.0,
+                minZoom: 11.0,
+                bounds: LatLngBounds(
+                  const LatLng(minLat, minLon),
+                  const LatLng(maxLat, maxLon),
+                ),
+                boundsOptions: const FitBoundsOptions(
+                  padding: EdgeInsets.all(8.0),
+                ),
               ),
+              children: [
+                TileLayer(
+                  urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                  subdomains: const ['a', 'b', 'c'],
+                ),
+                _buildRouteLayer(),
+                _buildLocationMarker(),
+              ],
             ),
-            children: [
-              TileLayer(
-                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: const ['a', 'b', 'c'],
-              ),
-              _buildRouteLayer(),
-              _buildLocationMarker(),
-            ],
-          ),
 
+          // Barre de recherche
           Positioned(
             top: 40,
             left: 20,
@@ -626,7 +662,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-
+          // Boutons en bas à droite
           Positioned(
             bottom: 160,
             right: 20,
@@ -656,7 +692,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-
+          
           if (_locationError.isNotEmpty)
             Positioned(
               bottom: 230,
@@ -677,6 +713,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ),
             ),
 
+          // Barre de navigation en bas
           Positioned(
             left: 16,
             right: 16,

@@ -150,7 +150,10 @@ class _SigninScreenState extends State<SigninScreen> {
                   elevation: 0,
                   leading: IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.black),
-                    onPressed: () => Navigator.popUntil(context, (route) => route.isFirst),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SplashScreen()),
+                    ),
                   ),
                 ),
               ),

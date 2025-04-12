@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:untitled/offre_restaurant.dart';
 import 'dart:convert';
 import 'map.dart';
 import 'profile.dart';
-import 'beachScreen.dart';
+import 'offre_page.dart';
+import 'offre_hotel.dart';
+import 'offre_loisirs.dart';
+import 'favoris.dart';
 
 void main() {
   runApp(MyApp());
@@ -24,7 +29,27 @@ class HomePage extends StatefulWidget {
   _HomePageState createState() => _HomePageState();
 }
 
+class AdminDashboard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Panneau Admin")),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(onPressed: () {}, child: Text("Gérer les utilisateurs")),
+            ElevatedButton(onPressed: () {}, child: Text("Ajouter une activité")),
+            // etc.
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _HomePageState extends State<HomePage> {
+  String userRole = "Voyageur";
   int _selectedIndex = 0;
   double temperature = 0.0;
   String weatherDescription = "";
@@ -32,19 +57,22 @@ class _HomePageState extends State<HomePage> {
   double windDirection = 0.0;
   String lastUpdated = "";
   bool isLoading = true;
+  bool isAdmin = false;
+  bool isPrestataire = false;
 
   final List<Map<String, String>> activities = [
     {"title": "Restaurant", "image": "assets/images/restaurant.jpg"},
     {"title": "Hôtel", "image": "assets/images/hotel.jpg"},
     {"title": "Sortie", "image": "assets/images/sortie.jpg"},
     {"title": "Plage", "image": "assets/images/plage.jpg"},
-    {"title": "Autres", "image": "assets/images/autres.jpg"},
+    {"title": "Toutes les offres", "image": "assets/images/autres.jpg"},
   ];
 
   @override
   void initState() {
     super.initState();
     fetchWeather();
+    getUserRole();
   }
 
   Future<void> fetchWeather() async {
@@ -90,6 +118,10 @@ class _HomePageState extends State<HomePage> {
         );
         break;
       case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FavorisPage()),
+        );
         break;
       case 3:
         Navigator.push(
@@ -162,6 +194,42 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> getUserRole() async {
+    final supabase = Supabase.instance.client;
+    final user = supabase.auth.currentUser;
+
+    if (user == null) {
+      print("Aucun utilisateur connecté");
+      return;
+    }
+
+    try {
+      final response = await supabase
+          .from('personne')
+          .select('role')
+          .eq('email', user.email as Object)
+          .single();
+
+      if (response != null && response['role'] != null) {
+        setState(() {
+          userRole = response['role'] as String;
+          if(userRole == "Administrateur"){
+            isAdmin = true;
+          }else if(userRole == "Prestataire"){
+            isPrestataire = true;
+          }else{
+            isAdmin = false;
+            isPrestataire = false;
+          }
+        });
+      } else {
+        print("Rôle non trouvé pour cet utilisateur.");
+      }
+    } catch (e) {
+      print("Erreur lors de la récupération du rôle : $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     List<Map<String, String>> mainActivities = [];
@@ -176,7 +244,6 @@ class _HomePageState extends State<HomePage> {
         mainActivities.add(activities[i]);
       }
     }
-
     return Scaffold(
       body: Stack(
         children: [
@@ -247,27 +314,50 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ],
               ),
+              Visibility(
+                visible: isAdmin,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children : [
+                    ElevatedButton(
+                      style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.blue)),
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+                      },
+                      child: Text("Panneau administrateur", style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    ),
+                  ],
+                ),
+              ),
+
+              Visibility(
+                visible: isPrestataire,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children : [
+                    ElevatedButton(
+                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.blue)),
+                    onPressed: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+                    },
+                    child: Text("Panneau de gestion prestataire", style: TextStyle(color: Colors.white70, fontSize: 16)),
+                    ),
+                  ],
+                ),
+              ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text("Activités", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    GestureDetector(
-                      onTap: () {
-                        print("Voir tout cliqué");
-                      },
-                      child: Text(
-                        "Voir Tout",
-                        style: TextStyle(fontSize: 18, color: Colors.blue, fontWeight: FontWeight.w500),
-                      ),
-                    ),
+
                   ],
                 ),
               ),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.only(bottom: 100), // Espace pour la navigation
+                  padding: EdgeInsets.only(bottom: 100),
                   child: Column(
                     children: [
                       GridView.builder(
@@ -285,7 +375,6 @@ class _HomePageState extends State<HomePage> {
                           return activityCard(mainActivities[index]);
                         },
                       ),
-
                       if (lastActivity.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -308,7 +397,6 @@ class _HomePageState extends State<HomePage> {
               elevation: 4,
             ),
           ),
-
           Positioned(
             left: 16,
             right: 16,
@@ -380,10 +468,36 @@ class _HomePageState extends State<HomePage> {
   Widget activityCard(Map<String, String> activity, {bool isFullWidth = false}) {
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => BeachScreen()),
-        );;
+        switch (activity['title']) {
+          case 'Restaurant':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OffreRestaurantPage()),
+            );
+          break;
+          case 'Hôtel':
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OffreHotelPage()),
+          );
+          break;
+          case 'Sortie':
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => OffreLoisirsPage()),
+            );
+            break;
+          case 'Plage':
+
+          case 'Toutes les offres':
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OffresPage()),
+          );
+          default:
+            print('Aucune page définie pour cette activité.');
+            break;
+        }
       },
       child: Container(
         width: isFullWidth ? double.infinity : null,
@@ -423,4 +537,5 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
 }

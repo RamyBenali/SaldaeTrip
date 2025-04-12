@@ -32,6 +32,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+  bool isLoading = false;
   bool isConnected = true;
   late AnimationController _controller;
   late Animation<double> _logoAnimation;
@@ -181,7 +182,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   ),
                   SizedBox(height: 30,),
                   GestureDetector(
-                    onTap: () async {
+                    onTap: isLoading ? null : () async {
+                      setState(() {
+                        isLoading = true;
+                      });
                       try {
                         final response = await Supabase.instance.client.auth.signInAnonymously();
                         if (response.user != null) {
@@ -194,6 +198,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Erreur en mode invité : $e')),
                         );
+                      } finally {
+                        setState(() {
+                          isLoading = false;
+                        });
                       }
                     },
                     child: Container(
@@ -202,9 +210,17 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         color: Colors.white.withOpacity(0),
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Text(
+                      child: isLoading
+                          ? CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        strokeWidth: 2,
+                      )
+                          : Text(
                         'Continuer sans se connecter',
-                        style: TextStyle(color: Colors.white.withOpacity(0.5), fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),

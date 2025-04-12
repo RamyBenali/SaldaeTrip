@@ -5,6 +5,10 @@ import 'map.dart';
 import 'weather_main.dart';
 import 'parametres.dart';
 import 'main.dart';
+import 'login.dart';
+import 'signin.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'favoris.dart';
 
 void main() async {
   // Initialisation de Supabase
@@ -43,7 +47,12 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _fetchUserProfile(); // Charger le profil de l'utilisateur
+    _fetchUserProfile();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   void _navigateToEditProfile() {
@@ -136,8 +145,8 @@ class _ProfilePageState extends State<ProfilePage> {
             ),
           ),
           ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Général'),
+            leading: Icon(Icons.android),
+            title: Text('Service Client'),
             onTap: () {
               Navigator.push(
                 context,
@@ -146,27 +155,89 @@ class _ProfilePageState extends State<ProfilePage> {
             },
           ),
           ListTile(
-            leading: Icon(Icons.lock),
-            title: Text('Sécurité'),
+            leading: Icon(Icons.help),
+            title: Text('Aide'),
             onTap: () {
-              // Tu peux ajouter d'autres pages ici
             },
           ),
           ListTile(
-            leading: Icon(Icons.logout),
-            title: Text('Déconnexion'),
-            onTap: () async {
-              await Supabase.instance.client.auth.signOut();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text("Déconnecté")),
-              );
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => SplashScreen()),
-                    (route) => false,
-              );
+            leading: Icon(Icons.verified_user),
+            title: Text('Devenir prestataire'),
+            onTap: () {
+              if (isAnonymous) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Veuillez créer un compte pour devenir prestataire.'),
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              } else {
+                final url = Uri.parse('https://docs.google.com/forms/d/e/1FAIpQLScWylpUlA71rmHhQzWWj3TGVdjOZtmAqaqvJxXmAa4ES-xaEA/viewform?usp=dialog');
+                launchUrl(url, mode: LaunchMode.externalApplication);
+              }
             },
+          ),
+          Container(
+            width: 378,
+            height: 2,
+            decoration: ShapeDecoration(
+              color: const Color(0x7FD9D9D9),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+            ),
+          ),
+          Visibility(
+            visible: !isAnonymous,
+            child: ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Déconnexion'),
+              onTap: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Déconnecté")),
+                );
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => SplashScreen()),
+                      (route) => false,
+                );
+              },
+            ),
+          ),
+          Visibility(
+            visible: isAnonymous,
+            child: ListTile(
+              leading: Icon(Icons.logout),
+              title: Text('Se connecter'),
+              onTap: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                      (route) => false,
+                );
+              },
+            ),
+          ),
+          Visibility(
+            visible: isAnonymous,
+            child: ListTile(
+              leading: Icon(Icons.logout),
+              title: Text("S'inscrire"),
+              onTap: () async {
+                await Supabase.instance.client.auth.signOut();
+                Navigator.pop(context);
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => SigninScreen()),
+                      (route) => false,
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -193,6 +264,10 @@ class _ProfilePageState extends State<ProfilePage> {
         );
         break;
       case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FavorisPage()),
+        );
       // Favoris (not implemented yet)
         break;
       case 3:
@@ -319,13 +394,18 @@ class _ProfilePageState extends State<ProfilePage> {
             visible: isAnonymous,
             child: Positioned(
               left: 24,
+              right: 24,
               top: 500,
-              child: Text(
-                'Veuillez vous connecter ou créer un compte\n afin de pouvoir personnaliser votre profil',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black.withOpacity(0.6),
-                  fontWeight: FontWeight.bold,
+              child: Container(
+                width: MediaQuery.of(context).size.width - 48,
+                child: Text(
+                  'Veuillez vous connecter ou créer un compte afin de pouvoir personnaliser votre profil',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.black.withOpacity(0.6),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
