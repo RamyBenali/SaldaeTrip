@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'favoris.dart';
 import 'models/offre_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 
 class OffreDetailPage extends StatefulWidget {
@@ -17,6 +20,11 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   bool isFavori = false;
   bool showFavoriMessage = false;
   String favoriMessage = '';
+  List<Map<String, dynamic>> avisList = [];
+  int selectedRating = 0;
+  String commentaire = '';
+  File? imageFile;
+  bool isPublishing = false;
 
   Future<void> checkIfFavori(int idOffre) async {
     try {
@@ -121,10 +129,94 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     }
   }
 
+  Future<void> fetchAvis() async {
+    final currentUser = Supabase.instance.client.auth.currentUser;
+    final response = await Supabase.instance.client
+        .from('avis_avec_utilisateur')
+        .select()
+        .eq('idoffre', widget.offre.id)
+        .order('idavis', ascending: false);
+
+    setState(() {
+      avisList = List<Map<String, dynamic>>.from(response);
+    });
+  }
+
+  Future<void> publishAvis() async {
+    setState(() => isPublishing = true);
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user == null) return;
+
+    final userEmail = user.email;
+
+    // Récupérer idpersonne
+    final data = await Supabase.instance.client
+        .from('personne')
+        .select('idpersonne')
+        .eq('email', userEmail as Object)
+        .single();
+
+    final idVoyageur = data['idpersonne'];
+
+    String? imageUrl;
+    if (imageFile != null) {
+      final pickedImage = imageFile!; // Promotion manuelle
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${user.id}.jpg';
+      final fileBytes = await pickedImage.readAsBytes();
+
+      try {
+        await supabase.storage
+            .from('avis-images')
+            .uploadBinary('avis/$fileName', fileBytes);
+
+        imageUrl = supabase.storage
+            .from('avis-images')
+            .getPublicUrl('avis/$fileName');
+      } on StorageException catch (error) {
+        print("Erreur lors de l'upload de l'image : ${error.message}");
+      } catch (e) {
+        print("Erreur inattendue : $e");
+      }
+    }
+
+    // Insérer l'avis dans la table 'avis'
+    await supabase.from('avis').insert({
+      'idvoyageur': idVoyageur,
+      'note': selectedRating,
+      'commentaire': commentaire,
+      'image': imageUrl,
+      'idoffre': widget.offre.id,
+      'idadministrateur': null,
+      'idstatistique': null,
+    });
+
+    // Réinitialiser les champs après publication
+    commentaire = '';
+    selectedRating = 0;
+    imageFile = null;
+
+    // Récupérer les avis mis à jour
+    await fetchAvis();
+
+    setState(() => isPublishing = false);
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        imageFile = File(pickedFile.path);
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     checkIfFavori(widget.offre.id);
+    fetchAvis();
   }
 
   @override
@@ -155,79 +247,79 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
               children: [
           Stack(
           children: [
-          ClipRRect(
-          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-      child: Image.network(
-        offre.image,
-        height: 500,
-        width: double.infinity,
-        fit: BoxFit.cover,
-      ),
-    ),
+            ClipRRect(
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+            child: Image.network(
+              offre.image,
+              height: 500,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              ),
+            ),
 
             Positioned(
-              top: 16,
-              right: 16,
-              child: GestureDetector(
-                onTap: () async {
-                  setState(() {
-                    isFavori = !isFavori;
-                    favoriMessage = isFavori
-                        ? "Ajouté aux favoris"
-                        : "Retiré des favoris";
-                    showFavoriMessage = true;
-                  });
+                top: 16,
+                right: 16,
+                child: GestureDetector(
+                  onTap: () async {
+                    setState(() {
+                      isFavori = !isFavori;
+                      favoriMessage = isFavori
+                          ? "Ajouté aux favoris"
+                          : "Retiré des favoris";
+                      showFavoriMessage = true;
+                    });
 
-                  // Masquer le message après 3 secondes
-                  Future.delayed(Duration(seconds: 3), () {
-                    if (mounted) {
-                      setState(() {
-                        showFavoriMessage = false;
-                      });
+                    // Masquer le message après 3 secondes
+                    Future.delayed(Duration(seconds: 3), () {
+                      if (mounted) {
+                        setState(() {
+                          showFavoriMessage = false;
+                        });
+                      }
+                    });
+
+                    if (isFavori) {
+                      await addFavori(offre.id);
+                    } else {
+                      await removeFavori(offre.id);
                     }
-                  });
+                  },
 
-                  if (isFavori) {
-                    await addFavori(offre.id);
-                  } else {
-                    await removeFavori(offre.id);
-                  }
-                },
-
-                child: Container(
-            decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.8),
-            shape: BoxShape.circle,
-            ),
-            padding: EdgeInsets.all(8),
-                  child: Icon(
-            isFavori ? Icons.favorite : Icons.favorite_border,
-            color: isFavori ? Colors.red : Colors.grey,
-            size: 28,
-                  ),
-            ),
-            ),
-            ),
-            if (showFavoriMessage)
-              Positioned(
-                top: 20,
-                right: 70,
-                child: AnimatedOpacity(
-                  opacity: showFavoriMessage ? 1.0 : 0.0,
-                  duration: Duration(milliseconds: 300),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.75),
-                      borderRadius: BorderRadius.circular(12),
+              decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.8),
+              shape: BoxShape.circle,
+              ),
+              padding: EdgeInsets.all(8),
+                    child: Icon(
+              isFavori ? Icons.favorite : Icons.favorite_border,
+              color: isFavori ? Colors.red : Colors.grey,
+              size: 28,
                     ),
-                    child: Text(
-                      favoriMessage,
-                      style: TextStyle(color: Colors.white, fontSize: 14),
+              ),
+              ),
+              ),
+              if (showFavoriMessage)
+                Positioned(
+                  top: 20,
+                  right: 70,
+                  child: AnimatedOpacity(
+                    opacity: showFavoriMessage ? 1.0 : 0.0,
+                    duration: Duration(milliseconds: 300),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.75),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        favoriMessage,
+                        style: TextStyle(color: Colors.white, fontSize: 14),
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
             ),
 
@@ -291,11 +383,126 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                         ),
                     ],
                   ),
-                  SizedBox(height: 80), // Un peu d'espace en bas pour éviter que ça touche le bouton
                 ],
               ),
             ),
-          ],
+                Padding(
+                  padding: const EdgeInsets.only(left: 20.0, right: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionTitle(context, "Avis des utilisateurs"),
+                      const SizedBox(height: 10),
+                      ...avisList.map((avis) {
+                        final profilePhoto = avis['profile_photo'] ?? '';
+                        final nom = avis['nom'] ?? 'Nom non disponible';
+                        final prenom = avis['prenom'] ?? 'Prénom non disponible'; // Valeur par défaut si null
+                        final note = avis['note'] ?? 0;  // Si 'note' est null, on donne une valeur par défaut (0 par exemple)
+                        final comment = avis['commentaire'] ?? 'Pas de commentaire';  // Valeur par défaut si 'commentaire' est null
+                        final image = avis['image'] ?? null;
+
+                        return Card(
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          elevation: 2,
+                          margin: const EdgeInsets.symmetric(vertical: 8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    CircleAvatar(
+                                      backgroundImage: profilePhoto != null
+                                          ? NetworkImage(profilePhoto as String)
+                                          : const AssetImage('assets/default_avatar.png') as ImageProvider,
+                                      radius: 22,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text("$prenom $nom", style: const TextStyle(fontWeight: FontWeight.bold)),
+                                    const Spacer(),
+                                    Row(
+                                      children: List.generate(
+                                        5,
+                                            (index) => Icon(Icons.star,
+                                            size: 18, color: index < note ? Colors.amber : Colors.grey),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                Text(comment),
+                                if (image != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(image, height: 150),
+                                    ),
+                                  )
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+
+                      const SizedBox(height: 20),
+                      _buildSectionTitle(context, "Laisser un avis"),
+                      const SizedBox(height: 10),
+
+                      Row(
+                        children: List.generate(
+                          5,
+                              (index) => IconButton(
+                            icon: Icon(
+                              Icons.star,
+                              color: index < selectedRating ? Colors.amber : Colors.grey,
+                            ),
+                            onPressed: () => setState(() => selectedRating = index + 1),
+                          ),
+                        ),
+                      ),
+
+                      TextField(
+                        decoration: const InputDecoration(
+                          hintText: 'Écris ton avis...',
+                          border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                        ),
+                        maxLines: 3,
+                        onChanged: (value) => commentaire = value,
+                      ),
+                      const SizedBox(height: 10),
+
+                      if (imageFile != null)
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(imageFile!, height: 120),
+                        ),
+
+                      Row(
+                        children: [
+                          TextButton.icon(
+                            onPressed: pickImage,
+                            icon: const Icon(Icons.image),
+                            label: const Text("Ajouter une image"),
+                          ),
+                          const Spacer(),
+                          ElevatedButton(
+                            onPressed: isPublishing ? null : publishAvis,
+                            child: isPublishing
+                                ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                                : const Text("Publier"),
+                          )
+                        ],
+                      )
+                    ],
+                  ),
+                )
+              ],
         ),
       ),
     );
