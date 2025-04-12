@@ -9,6 +9,7 @@ import 'login.dart';
 import 'signin.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'favoris.dart';
+import 'chatbot.dart';
 
 void main() async {
   // Initialisation de Supabase
@@ -150,7 +151,7 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ParametresPage()),
+                MaterialPageRoute(builder: (context) => ChatBotScreen()),
               );
             },
           ),

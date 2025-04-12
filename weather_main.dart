@@ -9,6 +9,7 @@ import 'offre_page.dart';
 import 'offre_hotel.dart';
 import 'offre_loisirs.dart';
 import 'favoris.dart';
+import 'chatbot.dart';
 
 void main() {
   runApp(MyApp());
@@ -393,8 +394,13 @@ class _HomePageState extends State<HomePage> {
             child: FloatingActionButton(
               onPressed: () {},
               backgroundColor: Colors.white,
-              child: Icon(Icons.assistant, color: Colors.blue, size: 28),
               elevation: 4,
+              child: IconButton(onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ChatBotScreen()),
+              ),
+                icon : Icon(Icons.assistant, color: Colors.blue, size: 28),
+              ),
             ),
           ),
           Positioned(
