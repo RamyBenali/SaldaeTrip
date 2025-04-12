@@ -41,6 +41,25 @@ class _OffresPageState extends State<OffresPage> {
     }
   }
 
+  Future<double> getAverageRating(int offreId) async {
+    try {
+      final response = await supabase
+          .from('avis')
+          .select('note')
+          .eq('idoffre', offreId);
+
+      final data = response as List;
+      if (data.isNotEmpty) {
+        final totalRating = data.fold(0.0, (sum, element) => sum + (element['note'] as num).toDouble());
+        return totalRating / data.length;
+      }
+      return 0.0;
+    } catch (e) {
+      print("Erreur lors de la récupération des avis : $e");
+      return 0.0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final filteredOffres = offres.where((offre) {
@@ -145,9 +164,35 @@ class _OffresPageState extends State<OffresPage> {
                         child: Image.network(offre.image, width: 60, height: 60, fit: BoxFit.cover),
                       ),
                       title: Text(offre.nom, style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('${offre.categorie} - ${offre.tarifs}'),
+                      subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                      Text('${offre.categorie} - ${offre.tarifs}'),
+                      FutureBuilder<double>(
+                        future: getAverageRating(offre.id), // Calcul de la moyenne des avis
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return Text('Chargement...');
+                          }
+                          if (snapshot.hasError) {
+                            return Text('Erreur');
+                          }
+                          final averageRating = snapshot.data ?? 0.0;
+                          return Row(
+                            children: [
+                              Text(
+                                averageRating.toStringAsFixed(1), // Affichage de la moyenne avec 1 décimale
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Icon(Icons.star, color: Colors.yellow, size: 16),
+                            ],
+                          );
+                        },
+                      ),
+                      ],
                     ),
                   ),
+                ),
                 );
               },
             ),

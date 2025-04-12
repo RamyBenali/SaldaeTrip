@@ -44,11 +44,14 @@ class _ProfilePageState extends State<ProfilePage> {
   String? description;  // Nouvelle variable pour la description
   bool isLoading = true;  // Ajout d'un état pour le chargement
   bool isAnonymous = false;
+  List<Map<String, dynamic>> userReviews = [];
+
 
   @override
   void initState() {
     super.initState();
     _fetchUserProfile();
+    _fetchUserReviews(); // Récupérer les avis de l'utilisateur
   }
 
   @override
@@ -61,6 +64,42 @@ class _ProfilePageState extends State<ProfilePage> {
       context,
       MaterialPageRoute(builder: (context) => EditProfilePage()),
     );
+  }
+
+  Future<void> _fetchUserReviews() async {
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if (user != null) {
+      final userEmail = user.email;
+
+      try {
+        print("Utilisateur connecté avec email : $userEmail");
+
+        // Récupère les infos de l'utilisateur dans la table 'personne'
+        final responsePersonne = await Supabase.instance.client
+            .from('personne')
+            .select('idpersonne')
+            .eq('email', userEmail as Object)
+            .maybeSingle();
+
+        if (responsePersonne != null) {
+          final userId = responsePersonne['idpersonne'];
+
+          // Récupérer les avis de l'utilisateur dans la table 'avis'
+          final responseAvis = await Supabase.instance.client
+              .from('avis')
+              .select('note, commentaire, image')
+              .eq('idvoyageur', userId)
+              .order('idavis', ascending: false);
+
+          setState(() {
+            userReviews = List<Map<String, dynamic>>.from(responseAvis);
+          });
+        }
+      } catch (e) {
+        print("Erreur lors de la récupération des avis : $e");
+      }
+    }
   }
 
   Future<void> _fetchUserProfile() async {
@@ -370,15 +409,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   ElevatedButton(
                     onPressed: isAnonymous ? null : _navigateToEditProfile,
-                    child: Text("Modifier"),
+                    child: Text("Modifier", style: TextStyle(color: Colors.blue)),
                   ),
                   ElevatedButton(
                     onPressed: isAnonymous ? null : () {
                     },
-                    child: Text("Partager le profil"),
+                    child: Text("Partager le profil", style: TextStyle(color: Colors.blue)),
                   ),
-                ],
-              ),
+                ],              ),
             ],
           ),
           Positioned(
@@ -408,6 +446,91 @@ class _ProfilePageState extends State<ProfilePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
+            ),
+          ),
+          Visibility(
+              visible: !isAnonymous,
+            child: Positioned(
+              left: 24,
+              right: 24,
+              top: 360,
+              bottom: 0, // pour que ça prenne tout le reste de l'écran
+              child: ListView.builder(
+                padding: const EdgeInsets.only(top: 10, bottom: 24),
+                itemCount: userReviews.isEmpty ? 1 : userReviews.length + 1,
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      child: Text(
+                        'Vos avis',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    );
+                  }
+
+                  if (userReviews.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text("Aucun avis pour l’instant"),
+                    );
+                  }
+
+                  final review = userReviews[index - 1];
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    elevation: 3,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // ⭐️ Note
+                          Row(
+                            children: List.generate(
+                              5,
+                                  (starIndex) => Icon(
+                                Icons.star,
+                                size: 18,
+                                color: starIndex < (review['note'] ?? 0)
+                                    ? Colors.amber
+                                    : Colors.grey[300],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          // 💬 Commentaire
+                          Text(
+                            review['commentaire'] ?? '',
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                          const SizedBox(height: 8),
+                          // 🖼 Image
+                          if (review['image'] != null &&
+                              review['image'].toString().isNotEmpty)
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.network(
+                                review['image'],
+                                height: 150,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

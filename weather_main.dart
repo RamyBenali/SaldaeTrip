@@ -10,6 +10,8 @@ import 'offre_hotel.dart';
 import 'offre_loisirs.dart';
 import 'favoris.dart';
 import 'chatbot.dart';
+import 'admin/panneau-admin.dart';
+import 'prestataire/panneau-prestataire.dart';
 
 void main() {
   runApp(MyApp());
@@ -323,7 +325,7 @@ class _HomePageState extends State<HomePage> {
                     ElevatedButton(
                       style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.blue)),
                       onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => AdminPanelPage()));
                       },
                       child: Text("Panneau administrateur", style: TextStyle(color: Colors.white70, fontSize: 16)),
                     ),
@@ -337,9 +339,9 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children : [
                     ElevatedButton(
-                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.blue)),
+                    style: ButtonStyle(backgroundColor: MaterialStateProperty.all(Colors.green)),
                     onPressed: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => AdminDashboard()));
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => PanneauPrestatairePage()));
                     },
                     child: Text("Panneau de gestion prestataire", style: TextStyle(color: Colors.white70, fontSize: 16)),
                     ),

@@ -150,7 +150,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
     final userEmail = user.email;
 
-    // Récupérer idpersonne
     final data = await Supabase.instance.client
         .from('personne')
         .select('idpersonne')
@@ -161,7 +160,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
     String? imageUrl;
     if (imageFile != null) {
-      final pickedImage = imageFile!; // Promotion manuelle
+      final pickedImage = imageFile!;
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${user.id}.jpg';
       final fileBytes = await pickedImage.readAsBytes();
 
@@ -180,7 +179,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       }
     }
 
-    // Insérer l'avis dans la table 'avis'
     await supabase.from('avis').insert({
       'idvoyageur': idVoyageur,
       'note': selectedRating,
@@ -191,7 +189,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       'idstatistique': null,
     });
 
-    // Réinitialiser les champs après publication
     commentaire = '';
     selectedRating = 0;
     imageFile = null;
@@ -212,11 +209,50 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     }
   }
 
+  double get averageRating {
+    if (avisList.isEmpty) return 0.0;
+    double total = 0.0;
+    for (var avis in avisList) {
+      total += (avis['note'] ?? 0).toDouble();
+    }
+    return total / avisList.length;
+  }
+
+  Future<void> incrementVisites() async {
+    try {
+      final response = await supabase
+          .from('voyageur_offre')
+          .select('nombres_visites')
+          .eq('idoffre', widget.offre.id)
+          .single();
+
+      final currentVisites = response['nombres_visites'] ?? 0;
+
+      final updateResponse = await supabase
+          .from('voyageur_offre')
+          .update({
+        'nombres_visites': currentVisites + 1,
+      })
+          .eq('idoffre', widget.offre.id);
+
+      if (updateResponse.error != null) {
+        print('Erreur lors de la mise à jour : ${updateResponse.error!.message}');
+      } else {
+        print('Nombre de visites incrémenté avec succès.');
+      }
+    } catch (e) {
+      print('Erreur lors de l\'incrémentation des visites : $e');
+    }
+  }
+
+
+
   @override
   void initState() {
     super.initState();
     checkIfFavori(widget.offre.id);
     fetchAvis();
+    incrementVisites();
   }
 
   @override
@@ -248,15 +284,16 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
           Stack(
           children: [
             ClipRRect(
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
-            child: Image.network(
-              offre.image,
-              height: 500,
-              width: double.infinity,
-              fit: BoxFit.cover,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+              child: Container(
+                height: 300,  // Hauteur fixe pour l'image
+                width: double.infinity,
+                child: Image.network(
+                  offre.image,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
-
             Positioned(
                 top: 16,
                 right: 16,
@@ -327,8 +364,34 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionTitle(context, "Description"),
+                children: [                   Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildSectionTitle(context, "Description"),
+                        if (avisList.isNotEmpty)
+                          Row(
+                          children: [
+                          Icon(Icons.star, color: Colors.amber, size: 20),
+                          SizedBox(width: 4),
+                          Text(
+                            averageRating.toStringAsFixed(1), // Exemple : 4.2
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            "(${avisList.length} avis)",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          ],
+                        ),
+                      ],
+                    ),
                   Text(
                     offre.description,
                     style: TextStyle(fontSize: 16),
