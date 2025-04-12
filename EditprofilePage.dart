@@ -18,6 +18,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final ImagePicker _picker = ImagePicker();
   bool isLoading = true;
   int? userId;
+  String? _existingProfilePhotoUrl;
+  String? _existingBannerPhotoUrl;
+
 
 
   Future<void> _fetchCurrentProfile() async {
@@ -48,7 +51,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       final profileResponse = await Supabase.instance.client
           .from('profiles')
-          .select('description')
+          .select('description, profile_photo, banner_photo')
           .eq('id', userId as Object)
           .maybeSingle();
 
@@ -56,6 +59,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
         _firstNameController.text = personneResponse['prenom'] ?? '';
         _lastNameController.text = personneResponse['nom'] ?? '';
         _descriptionController.text = profileResponse?['description'] ?? '';
+        _existingProfilePhotoUrl = profileResponse?['profile_photo'];
+        _existingBannerPhotoUrl = profileResponse?['banner_photo'];
         isLoading = false;
       });
     } catch (e) {
@@ -146,8 +151,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           .from('profiles')
           .update({
         'description': _descriptionController.text,
-        'profile_photo': profileImageUrl ?? '',  // Utilise l'URL de l'image de profil
-        'banner_photo': bannerImageUrl ?? '',    // Utilise l'URL de l'image de bannière
+        'profile_photo': profileImageUrl ?? _existingProfilePhotoUrl,
+        'banner_photo': bannerImageUrl ?? _existingBannerPhotoUrl,
       })
           .eq('id', userId as Object);
 
@@ -174,20 +179,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
           children: [
             GestureDetector(
               onTap: _pickProfileImage,
-              child: _profileImage == null
-                  ? CircleAvatar(radius: 60, child: Icon(Icons.add_a_photo))
-                  : CircleAvatar(radius: 60, backgroundImage: FileImage(_profileImage!)),
+              child: _profileImage != null
+                  ? CircleAvatar(radius: 60, backgroundImage: FileImage(_profileImage!))
+                  : _existingProfilePhotoUrl != null
+                  ? CircleAvatar(radius: 60, backgroundImage: NetworkImage(_existingProfilePhotoUrl!))
+                  : CircleAvatar(radius: 60, child: Icon(Icons.add_a_photo)),
             ),
             SizedBox(height: 20),
             GestureDetector(
               onTap: _pickBannerImage,
-              child: _bannerImage == null
+              child: _bannerImage != null
                   ? Container(
-                height: 200,
-                color: Colors.grey[300],
-                child: Center(child: Icon(Icons.add_a_photo)),
-              )
-                  : Container(
                 height: 200,
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -195,6 +197,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     fit: BoxFit.cover,
                   ),
                 ),
+              )
+                  : _existingBannerPhotoUrl != null
+                  ? Container(
+                height: 200,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(_existingBannerPhotoUrl!),
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              )
+                  : Container(
+                height: 200,
+                color: Colors.grey[300],
+                child: Center(child: Icon(Icons.add_a_photo)),
               ),
             ),
             SizedBox(height: 20),

@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:intl/intl.dart';
+
 
 class DatabaseService {
-  final supabase = Supabase.instance.client;
-
   Future<void> ajouterPersonne({
     required String nom,
     required String prenom,
@@ -12,7 +12,14 @@ class DatabaseService {
     required String adresse,
     required String role,
   }) async {
-    // Étape 1 : Création de l’utilisateur avec Supabase Auth
+    final supabase = Supabase.instance.client;
+
+    // ✅ Étape : conversion du format de date
+    final inputFormat = DateFormat('dd/MM/yyyy');
+    final outputFormat = DateFormat('yyyy-MM-dd');
+    final parsedDate = inputFormat.parse(datenaiss);
+    final formattedDate = outputFormat.format(parsedDate);
+
     final authResponse = await supabase.auth.signUp(
       email: email,
       password: motdepasse,
@@ -26,7 +33,7 @@ class DatabaseService {
       'prenom': prenom,
       'email': email,
       'motdepasse': motdepasse,
-      'datenaiss': datenaiss,
+      'datenaiss': formattedDate, // ✅ Utilise le bon format
       'adresse': adresse,
       'role': role,
     }).select('idpersonne');
@@ -41,5 +48,13 @@ class DatabaseService {
       'banner_photo': null,
       'description': 'Aucune description pour le moment',
     });
+
+    await supabase.from('voyageur').insert({
+      'idpersonne': idpersonne,
+      'idlieu': null,
+      'idoffre': null,
+      'idservice': null,
+    });
   }
+
 }
