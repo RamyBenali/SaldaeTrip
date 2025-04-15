@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:untitled/models/offre_model.dart';
+import 'models/offre_model.dart';
 import 'offre_details.dart';
 import 'weather_main.dart';
 import 'profile.dart';

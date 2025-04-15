@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:untitled/models/offre_model.dart';
+import 'models/offre_model.dart';
 import 'offre_details.dart';
 
 final supabase = Supabase.instance.client;
@@ -92,55 +92,55 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Rechercher une offre...',
-                        prefixIcon: Icon(Icons.search, color: Colors.white),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
+          : Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Rechercher une offre...',
+                      prefixIcon: Icon(Icons.search, color: Colors.white),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide.none,
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                      },
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(Icons.filter_alt_outlined, color: Colors.white),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                        ),
-                        builder: (context) => buildFilterSheet(),
-                      );
+                    onChanged: (value) {
+                      setState(() {
+                        searchQuery = value;
+                      });
                     },
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 8),
+                IconButton(
+                  icon: Icon(Icons.filter_alt_outlined, color: Colors.white),
+                  onPressed: () {
+                    showModalBottomSheet(
+                      context: context,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      builder: (context) => buildFilterSheet(),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            ListView.builder(
-              shrinkWrap: true,
+          ),
+          const SizedBox(height: 16),
+          // Utilise Expanded ici pour permettre au ListView de scroller
+          Expanded(
+            child: ListView.builder(
               itemCount: filteredOffres.length,
               itemBuilder: (context, index) {
                 final offre = filteredOffres[index];
@@ -171,7 +171,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                         children: [
                           Text('${offre.categorie} - ${offre.tarifs}'),
                           FutureBuilder<double>(
-                            future: getAverageRating(offre.id), // Calcul de la moyenne des avis
+                            future: getAverageRating(offre.id),
                             builder: (context, snapshot) {
                               if (snapshot.connectionState == ConnectionState.waiting) {
                                 return Text('Chargement...');
@@ -183,7 +183,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                               return Row(
                                 children: [
                                   Text(
-                                    averageRating.toStringAsFixed(1), // Affichage de la moyenne avec 1 décimale
+                                    averageRating.toStringAsFixed(1),
                                     style: TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                   Icon(Icons.star, color: Colors.yellow, size: 16),
@@ -198,8 +198,8 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 );
               },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

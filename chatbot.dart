@@ -43,8 +43,10 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
   late AnimationController _animationController;
   late Animation<double> _animation;
 
-  final String _apiKey = 'YOUR_API_KEY';
-  final String _model = "gpt-3.5-turbo";
+  // Configuration pour DeepSeek
+  final String _apiKey = 'sk-eb2e998ac44448afa1e902c5770ae4dd'; // Remplacez par votre clé API DeepSeek
+  final String _model = "deepseek-chat";
+  final String _apiUrl = "https://api.deepseek.com/v1/chat/completions";
 
   @override
   void initState() {
@@ -73,7 +75,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
 
     try {
       final response = await http.post(
-        Uri.parse("https://api.openai.com/v1/chat/completions"),
+        Uri.parse(_apiUrl),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $_apiKey',
@@ -85,7 +87,8 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
             {"role": "user", "content": prompt}
           ],
           "temperature": 0.7,
-          "max_tokens": 1000,
+          "max_tokens": 2048, // Augmenté pour DeepSeek
+          "stream": false,
         }),
       );
 
@@ -139,7 +142,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("ChatGPT Assistant"),
+        title: const Text("DeepSeek Assistant"),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -291,7 +294,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
                 children: [
                   if (!msg.isUser)
                     Text(
-                      'Assistant',
+                      'DeepSeek',
                       style: TextStyle(
                         fontSize: 12,
                         color: colors.secondary,

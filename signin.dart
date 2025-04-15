@@ -141,11 +141,10 @@ class _SigninScreenState extends State<SigninScreen> {
               fit: BoxFit.cover,
             ),
           ),
-          Column(
-            children: [
-              PreferredSize(
-                preferredSize: Size.fromHeight(kToolbarHeight),
-                child: AppBar(
+          SafeArea(
+            child: Column(
+              children: [
+                AppBar(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   leading: IconButton(
@@ -156,9 +155,7 @@ class _SigninScreenState extends State<SigninScreen> {
                     ),
                   ),
                 ),
-              ),
-              Expanded(
-                child: Padding(
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -174,180 +171,166 @@ class _SigninScreenState extends State<SigninScreen> {
                       ),
                       Text(
                         'Bienvenue, Veuillez remplir les champs ci-dessous.',
-                        textAlign: TextAlign.start,
                         style: TextStyle(
                           color: Colors.black,
                           fontSize: 20,
                           fontFamily: 'Arial',
                         ),
                       ),
-                      SizedBox(height: 20),
-                      Expanded(
-                        child: PageView(
-                          controller: _pageController,
-                          physics: NeverScrollableScrollPhysics(),
-                          children: [
-                            Column(
-                              children: [
-                                TextField(controller: _nomController, decoration: InputDecoration(labelText: 'Nom', border: OutlineInputBorder())),
-                                SizedBox(height: 15),
-                                TextField(controller: _prenomController, decoration: InputDecoration(labelText: 'Prénom', border: OutlineInputBorder())),
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                TextField(controller: _dateController, readOnly: true, decoration: InputDecoration(labelText: 'Date de Naissance', suffixIcon: Icon(Icons.calendar_today), border: OutlineInputBorder()), onTap: () => _selectDate(context)),
-                                SizedBox(height: 15),
-                                TextField(controller: _adresseController, decoration: InputDecoration(labelText: 'Adresse', border: OutlineInputBorder())),
-                                SizedBox(height: 15),
-                                TextField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isEmailValid = _validateEmail(value);
-                                    });
-                                  },
-                                  decoration: InputDecoration(
-                                    labelText: 'Email',
-                                    labelStyle: TextStyle(color: _isEmailValid ? Colors.black : Colors.red),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: _isEmailValid ? Colors.blue : Colors.red,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: _isEmailValid ? Colors.grey : Colors.red,
-                                        width: 1,
-                                      ),
-                                    ),
-                                    errorText: _isEmailValid ? null : "Format d'email invalide",
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              children: [
-                                Text(
-                                  textAlign: TextAlign.center,
-                                  "le mot de passe doit contenir au moins 10 caractères \n au mois 1 minuscul, 1 majuscule, 1 chiffre et un symbole",
-                                  style: TextStyle(
-                                    color: _isPasswordError ? Colors.red : Colors.grey,
-                                    fontSize: 13,
-                                  ),
-                                ),
-                                SizedBox(height: 5),
-                                TextField(
-                                  controller: _passwordController,
-                                  obscureText: true,
-
-                                  decoration: InputDecoration(
-                                    labelText: 'Mot de passe',
-                                    labelStyle: TextStyle(color: _isPasswordError ? Colors.red : Colors.black),
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: _isPasswordError ? Colors.red : Colors.black,
-                                        width: 2,
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: _isPasswordError ? Colors.red : Colors.grey,
-                                        width: 1,
-                                      ),
-                                    ),
-                                  ),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isPasswordError = !_isPasswordSyntaxValid(value);
-
-                                    });
-                                  },
-                                ),
-                                SizedBox(height: 10),
-                                TextField(
-                                  controller: _confirmPasswordController,
-                                  obscureText: true,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _isPasswordMatchError = _passwordController.text != value;
-                                      _passwordMatchErrorMessage =
-                                      _isPasswordMatchError ? "Les mots de passe ne correspondent pas" : "";
-                                    });
-                                  },
-                                  decoration: InputDecoration(
-                                    labelText: 'Confirmez le mot de passe',
-                                    labelStyle: TextStyle(color: _isPasswordMatchError ? Colors.red : Colors.black),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: _isPasswordMatchError ? Colors.red : Colors.blue, // Rouge si erreur
-                                        width: 2,
-                                      ),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                        color: _isPasswordMatchError ? Colors.red : Colors.grey, // Rouge si erreur
-                                        width: 1,
-                                      ),
-                                    ),
-                                    errorText: _isPasswordMatchError ? _passwordMatchErrorMessage : null, // Affiche l’erreur
-
-                                  ),
-                                ),
-                                SizedBox(height: 10),
-                                ElevatedButton(
-                                  onPressed: _register,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Color(0xFF0D8BFF),
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
-                                    minimumSize: Size(double.infinity, 50),
-                                  ),
-                                  child: Text("S'inscrire", style: TextStyle(color: Colors.white, fontSize: 18)),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => LoginScreen()),
-                              );
-                            },
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Vous avez déjà un compte? ',
-                                    style: TextStyle(color: Colors.black, fontSize: 16),
-                                  ),
-                                  TextSpan(
-                                    text: 'Connectez-vous !',
-                                    style: TextStyle(color: Color(0xFF0D8BFF), fontSize: 16),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 10),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ],
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+                    child: PageView(
+                      controller: _pageController,
+                      physics: NeverScrollableScrollPhysics(),
+                      children: [
+                        SingleChildScrollView(
+                          child: Column(
                             children: [
-                              IconButton(
-                                onPressed: _currentPage > 0 ? _previousPage : null,
-                                icon: Icon(Icons.arrow_back, color: _currentPage > 0 ? Color(0xFF0D8BFF) : Colors.grey, size: 32),
-                              ),
-                              IconButton(
-                                onPressed: _currentPage < 2 ? _nextPage : null,
-                                icon: Icon(Icons.arrow_forward, color: _currentPage < 2 ? Color(0xFF0D8BFF) : Colors.grey, size: 32),
+                              TextField(controller: _nomController, decoration: InputDecoration(labelText: 'Nom', border: OutlineInputBorder())),
+                              SizedBox(height: 15),
+                              TextField(controller: _prenomController, decoration: InputDecoration(labelText: 'Prénom', border: OutlineInputBorder())),
+                            ],
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              TextField(controller: _dateController, readOnly: true, decoration: InputDecoration(labelText: 'Date de Naissance', suffixIcon: Icon(Icons.calendar_today), border: OutlineInputBorder()), onTap: () => _selectDate(context)),
+                              SizedBox(height: 15),
+                              TextField(controller: _adresseController, decoration: InputDecoration(labelText: 'Adresse', border: OutlineInputBorder())),
+                              SizedBox(height: 15),
+                              TextField(
+                                controller: _emailController,
+                                keyboardType: TextInputType.emailAddress,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isEmailValid = _validateEmail(value);
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Email',
+                                  labelStyle: TextStyle(color: _isEmailValid ? Colors.black : Colors.red),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isEmailValid ? Colors.blue : Colors.red,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isEmailValid ? Colors.grey : Colors.red,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  errorText: _isEmailValid ? null : "Format d'email invalide",
+                                ),
                               ),
                             ],
+                          ),
+                        ),
+                        SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Text(
+                                "Le mot de passe doit contenir au moins 10 caractères,\n1 minuscule, 1 majuscule, 1 chiffre et 1 symbole.",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _isPasswordError ? Colors.red : Colors.grey,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              TextField(
+                                controller: _passwordController,
+                                obscureText: true,
+                                decoration: InputDecoration(
+                                  labelText: 'Mot de passe',
+                                  labelStyle: TextStyle(color: _isPasswordError ? Colors.red : Colors.black),
+                                  border: OutlineInputBorder(),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isPasswordError ? Colors.red : Colors.grey,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isPasswordError = !_isPasswordSyntaxValid(value);
+                                  });
+                                },
+                              ),
+                              SizedBox(height: 10),
+                              TextField(
+                                controller: _confirmPasswordController,
+                                obscureText: true,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isPasswordMatchError = _passwordController.text != value;
+                                    _passwordMatchErrorMessage =
+                                    _isPasswordMatchError ? "Les mots de passe ne correspondent pas" : "";
+                                  });
+                                },
+                                decoration: InputDecoration(
+                                  labelText: 'Confirmez le mot de passe',
+                                  labelStyle: TextStyle(color: _isPasswordMatchError ? Colors.red : Colors.black),
+                                  border: OutlineInputBorder(),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: _isPasswordMatchError ? Colors.red : Colors.grey,
+                                    ),
+                                  ),
+                                  errorText: _isPasswordMatchError ? _passwordMatchErrorMessage : null,
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              ElevatedButton(
+                                onPressed: _register,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF0D8BFF),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                                  minimumSize: Size(double.infinity, 50),
+                                ),
+                                child: Text("S'inscrire", style: TextStyle(color: Colors.white, fontSize: 18)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context) => LoginScreen()));
+                        },
+                        child: Text.rich(
+                          TextSpan(
+                            children: [
+                              TextSpan(text: 'Vous avez déjà un compte? ', style: TextStyle(color: Colors.black, fontSize: 16)),
+                              TextSpan(text: 'Connectez-vous !', style: TextStyle(color: Color(0xFF0D8BFF), fontSize: 16)),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            onPressed: _currentPage > 0 ? _previousPage : null,
+                            icon: Icon(Icons.arrow_back, color: _currentPage > 0 ? Color(0xFF0D8BFF) : Colors.grey, size: 32),
+                          ),
+                          IconButton(
+                            onPressed: _currentPage < 2 ? _nextPage : null,
+                            icon: Icon(Icons.arrow_forward, color: _currentPage < 2 ? Color(0xFF0D8BFF) : Colors.grey, size: 32),
                           ),
                         ],
                       ),
@@ -355,8 +338,8 @@ class _SigninScreenState extends State<SigninScreen> {
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),

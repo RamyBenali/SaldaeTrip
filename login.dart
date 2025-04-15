@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:untitled/main.dart';
-import 'package:untitled/weather_main.dart';
+import 'main.dart';
+import 'weather_main.dart';
 import 'signin.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -39,6 +39,11 @@ class _LoginScreenState extends State<LoginScreen> {
         SnackBar(content: Text('Erreur de connexion : $e')),
       );
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
@@ -115,9 +120,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 10),
                           Align(
                             alignment: Alignment.centerRight,
-                            child: Text(
+                            child: GestureDetector(
+
+                              child: Text(
                               'Mot de passe oublié ?',
                               style: TextStyle(color: Colors.black, fontSize: 15),
+                            ),
                             ),
                           ),
                           const SizedBox(height: 20),

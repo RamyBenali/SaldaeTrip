@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:untitled/offre_restaurant.dart';
+import 'offre_restaurant.dart';
 import 'dart:convert';
 import 'map.dart';
 import 'profile.dart';
