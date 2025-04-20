@@ -25,9 +25,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<void> _fetchCurrentProfile() async {
     final user = Supabase.instance.client.auth.currentUser;
-    final email = user?.email;
 
-    if (email == null) {
+    if (user == null) {
       print("Utilisateur non connecté.");
       return;
     }
@@ -35,8 +34,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     try {
       final personneResponse = await Supabase.instance.client
           .from('personne')
-          .select('idpersonne, prenom, nom, email')
-          .eq('email', email)
+          .select('prenom, nom, email')
+          .eq('user_id', user.id)
           .maybeSingle();
 
       if (personneResponse == null) {
@@ -47,12 +46,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
         return;
       }
 
-      userId = personneResponse['idpersonne'];
-
       final profileResponse = await Supabase.instance.client
           .from('profiles')
           .select('description, profile_photo, banner_photo')
-          .eq('id', userId as Object)
+          .eq('user_id', user.id)
           .maybeSingle();
 
       setState(() {
@@ -90,12 +87,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Future<String> _uploadImageToStorage(File image, String fileName) async {
     try {
-      // Téléchargement de l'image dans Supabase en utilisant un objet File
       final storageResponse = await Supabase.instance.client.storage
           .from('profile-images') // Nom du bucket
           .upload(
         fileName,
-        image,  // Utilisation du fichier directement, pas des bytes
+        image,
       );
 
       // Obtenir l'URL publique du fichier téléchargé
@@ -103,7 +99,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           .from('profile-images')
           .getPublicUrl(fileName);
 
-      // Retourner l'URL publique
       return publicUrlResponse.toString();
     } catch (e) {
       print("Erreur lors du téléchargement de l'image : $e");
@@ -121,13 +116,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> _saveProfile() async {
-    if (userId == null) return;
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
 
     try {
       String? profileImageUrl;
       String? bannerImageUrl;
 
-      // Télécharger l'image de profil si elle est présente
       if (_profileImage != null) {
         profileImageUrl = await _uploadImageToStorage(_profileImage!, 'profile_${userId}_image.jpg');
       }
@@ -144,7 +139,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'prenom': _firstNameController.text,
         'nom': _lastNameController.text,
       })
-          .eq('idpersonne', userId as Object);
+          .eq('user_id', user.id);
 
       // Mise à jour des données de profil avec l'URL des images
       await Supabase.instance.client
@@ -154,7 +149,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'profile_photo': profileImageUrl ?? _existingProfilePhotoUrl,
         'banner_photo': bannerImageUrl ?? _existingBannerPhotoUrl,
       })
-          .eq('id', userId as Object);
+          .eq('user_id', user.id);
 
       Navigator.pushReplacement(
         context,

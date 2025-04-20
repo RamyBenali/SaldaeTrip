@@ -49,19 +49,11 @@ class _FavorisPageState extends State<FavorisPage> {
         return;
       }
 
-      final email = user.email;
-      final response = await supabase
-          .from('personne')
-          .select('idpersonne')
-          .eq('email', email!)
-          .maybeSingle();
-
-      final idpersonne = response?['idpersonne'];
 
       final favorisResponse = await supabase
           .from('ajouterfavoris')
           .select('offre(idoffre, nom, categorie, tarifs, description, adresse, image)')
-          .eq('idvoyageur', idpersonne);
+          .eq('user_id', user.id);
 
       final data = favorisResponse as List;
 

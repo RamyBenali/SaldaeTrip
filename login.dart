@@ -13,6 +13,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final SupabaseClient _supabase = Supabase.instance.client;
+  bool _isFalseConnect = false;
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -35,8 +36,9 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
+      _isFalseConnect = true;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de connexion : $e')),
+        SnackBar(content: Text("Erreur de connexion : l'email ou le mot de passe est incorrecte")),
       );
     }
   }
@@ -106,6 +108,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: InputDecoration(
                               labelText: 'Email',
                               border: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: !_isFalseConnect ? Colors.blue : Colors.red,
+                                  width: 2,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: !_isFalseConnect ? Colors.grey : Colors.red,
+                                  width: 1,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 15),
@@ -115,6 +129,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             decoration: InputDecoration(
                               labelText: 'Mot de passe',
                               border: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: !_isFalseConnect ? Colors.blue : Colors.red,
+                                  width: 2,
+                                ),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: !_isFalseConnect ? Colors.grey : Colors.red,
+                                  width: 1,
+                                ),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 10),

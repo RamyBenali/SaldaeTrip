@@ -99,12 +99,10 @@ class _SigninScreenState extends State<SigninScreen> {
           role: 'Voyageur',
         );
 
-        // Affichage du message de succès
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Inscription réussie !")),
         );
 
-        // Rediriger vers l'écran de connexion
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => TermsAndConditionsScreen()),
@@ -115,7 +113,6 @@ class _SigninScreenState extends State<SigninScreen> {
         );
       }
     } else {
-      // Affichage des erreurs
       if (!_isPasswordError) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Mot de passe invalide")),

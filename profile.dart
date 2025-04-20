@@ -44,6 +44,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String? description;  // Nouvelle variable pour la description
   bool isLoading = true;  // Ajout d'un état pour le chargement
   bool isAnonymous = false;
+  bool isPrestataire = false;
   List<Map<String, dynamic>> userReviews = [];
 
 
@@ -51,7 +52,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _fetchUserProfile();
-    _fetchUserReviews(); // Récupérer les avis de l'utilisateur
+    _fetchUserReviews();
   }
 
   @override
@@ -69,102 +70,106 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _fetchUserReviews() async {
     final user = Supabase.instance.client.auth.currentUser;
 
-    if (user != null) {
-      final userEmail = user.email;
+    if (user == null) return;
 
-      try {
-        print("Utilisateur connecté avec email : $userEmail");
+    final userId = user.id;
+    print("Utilisateur connecté avec UUID : $userId");
 
-        // Récupère les infos de l'utilisateur dans la table 'personne'
-        final responsePersonne = await Supabase.instance.client
-            .from('personne')
-            .select('idpersonne')
-            .eq('email', userEmail as Object)
-            .maybeSingle();
+    try {
+      final responseAvis = await Supabase.instance.client
+          .from('avis')
+          .select('note, commentaire, image')
+          .eq('user_id', userId)
+          .order('idavis', ascending: false);
 
-        if (responsePersonne != null) {
-          final userId = responsePersonne['idpersonne'];
-
-          // Récupérer les avis de l'utilisateur dans la table 'avis'
-          final responseAvis = await Supabase.instance.client
-              .from('avis')
-              .select('note, commentaire, image')
-              .eq('idvoyageur', userId)
-              .order('idavis', ascending: false);
-
-          setState(() {
-            userReviews = List<Map<String, dynamic>>.from(responseAvis);
-          });
-        }
-      } catch (e) {
-        print("Erreur lors de la récupération des avis : $e");
-      }
+      setState(() {
+        userReviews = List<Map<String, dynamic>>.from(responseAvis);
+      });
+    } catch (e) {
+      print("Erreur lors de la récupération des avis : $e");
     }
   }
 
   Future<void> _fetchUserProfile() async {
     final user = Supabase.instance.client.auth.currentUser;
 
-    if (user != null) {
-      if (user.isAnonymous == true) {
-        setState(() {
-          isAnonymous = true;
-          firstName = "Anonyme";
-          lastName = "";
-          description = "Aucune description disponible";
-          isLoading = false;
-        });
-        return;
-      }
-
-      final userEmail = user.email;
-
-      try {
-        print("Utilisateur connecté avec email : $userEmail");
-
-        // Récupère les infos dans la table 'personne' à partir de l'email
-        final responsePersonne = await Supabase.instance.client
-            .from('personne')
-            .select('idpersonne, nom, prenom, email')
-            .eq('email', userEmail as Object)
-            .maybeSingle();
-
-        if (responsePersonne != null) {
-          final userId = responsePersonne['idpersonne'];
-
-          final responseProfile = await Supabase.instance.client
-              .from('profiles')
-              .select('description, profile_photo, banner_photo' )
-              .eq('id', userId)
-              .maybeSingle();
-
-          setState(() {
-            firstName = responsePersonne['prenom'];
-            lastName = responsePersonne['nom'];
-            description = responseProfile?['description'] ?? "Pas de description disponible";
-            profileImageUrl = responseProfile?['profile_photo'];
-            bannerImageUrl = responseProfile?['banner_photo'];
-            isLoading = false;
-          });
-        } else {
-          setState(() {
-            isLoading = false;
-          });
-          print("Aucune correspondance trouvée dans la table personne pour l'email.");
-        }
-      } catch (e) {
-        setState(() {
-          isLoading = false;
-        });
-        print("Erreur lors de la récupération du profil : $e");
-      }
-    } else {
+    if (user == null) {
       setState(() {
         isLoading = false;
       });
       print("Aucun utilisateur connecté");
+      return;
+    }
+
+    if (user.isAnonymous == true) {
+      setState(() {
+        isAnonymous = true;
+        firstName = "Anonyme";
+        lastName = "";
+        description = "Aucune description disponible";
+        isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final userId = user.id;
+      print("Utilisateur connecté avec UUID : $userId");
+
+      final responsePersonne = await Supabase.instance.client
+          .from('personne')
+          .select('nom, prenom, role')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if (responsePersonne == null) {
+        print("Aucune correspondance trouvée dans la table personne pour l'user_id.");
+        setState(() => isLoading = false);
+        return;
+      }
+
+      if (responsePersonne['role'] == 'Prestataire'){
+        setState(() => isPrestataire = true);
+      } else {
+        setState(() => isPrestataire = false);
+      }
+
+      final responseProfile = await Supabase.instance.client
+          .from('profiles')
+          .select('description, profile_photo, banner_photo')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+      if(responseProfile == null){
+        profileImageUrl = 'assets/images/profile.jpg';
+        bannerImageUrl = 'assets/images/banniere.jpg';
+      }
+
+      if(responseProfile?['profile_photo'] == null) {
+        profileImageUrl = 'assets/images/profile.jpg';
+      } else {
+        profileImageUrl = responseProfile?['profile_photo'];
+      }
+
+      if(responseProfile?['banner_photo'] == null) {
+        bannerImageUrl = 'assets/images/banniere.jpg';
+      } else {
+        bannerImageUrl = responseProfile?['banner_photo'];
+      }
+
+      setState(() {
+        firstName = responsePersonne['prenom'];
+        lastName = responsePersonne['nom'];
+        description = responseProfile?['description'] ?? "Pas de description disponible";
+        isLoading = false;
+      });
+
+    } catch (e) {
+      setState(() => isLoading = false);
+      print("Erreur lors de la récupération du profil : $e");
     }
   }
+
   Drawer _buildSideMenu() {
     return Drawer(
       backgroundColor: Colors.white.withOpacity(0.95),
@@ -200,23 +205,30 @@ class _ProfilePageState extends State<ProfilePage> {
             onTap: () {
             },
           ),
-          ListTile(
-            leading: Icon(Icons.verified_user),
-            title: Text('Devenir prestataire'),
-            onTap: () {
-              if (isAnonymous) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Veuillez créer un compte pour devenir prestataire.'),
-                    behavior: SnackBarBehavior.floating,
-                    backgroundColor: Colors.redAccent,
-                  ),
-                );
-              } else {
-                final url = Uri.parse('https://docs.google.com/forms/d/e/1FAIpQLScWylpUlA71rmHhQzWWj3TGVdjOZtmAqaqvJxXmAa4ES-xaEA/viewform?usp=dialog');
-                launchUrl(url, mode: LaunchMode.externalApplication);
-              }
-            },
+          Visibility(
+            visible: !isAnonymous,
+            child:
+            Visibility(
+              visible: !isPrestataire,
+              child: ListTile(
+                leading: Icon(Icons.verified_user),
+                title: Text('Devenir prestataire'),
+                onTap: () {
+                  if (isAnonymous) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Veuillez créer un compte pour devenir prestataire.'),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  } else {
+                    final url = Uri.parse('https://docs.google.com/forms/d/e/1FAIpQLScWylpUlA71rmHhQzWWj3TGVdjOZtmAqaqvJxXmAa4ES-xaEA/viewform?usp=dialog');
+                    launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                },
+              ),
+            ),
           ),
           Container(
             width: 378,

@@ -210,17 +210,17 @@ class _HomePageState extends State<HomePage> {
       final response = await supabase
           .from('personne')
           .select('role')
-          .eq('email', user.email as Object)
+          .eq('user_id', user.id) // 🔄 Remplacement de la condition sur email
           .single();
 
       if (response != null && response['role'] != null) {
         setState(() {
           userRole = response['role'] as String;
-          if(userRole == "Administrateur"){
+          if (userRole == "Administrateur") {
             isAdmin = true;
-          }else if(userRole == "Prestataire"){
+          } else if (userRole == "Prestataire") {
             isPrestataire = true;
-          }else{
+          } else {
             isAdmin = false;
             isPrestataire = false;
           }

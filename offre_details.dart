@@ -28,16 +28,15 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
   Future<void> checkIfFavori(int idOffre) async {
     try {
-      final userEmail = await getCurrentUserId();
-      final userId = await getPersonIdByEmail(userEmail);
+      final user = Supabase.instance.client.auth.currentUser;
 
-      if (userId == null) return;
+      if (user == null) return;
 
       final response = await Supabase.instance.client
           .from('ajouterfavoris')
           .select()
           .eq('idoffre', idOffre)
-          .eq('idvoyageur', userId)
+          .eq('user_id', user.id)
           .maybeSingle();
 
       if (response != null) {
@@ -50,37 +49,12 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     }
   }
 
-  Future<String> getCurrentUserId() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user != null) {
-      return user.email!; // On retourne l'email pour pouvoir rechercher dans la table 'personne'
-    } else {
-      throw Exception("User is not logged in");
-    }
-  }
-
-  Future<int?> getPersonIdByEmail(String email) async {
-    final responsePersonne = await Supabase.instance.client
-        .from('personne')
-        .select('idpersonne')
-        .eq('email', email as Object)
-        .maybeSingle();
-
-    if (responsePersonne == null) {
-      return null;
-    }
-    final userId = responsePersonne['idpersonne'];
-
-
-    return userId;
-  }
 
   Future<void> addFavori(int idOffre) async {
     try {
-      final userEmail = await getCurrentUserId(); // Récupère l'email de l'utilisateur
-      final userId = await getPersonIdByEmail(userEmail); // Récupère l'idpersonne à partir de l'email
+      final user = Supabase.instance.client.auth.currentUser;
 
-      if (userId == null) {
+      if (user == null) {
         print("Erreur: L'utilisateur n'a pas pu être trouvé.");
         return;
       }
@@ -88,7 +62,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       final response = await Supabase.instance.client
           .from('ajouterfavoris')
           .insert([
-        {'idoffre': idOffre, 'idvoyageur': userId}
+        {'idoffre': idOffre, 'user_id': user.id}
       ]);
 
       if (response == null) {
@@ -104,10 +78,9 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
   Future<void> removeFavori(int idOffre) async {
     try {
-      final userEmail = await getCurrentUserId(); // Récupère l'email de l'utilisateur
-      final userId = await getPersonIdByEmail(userEmail); // Récupère l'idpersonne à partir de l'email
+      final user = Supabase.instance.client.auth.currentUser;
 
-      if (userId == null) {
+      if (user == null) {
         print("Erreur: L'utilisateur n'a pas pu être trouvé.");
         return;
       }
@@ -116,7 +89,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
           .from('ajouterfavoris')
           .delete()
           .eq('idoffre', idOffre)
-          .eq('idvoyageur', userId);
+          .eq('user_id', user.id);
 
       if (response == null) {
       } else if (response.error != null) {
@@ -148,16 +121,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
     if (user == null) return;
 
-    final userEmail = user.email;
-
-    final data = await Supabase.instance.client
-        .from('personne')
-        .select('idpersonne')
-        .eq('email', userEmail as Object)
-        .single();
-
-    final idVoyageur = data['idpersonne'];
-
     String? imageUrl;
     if (imageFile != null) {
       final pickedImage = imageFile!;
@@ -180,7 +143,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     }
 
     await supabase.from('avis').insert({
-      'idvoyageur': idVoyageur,
+      'user_id': user.id,
       'note': selectedRating,
       'commentaire': commentaire,
       'image': imageUrl,
@@ -193,7 +156,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     selectedRating = 0;
     imageFile = null;
 
-    // Récupérer les avis mis à jour
     await fetchAvis();
 
     setState(() => isPublishing = false);
