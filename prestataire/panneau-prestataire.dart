@@ -23,43 +23,20 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
     fetchStats();
   }
 
-  Future<int?> getIdPersonneFromEmail() async {
-    try {
-      final user = Supabase.instance.client.auth.currentUser;
-
-      if (user == null) {
-        print('Aucun utilisateur connecté');
-        return null;
-      }
-
-      final email = user.email;
-
-      final response = await Supabase.instance.client
-          .from('personne')
-          .select('idpersonne')
-          .eq('email', email as Object)
-          .single();
-
-      if (response == null || response['idpersonne'] == null) {
-        print('Utilisateur non trouvé dans la table personne');
-        return null;
-      }
-
-      return (response['idpersonne'] as int);
-    } catch (e) {
-      print('Erreur lors de la récupération de idpersonne : $e');
-      return null;
-    }
-  }
 
   Future<void> fetchStats() async {
-    final idpersonne = await getIdPersonneFromEmail();
+    final user = Supabase.instance.client.auth.currentUser;
+
+    if(user == null){
+      print("erreur");
+      return;
+    }
+
     try {
-      // Récupération des offres du prestataire
       final offresResponse = await supabase
           .from('offre')
           .select('idoffre')
-          .eq('idprestataire', idpersonne as Object);
+          .eq('user_id', user.id);
 
       final offres = (offresResponse as List).cast<Map<String, dynamic>>();
       final offresIds = offres.map((e) => e['idoffre']).toList();
@@ -99,7 +76,6 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
       print("Erreur de récupération des stats : $e");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {

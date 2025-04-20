@@ -22,13 +22,14 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   final typeController = TextEditingController();
   final serviceController = TextEditingController();
   final etoilesController = TextEditingController();
+  final user = Supabase.instance.client.auth.currentUser;
+
 
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFile;
 
   String? selectedCategorie;
   bool isLoading = false;
-  int? idPrestataire;
 
   final List<String> categories = [
     'Restaurant',
@@ -42,29 +43,8 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   @override
   void initState() {
     super.initState();
-    fetchIdPrestataire();
   }
 
-  Future<void> fetchIdPrestataire() async {
-    try {
-      final email = Supabase.instance.client.auth.currentUser?.email;
-      if (email == null) throw Exception('Utilisateur non connecté');
-
-      final data = await Supabase.instance.client
-          .from('personne')
-          .select('idpersonne')
-          .eq('email', email)
-          .maybeSingle();
-
-      if (data == null) throw Exception('Identifiant du prestataire introuvable');
-      setState(() => idPrestataire = data['idpersonne']);
-    } catch (e) {
-      print('Erreur lors de la récupération de l’ID du prestataire : $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur pour récupérer votre profil')),
-      );
-    }
-  }
 
   Future<void> pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -92,6 +72,8 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   }
 
   Future<void> ajouterOffre() async {
+    String? idPrestataire = user?.id;
+
     if (!_formKey.currentState!.validate()) return;
     if (idPrestataire == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -110,7 +92,7 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
         'description': descriptionController.text,
         'image': imageUrl,
         'categorie': selectedCategorie,
-        'idprestataire': idPrestataire,
+        'user_id': idPrestataire,
         'tarifs': tarifsController.text,
         'adresse': adresseController.text,
         'offre_insta': instaController.text,
@@ -127,7 +109,7 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
       } else if (selectedCategorie == 'Hôtel') {
         await Supabase.instance.client.from('hotel').insert({
           'idoffre': idOffre,
-          'service': serviceController.text,
+          'services': serviceController.text,
           'etoile': int.tryParse(etoilesController.text) ?? 0,
         });
       } else {

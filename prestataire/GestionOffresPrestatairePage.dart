@@ -23,32 +23,22 @@ class _ListeOffresPrestatairePageState extends State<ListeOffresPrestatairePage>
     fetchOffresPrestataire();
   }
 
-  Future<int?> getIdPersonneFromEmail() async {
-    final user = supabase.auth.currentUser;
-    if (user == null) return null;
-
-    final response = await supabase
-        .from('personne')
-        .select('idpersonne')
-        .eq('email', user.email as Object)
-        .maybeSingle();
-
-    return response?['idpersonne'];
-  }
-
   Future<void> fetchOffresPrestataire() async {
+    final user = Supabase.instance.client.auth.currentUser;
+
     setState(() => isLoading = true);
 
-    final idpersonne = await getIdPersonneFromEmail();
-    if (idpersonne == null) {
+    if (user == null) {
       setState(() => isLoading = false);
       return;
     }
 
+    final idpersonne = user.id;
+
     final response = await supabase
         .from('offre')
         .select('*')
-        .eq('idprestataire', idpersonne);
+        .eq('user_id', idpersonne);
 
     setState(() {
       // Utiliser la méthode fromJson pour convertir chaque Map en objet Offre
