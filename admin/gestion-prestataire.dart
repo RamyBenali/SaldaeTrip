@@ -27,12 +27,12 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
     try {
       final response = await supabase
           .from('personne')
-          .select('*, prestataire(*)')
+          .select('user_id, nom, prenom, role, prestataire(*)')
           .eq('role', 'Prestataire');
 
       setState(() {
         prestataires = List<Map<String, dynamic>>.from(response);
-        filteredPrestataires = prestataires; // copie initiale
+        filteredPrestataires = prestataires;
       });
     } catch (e) {
       print("Erreur lors de la récupération des prestataires : $e");
@@ -51,21 +51,23 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
     });
   }
 
-  void supprimerPrestataire(int id) async {
+  void reclasserEnVoyageur(String id) async {
     try {
-      // Supprimer d'abord dans "prestataire"
-      await supabase.from('prestataire').delete().eq('idpersonne', id);
-      // Puis dans "personne"
-      await supabase.from('personne').delete().eq('idpersonne', id);
+      await supabase
+          .from('personne')
+          .update({'role': 'Voyageur'})
+          .eq('user_id', id);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Prestataire supprimé avec succès')),
+        SnackBar(content: Text('Le prestataire a été reclassé en voyageur')),
       );
       fetchPrestataires();
     } catch (e) {
-      print("Erreur lors de la suppression : $e");
+      print("Erreur lors du reclassement : $e");
     }
   }
+
+
 
   void modifierPrestataire(Map<String, dynamic> prestataire) {
     Navigator.push(
@@ -147,8 +149,17 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
                         ),
                         IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => supprimerPrestataire(p['idpersonne']),
+                          onPressed: () {
+                            final idPersonne = p['user_id'];
+                            if (idPersonne == null) {
+                              print("Erreur : idpersonne est null");
+                              return;
+                            }
+                            reclasserEnVoyageur(idPersonne);
+                          },
+
                         ),
+
                       ],
                     ),
                   ),

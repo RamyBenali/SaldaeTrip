@@ -32,8 +32,8 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
     for (var avis in data) {
       final voyageur = await Supabase.instance.client
           .from('personne')
-          .select('idpersonne, nom, prenom')
-          .eq('idpersonne', avis['idvoyageur'])
+          .select('user_id, nom, prenom')
+          .eq('user_id', avis['user_id'])
           .maybeSingle();
 
       avis['voyageur'] = voyageur;

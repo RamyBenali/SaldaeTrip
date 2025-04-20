@@ -11,14 +11,14 @@ class AjouterOffrePage extends StatefulWidget {
 }
 
 class Prestataire {
-  final int id;
+  final String id;
   final String nom;
 
   Prestataire({required this.id, required this.nom});
 
   factory Prestataire.fromJson(Map<String, dynamic> json) {
     return Prestataire(
-      id: json['idpersonne'], // Corrigé ici
+      id: json['user_id'], // Corrigé ici
       nom: json['entreprise'], // Corrigé ici
     );
   }
@@ -62,7 +62,7 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
     try {
       final response = await Supabase.instance.client
           .from('prestataire')  // Nom de la table
-          .select('idpersonne, entreprise');  // Utilisez seulement .select()
+          .select('user_id, entreprise');  // Utilisez seulement .select()
 
         final List<dynamic> data = response;  // Accédez directement aux données via response.data
         setState(() {
@@ -99,8 +99,7 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
     setState(() => isLoading = true);
 
     try {
-      // Vérifiez que l'ID du prestataire est valide
-      final prestataireId = int.tryParse(idPrestataireController.text);
+      final prestataireId = idPrestataireController.text;
       if (prestataireId == null) {
         print('ID du prestataire invalide');
         ScaffoldMessenger.of(context).showSnackBar(
@@ -119,7 +118,7 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
         'description': descriptionController.text,
         'image': imageUrl, // Lien de l'image après upload
         'categorie': selectedCategorie,
-        'idprestataire': prestataireId,  // Utilisation de prestataireId valide
+        'user_id': prestataireId,  // Utilisation de prestataireId valide
         'tarifs': tarifsController.text,
         'adresse': adresseController.text,
         'offre_insta': instaController.text,

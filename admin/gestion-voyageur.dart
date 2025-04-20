@@ -26,7 +26,7 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
       final response = await supabase
           .from('personne')
           .select()
-          .or("role.eq.Voyageur,role.eq.Prestataire");
+          .or("role.eq.Voyageur");
 
       setState(() {
         voyageurs = List<Map<String, dynamic>>.from(response);
@@ -48,13 +48,13 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
     });
   }
 
-  void supprimerVoyageur(int id) async {
+  void supprimerVoyageur(String id) async {
     try {
       // Supprimer d'abord dans la table "voyageur"
-      await supabase.from('voyageur').delete().eq('idpersonne', id);
+      await supabase.from('voyageur').delete().eq('user_id', id);
 
       // Ensuite, supprimer dans la table "personne"
-      await supabase.from('personne').delete().eq('idpersonne', id);
+      await supabase.from('personne').delete().eq('user_id', id);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Voyageur supprimé avec succès')),
@@ -120,13 +120,9 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: Icon(Icons.edit, color: Colors.orange),
-                          onPressed: () => modifierVoyageur(voyageur),
-                        ),
-                        IconButton(
                           icon: Icon(Icons.delete, color: Colors.red),
                           onPressed: () =>
-                              supprimerVoyageur(voyageur['idpersonne']),
+                              supprimerVoyageur(voyageur['user_id']),
                         ),
                       ],
                     ),

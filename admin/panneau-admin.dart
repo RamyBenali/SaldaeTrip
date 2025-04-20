@@ -29,12 +29,12 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
       // Récupération du nombre de voyageurs
       final voyageurResponse = await supabase
           .from('personne')
-          .select('idpersonne')
+          .select('user_id')
           .eq('role', 'Voyageur')
           .count();
       final prestataireResponse = await supabase
           .from('personne')
-          .select('idpersonne')
+          .select('user_id')
           .eq('role', 'Prestataire')
           .count();
       final offreResponse = await supabase.from('offre').select('idoffre').count();

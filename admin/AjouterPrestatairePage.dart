@@ -29,7 +29,7 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
   Future<void> fetchVoyageurs() async {
     final response = await supabase
         .from('personne')
-        .select('idpersonne, nom, prenom, email')
+        .select('user_id, nom, prenom, email')
         .eq('role', 'Voyageur');
 
     setState(() {
@@ -50,9 +50,8 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
         'role': 'Prestataire',
       }).eq('idpersonne', idPersonne);
 
-      // 2. Ajouter à la table prestataire
       await supabase.from('prestataire').insert({
-        'idpersonne': idPersonne,
+        'user_id': idPersonne,
         'typeservice': typeServiceController.text,
         'entreprise': entrepriseController.text,
       });
