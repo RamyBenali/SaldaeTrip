@@ -8,6 +8,8 @@ class Offre {
   final String adresse;
   final String offreInsta;
   final String offreFb;
+  final double latitude;
+  final double longitude;
 
   Offre({
     required this.id,
@@ -19,11 +21,13 @@ class Offre {
     required this.adresse,
     required this.offreInsta,
     required this.offreFb,
+    required this.latitude,
+    required this.longitude,
   });
 
   factory Offre.fromJson(Map<String, dynamic> json) {
     return Offre(
-      id: json['idoffre'],
+      id: json['idoffre'] ?? 0,
       nom: json['nom'] ?? '',
       description: json['description'] ?? '',
       categorie: json['categorie'] ?? '',
@@ -32,6 +36,24 @@ class Offre {
       adresse: json['adresse'] ?? '',
       offreInsta: json['offre_insta'] ?? '',
       offreFb: json['offre_fb'] ?? '',
+      latitude: json['latitude']?.toDouble() ?? 0.0,
+      longitude: json['longitude']?.toDouble() ?? 0.0,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'idoffre': id,
+      'nom': nom,
+      'description': description,
+      'categorie': categorie,
+      'image': image,
+      'tarifs': tarifs,
+      'adresse': adresse,
+      'offre_insta': offreInsta,
+      'offre_fb': offreFb,
+      'latitude': latitude,
+      'longitude': longitude,
+    };
   }
 }
