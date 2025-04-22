@@ -8,6 +8,7 @@ import 'dart:convert';
 import 'profile.dart';
 import 'weather_main.dart';
 import 'favoris.dart';
+import 'models/offre_model.dart';
 
 void main() {
   runApp(const MyApp());
@@ -28,7 +29,14 @@ class MyApp extends StatelessWidget {
 }
 
 class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+  final LatLng? initialLocation;
+  final String? markerTitle;
+
+  const MapScreen({
+    super.key, 
+    this.initialLocation,
+    this.markerTitle,
+  });
 
   @override
   _MapScreenState createState() => _MapScreenState();
@@ -91,6 +99,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       _updateAnimatedRoute();
     });
 
+    // Si une position initiale est fournie (depuis offre_details)
+    if (widget.initialLocation != null) {
+      _searchedLocation = widget.initialLocation;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _mapController.move(widget.initialLocation!, 15.0);
+      });
+    }
+
     _searchFocusNode.addListener(() {
       if (!_searchFocusNode.hasFocus) {
         setState(() {
@@ -106,18 +122,28 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     });
 
     try {
-      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-      _currentLocation = LatLng(position.latitude, position.longitude);
-      _accuracy = position.accuracy;
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+      setState(() {
+        _currentLocation = LatLng(position.latitude, position.longitude);
+        _accuracy = position.accuracy;
+      });
+
+      // Si aucune position initiale n'est fournie, centrer sur la position actuelle
+      if (widget.initialLocation == null) {
+        _mapController.move(_currentLocation!, 15.0);
+      }
     } catch (e) {
-      _locationError = 'Erreur de localisation : $e';
+      setState(() {
+        _locationError = 'Erreur de localisation : $e';
+      });
+    } finally {
+      setState(() {
+        _isLoadingMap = false;
+      });
     }
-
-    setState(() {
-      _isLoadingMap = false;
-    });
   }
-
 
   void _updateAnimatedRoute() {
     if (_routePoints.isEmpty) return;
@@ -127,8 +153,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     setState(() {
       _animatedRoutePoints = _routePoints.sublist(
-          0,
-          animatedPointsCount.clamp(0, totalPoints)
+        0,
+        animatedPointsCount.clamp(0, totalPoints),
       );
     });
   }
@@ -148,7 +174,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       setState(() {
         _locationError = 'Les services de localisation sont désactivés';
       });
-      // Show message for 3 seconds
+      
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted) {
           setState(() {
@@ -342,7 +368,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     });
 
     try {
-      // Using OSRM routing service
       final response = await http.get(
         Uri.parse('http://router.project-osrm.org/route/v1/driving/'
             '${_currentLocation!.longitude},${_currentLocation!.latitude};'
@@ -393,7 +418,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       _selectedIndex = index;
     });
 
-    // Navigation logic
     switch (index) {
       case 0:
         Navigator.push(
@@ -402,14 +426,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         );
         break;
       case 1:
-      // Already on map screen
         break;
       case 2:
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => FavorisPage()),
         );
-      // Favoris (not implemented yet)
         break;
       case 3:
         Navigator.push(
@@ -480,9 +502,31 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             point: _searchedLocation!,
             width: 80,
             height: 80,
-            child: Stack(
-              alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    widget.markerTitle ?? 'Destination',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 AnimatedBuilder(
                   animation: _pulseAnimation,
                   builder: (context, child) {
@@ -502,14 +546,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       ),
                     );
                   },
-                ),
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                  ),
                 ),
               ],
             ),
@@ -540,7 +576,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.blueGrey[50],
       body: Stack(
         children: [
-          // 👉 Si la carte est en cours de chargement, afficher le loader
           if (_isLoadingMap)
             const Center(
               child: CircularProgressIndicator(
@@ -573,7 +608,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ],
             ),
 
-          // Barre de recherche
           Positioned(
             top: 40,
             left: 20,
@@ -662,7 +696,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-          // Boutons en bas à droite
           Positioned(
             bottom: 160,
             right: 20,
@@ -713,7 +746,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ),
             ),
 
-          // Barre de navigation en bas
           Positioned(
             left: 16,
             right: 16,
