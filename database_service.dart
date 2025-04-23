@@ -28,7 +28,7 @@ class DatabaseService {
 
     final userId = user.id;
 
-    // Insertion dans la table `personne` avec le user_id
+    
     final insertResponse = await supabase.from('personne').insert({
       'user_id': userId,
       'nom': nom,
@@ -39,7 +39,7 @@ class DatabaseService {
       'role': role,
     });
 
-    // Insertion dans la table `profiles` (lié aussi par user_id)
+    
     await supabase.from('profiles').insert({
       'user_id': userId,
       'profile_photo': null,
@@ -47,12 +47,23 @@ class DatabaseService {
       'description': 'Aucune description pour le moment',
     });
 
-    // Insertion dans la table `voyageur` (lié aussi par user_id)
+    
     await supabase.from('voyageur').insert({
       'user_id': userId,
       'idlieu': null,
       'idoffre': null,
       'idservice': null,
     });
+  }
+
+  Future<void> resetPassword(String email) async {
+    final supabase = Supabase.instance.client;
+    try {
+      await supabase.auth.resetPasswordForEmail(email); 
+    } catch (error) {
+      throw Exception(
+        "Erreur lors de la réinitialisation: ${error.toString()}",
+      );
+    }
   }
 }
