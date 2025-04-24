@@ -16,6 +16,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final SupabaseClient _supabase = Supabase.instance.client;
   bool _isFalseConnect = false;
+  bool _isResetPasswordMode =
+      false; 
+  bool _isLoading = false;
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -50,60 +53,47 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _resetPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Veuillez entrer votre adresse e-mail.")),
-      );
-      return;
-    }
-
-    try {
-      await DatabaseService().resetPassword(email);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Un e-mail de réinitialisation a été envoyé.")),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => ManualResetScreen(email: email)),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Une erreur est survenue. Veuillez réessayer.")),
-      );
-    }
-  }
-
-  void _showResetPasswordDialog() {
-    showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: Text('Réinitialiser le mot de passe'),
-            content: TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                hintText: 'Entrez votre email',
-              ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text('Annuler'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  _resetPassword();
-                },
-                child: Text('Envoyer'),
-              ),
-            ],
-          ),
+  final email = _emailController.text.trim();
+  if (email.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Veuillez entrer votre adresse e-mail.")),
     );
+    return;
   }
+
+  try {
+    setState(() => _isLoading = true); 
+    
+    await DatabaseService().resetPassword(email);
+
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Un OTP a été envoyé à $email. Vérifiez votre boîte de réception."),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 3),
+      ),
+    );
+
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ManualResetScreen(email: email),
+      ),
+    );
+
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Erreur lors de l'envoi du lien: ${e.toString()}"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  } finally {
+    if (mounted) setState(() => _isLoading = false); 
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -134,20 +124,29 @@ class _LoginScreenState extends State<LoginScreen> {
                           AppBar(
                             backgroundColor: Colors.transparent,
                             elevation: 0,
-                            leading: IconButton(
-                              icon: Icon(Icons.arrow_back, color: Colors.black),
-                              onPressed:
-                                  () => Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SplashScreen(),
+                            leading:
+                                _isResetPasswordMode
+                                    ? Container()
+                                    : IconButton(
+                                      icon: Icon(
+                                        Icons.arrow_back,
+                                        color: Colors.black,
+                                      ),
+                                      onPressed:
+                                          () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder:
+                                                  (context) => SplashScreen(),
+                                            ),
+                                          ),
                                     ),
-                                  ),
-                            ),
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Bienvenue',
+                            _isResetPasswordMode
+                                ? 'Réinitialisation'
+                                : 'Bienvenue',
                             style: TextStyle(
                               color: Color(0xFF0D8BFF),
                               fontWeight: FontWeight.bold,
@@ -156,7 +155,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           Text(
-                            'Heureux de vous revoir, Veuillez entrer vos identifiants.',
+                            _isResetPasswordMode
+                                ? 'Entrez votre email pour réinitialiser votre mot de passe'
+                                : 'Heureux de vous revoir, Veuillez entrer vos identifiants.',
                             textAlign: TextAlign.start,
                             style: TextStyle(
                               color: Colors.black,
@@ -190,50 +191,57 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 15),
-                          TextField(
-                            controller: _passwordController,
-                            obscureText: true,
-                            decoration: InputDecoration(
-                              labelText: 'Mot de passe',
-                              border: OutlineInputBorder(),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color:
-                                      !_isFalseConnect
-                                          ? Colors.blue
-                                          : Colors.red,
-                                  width: 2,
+                          if (!_isResetPasswordMode) ...[
+                            const SizedBox(height: 15),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              decoration: InputDecoration(
+                                labelText: 'Mot de passe',
+                                border: OutlineInputBorder(),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color:
+                                        !_isFalseConnect
+                                            ? Colors.blue
+                                            : Colors.red,
+                                    width: 2,
+                                  ),
                                 ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                  color:
-                                      !_isFalseConnect
-                                          ? Colors.grey
-                                          : Colors.red,
-                                  width: 1,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: GestureDetector(
-                              onTap: _showResetPasswordDialog,
-                              child: Text(
-                                'Mot de passe oublié ?',
-                                style: TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 15,
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                    color:
+                                        !_isFalseConnect
+                                            ? Colors.grey
+                                            : Colors.red,
+                                    width: 1,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isResetPasswordMode = true;
+                                  });
+                                },
+                                child: Text(
+                                  'Mot de passe oublié ?',
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 20),
                           ElevatedButton(
-                            onPressed: _login,
+                            onPressed:
+                                _isResetPasswordMode ? _resetPassword : _login,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF0D8BFF),
                               shape: RoundedRectangleBorder(
@@ -242,44 +250,67 @@ class _LoginScreenState extends State<LoginScreen> {
                               minimumSize: Size(double.infinity, 50),
                             ),
                             child: Text(
-                              'Connexion',
+                              _isResetPasswordMode
+                                  ? 'Envoyer le lien'
+                                  : 'Connexion',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 18,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 20),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SigninScreen(),
+                          if (_isResetPasswordMode) ...[
+                            const SizedBox(height: 20),
+                            Align(
+                              alignment: Alignment.center,
+                              child: GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _isResetPasswordMode = false;
+                                  });
+                                },
+                                child: Text(
+                                  'Retour à la connexion',
+                                  style: TextStyle(
+                                    color: Color(0xFF0D8BFF),
+                                    fontSize: 16,
+                                  ),
                                 ),
-                              );
-                            },
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Vous n’avez pas de compte? ',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'Inscrivez-vous !',
-                                    style: TextStyle(
-                                      color: Color(0xFF0D8BFF),
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
                               ),
                             ),
-                          ),
+                          ] else ...[
+                            const SizedBox(height: 20),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SigninScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text.rich(
+                                TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Vous n’avez pas de compte? ',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: 'Inscrivez-vous !',
+                                      style: TextStyle(
+                                        color: Color(0xFF0D8BFF),
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
                           const Spacer(),
                         ],
                       ),
