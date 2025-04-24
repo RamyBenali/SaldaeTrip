@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/animation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
@@ -17,11 +18,12 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-          secondary: Colors.purpleAccent,
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+          secondary: Colors.white,
         ),
         useMaterial3: true,
+        textTheme: GoogleFonts.notoSansTextTheme(Theme.of(context).textTheme),
       ),
       home: const ChatBotScreen(),
     );
@@ -35,16 +37,17 @@ class ChatBotScreen extends StatefulWidget {
   _ChatBotScreenState createState() => _ChatBotScreenState();
 }
 
-class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProviderStateMixin {
+class _ChatBotScreenState extends State<ChatBotScreen>
+    with SingleTickerProviderStateMixin {
   final List<Message> _messages = [];
   final TextEditingController _controller = TextEditingController();
   bool _isLoading = false;
   final ScrollController _scrollController = ScrollController();
   late AnimationController _animationController;
   late Animation<double> _animation;
+  DateTime _lastRequestTime = DateTime.now();
 
-  // Configuration pour DeepSeek
-  final String _apiKey = 'sk-eb2e998ac44448afa1e902c5770ae4dd'; // Remplacez par votre clé API DeepSeek
+  final String _apiKey = 'sk-eb2e998ac44448afa1e902c5770ae4dd';
   final String _model = "deepseek-chat";
   final String _apiUrl = "https://api.deepseek.com/v1/chat/completions";
 
@@ -53,15 +56,28 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 1500),
+      lowerBound: 0.2,
+      upperBound: 0.8,
     );
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
-    );
+    _animation = Tween<double>(
+      begin: 0.2,
+      end: 0.8,
+    ).animate(_animationController);
     _animationController.repeat(reverse: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _sendAutoIntroduction();
+    });
+  }
+
+  void _sendAutoIntroduction() async {
+    final intro = await _getAIResponse(
+      "Présentation en 20 mots strictement touristiques",
+    );
+    if (mounted) {
+      setState(() => _messages.insert(0, Message(intro, false)));
+    }
   }
 
   @override
@@ -77,49 +93,97 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
       final response = await http.post(
         Uri.parse(_apiUrl),
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
           'Authorization': 'Bearer $_apiKey',
         },
-        body: jsonEncode({
-          "model": _model,
-          "messages": [
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": prompt}
-          ],
-          "temperature": 0.7,
-          "max_tokens": 2048, // Augmenté pour DeepSeek
-          "stream": false,
-        }),
+        body: utf8.encode(
+          jsonEncode({
+            "model": _model,
+            "messages": [
+              {
+                "role": "system",
+                "content":
+                    "Vous êtes Saldae Trip Agent, guide expert de Béjaïa. Règles :\n"
+                    "- Langage professionnel et courtois\n"
+                    "- Contenu exclusivement touristique\n"
+                    "- Structure claire avec emojis pertinents\n"
+                    "- Maximum 100 mots\n"
+                    "- Aucun caractère spécial",
+              },
+              {"role": "user", "content": prompt},
+            ],
+            "temperature": 0.7,
+            "max_tokens": 1024,
+          }),
+        ),
       );
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['choices'][0]['message']['content'];
-      } else {
-        return "❌ Erreur ${response.statusCode}: ${response.body}";
-      }
+      return response.statusCode == 200
+          ? _processResponse(
+            json.decode(
+              utf8.decode(response.bodyBytes),
+            )['choices'][0]['message']['content'],
+          )
+          : "❌ Erreur ${response.statusCode}";
     } catch (e) {
-      return "🔌 Erreur de connexion: ${e.toString()}";
+      return "🔌 Problème de connexion";
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
+  }
+
+  String _processResponse(String response) {
+    final filtered =
+        response
+            .replaceAllMapped(RegExp(r'&#?\w+;|A[©~®]'), (m) {
+              switch (m.group(0)) {
+                case 'A©':
+                  return 'é';
+                case 'A~a':
+                  return 'ïa';
+                case 'A~':
+                  return 'ã';
+                case 'A®':
+                  return 'ê';
+                default:
+                  return '';
+              }
+            })
+            .replaceAll('BA©jaA~a', 'Béjaïa')
+            .replaceAll('dA©couvrir', 'découvrir')
+            .replaceAll(
+              RegExp(r'\b(zebi|wesh|nique|merde)\b', caseSensitive: false),
+              '****',
+            )
+            .replaceAll(
+              RegExp(r'[^\p{L}\p{M}\p{N}\p{P}\p{S}\p{Z}]', unicode: true),
+              '',
+            )
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+
+    return filtered;
   }
 
   void _sendMessage() async {
     if (_controller.text.isEmpty || _isLoading) return;
+    if (DateTime.now().difference(_lastRequestTime).inSeconds < 2) return;
 
+    _lastRequestTime = DateTime.now();
     final userMessage = _controller.text;
     _controller.clear();
 
-    setState(() {
-      _messages.insert(0, Message(userMessage, true));
-    });
+    if (mounted) {
+      setState(() => _messages.insert(0, Message(userMessage, true)));
+    }
 
     final aiResponse = await _getAIResponse(userMessage);
 
-    setState(() {
-      _messages.insert(0, Message(aiResponse, false));
-    });
+    if (mounted) {
+      setState(() => _messages.insert(0, Message(aiResponse, false)));
+    }
     _scrollToBottom();
   }
 
@@ -142,7 +206,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("DeepSeek Assistant"),
+        title: Text("Saldae Trip Agent", style: GoogleFonts.notoSans()),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -156,28 +220,26 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
         actions: [
           AnimatedBuilder(
             animation: _animation,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: _animation.value * 2 * pi,
-                child: child,
-              );
-            },
-            child: IconButton(
-              icon: const Icon(Icons.auto_awesome),
-              onPressed: () {},
-            ),
+            builder:
+                (ctx, child) => Transform.rotate(
+                  angle: _animation.value * 2 * pi,
+                  child: IconButton(
+                    icon: const Icon(Icons.travel_explore),
+                    onPressed: () {},
+                  ),
+                ),
           ),
         ],
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
             colors: [
               colors.surface.withOpacity(0.8),
               colors.surface.withOpacity(0.5),
             ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
         ),
         child: Column(
@@ -186,9 +248,8 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
               child: ListView.builder(
                 reverse: true,
                 controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
                 itemCount: _messages.length,
-                itemBuilder: (ctx, index) => _buildMessage(_messages[index], index),
+                itemBuilder: (ctx, index) => _buildMessage(_messages[index]),
               ),
             ),
             Padding(
@@ -206,12 +267,13 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
                       Expanded(
                         child: TextField(
                           controller: _controller,
-                          style: TextStyle(color: colors.onSurface),
+                          style: GoogleFonts.notoSans(color: colors.onSurface),
                           decoration: InputDecoration(
-                            hintText: "Tapez votre message...",
-                            hintStyle: TextStyle(color: colors.onSurface.withOpacity(0.5)),
+                            hintText: "Posez votre question sur Béjaïa...",
                             border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                            ),
                           ),
                           onSubmitted: (_) => _sendMessage(),
                         ),
@@ -221,10 +283,7 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
                         margin: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [
-                              colors.primary,
-                              colors.secondary,
-                            ],
+                            colors: [colors.primary, colors.secondary],
                           ),
                           shape: BoxShape.circle,
                           boxShadow: [
@@ -240,16 +299,13 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
                           onTap: _sendMessage,
                           child: Padding(
                             padding: const EdgeInsets.all(12.0),
-                            child: _isLoading
-                                ? SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: colors.onPrimary,
-                              ),
-                            )
-                                : Icon(Icons.send, color: colors.onPrimary),
+                            child:
+                                _isLoading
+                                    ? CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: colors.onPrimary,
+                                    )
+                                    : Icon(Icons.send, color: colors.onPrimary),
                           ),
                         ),
                       ),
@@ -264,93 +320,91 @@ class _ChatBotScreenState extends State<ChatBotScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildMessage(Message msg, int index) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+  Widget _buildMessage(Message msg) {
+    final colors = Theme.of(context).colorScheme;
 
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 500),
-      child: Container(
-        key: ValueKey('${msg.text}_$index'),
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
-          children: [
-            if (!msg.isUser)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.elasticOut,
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: colors.secondary.withOpacity(0.2),
-                  child: Icon(Icons.auto_awesome, size: 18, color: colors.secondary),
-                ),
-              ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment:
+            msg.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        children: [
+          if (!msg.isUser) ...[
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: colors.secondary.withOpacity(0.2),
+              child: Icon(Icons.flag, size: 18, color: colors.secondary),
+            ),
             const SizedBox(width: 8),
-            Flexible(
-              child: Column(
-                crossAxisAlignment: msg.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                children: [
-                  if (!msg.isUser)
-                    Text(
-                      'DeepSeek',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colors.secondary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: msg.isUser
-                            ? [colors.primary, colors.primary.withOpacity(0.7)]
-                            : [colors.surfaceVariant, colors.surfaceVariant.withOpacity(0.7)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.only(
-                        topLeft: const Radius.circular(12),
-                        topRight: const Radius.circular(12),
-                        bottomLeft: Radius.circular(msg.isUser ? 12 : 0),
-                        bottomRight: Radius.circular(msg.isUser ? 0 : 12),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      msg.text,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: msg.isUser ? colors.onPrimary : colors.onSurface,
-                      ),
+          ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment:
+                  msg.isUser
+                      ? CrossAxisAlignment.end
+                      : CrossAxisAlignment.start,
+              children: [
+                if (!msg.isUser)
+                  Text(
+                    'Saldae Trip Agent',
+                    style: GoogleFonts.notoSans(
+                      color: colors.secondary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
                     ),
                   ),
-                ],
-              ),
-            ),
-            if (msg.isUser) const SizedBox(width: 8),
-            if (msg.isUser)
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 500),
-                curve: Curves.elasticOut,
-                child: CircleAvatar(
-                  radius: 16,
-                  backgroundColor: colors.primary.withOpacity(0.2),
-                  child: Icon(Icons.person, size: 18, color: colors.primary),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors:
+                          msg.isUser
+                              ? [
+                                colors.primary,
+                                colors.primary.withOpacity(0.7),
+                              ]
+                              : [
+                                colors.surfaceVariant,
+                                colors.surfaceVariant.withOpacity(0.7),
+                              ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      topLeft: const Radius.circular(12),
+                      topRight: const Radius.circular(12),
+                      bottomLeft: Radius.circular(msg.isUser ? 12 : 0),
+                      bottomRight: Radius.circular(msg.isUser ? 0 : 12),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  child: Text(
+                    msg.text,
+                    style: GoogleFonts.notoSans(
+                      fontSize: 15,
+                      color: msg.isUser ? colors.onPrimary : colors.onSurface,
+                    ),
+                  ),
                 ),
-              ),
+              ],
+            ),
+          ),
+          if (msg.isUser) ...[
+            const SizedBox(width: 8),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: colors.primary.withOpacity(0.2),
+              child: Icon(Icons.person, size: 18, color: colors.primary),
+            ),
           ],
-        ),
+        ],
       ),
     );
   }
