@@ -5,23 +5,27 @@ import 'offre_details.dart';
 
 final supabase = Supabase.instance.client;
 
-class OffreRestaurantPage extends StatefulWidget {
+class OffrePlagePage extends StatefulWidget {
   @override
-  _OffreRestaurantPageState createState() => _OffreRestaurantPageState();
+  _OffrePlagePageState createState() => _OffrePlagePageState();
 }
 
-class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
+class _OffrePlagePageState extends State<OffrePlagePage> {
   List<Offre> offres = [];
   bool isLoading = true;
   String searchQuery = '';
   String? selectedVille;
   double? selectedTarifMax;
   final ScrollController _scrollController = ScrollController();
+  bool isFree = true;
 
-  // Couleurs thématiques pour les restaurants
-  final Color primaryColor = Color(0xFFC5283D); // Rouge bordeaux
-  final Color secondaryColor = Color(0xFFE9724C); // Saumon
-  final Color accentColor = Color(0xFFF9C80E); // Jaune doré
+  final Color primaryColor = Color(0xFF1E88E5);  // Bleu vif (océan)
+  final Color secondaryColor = Color(0xFF4FC3F7); // Bleu clair (vagues)
+  final Color accentColor = Color(0xFFFFD54F);    // Jaune doré (sable)
+
+  final Color darkBlue = Color(0xFF0D47A1);      // Bleu profond
+  final Color lightSand = Color(0xFFFFF176);     // Sable clair
+  final Color whiteFoam = Color(0xFFE3F2FD);     // Écume
 
   @override
   void initState() {
@@ -34,13 +38,14 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
       final response = await supabase
           .from('offre')
           .select()
-          .eq('categorie', 'Restaurant');
+          .eq('categorie', 'Plage');
       final data = response as List;
 
       setState(() {
         offres = data.map((json) => Offre.fromJson(json)).toList();
         isLoading = false;
       });
+
     } catch (e) {
       print("Erreur lors du fetch : $e");
       setState(() {
@@ -85,7 +90,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
           end: Alignment.bottomCenter,
           colors: [
             primaryColor.withOpacity(0.95),
-            primaryColor.withOpacity(0.9),
+            secondaryColor.withOpacity(0.9),
           ],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -112,7 +117,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
               ),
               SizedBox(height: 16),
               Text(
-                'Filtrer les restaurants',
+                'Filtrer les plages',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -191,13 +196,9 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                   setState(() {});
                   Navigator.pop(context);
                 },
-                style: ElevatedButton.styleFrom(
+                style:  ElevatedButton.styleFrom(
                   backgroundColor: accentColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
+                  foregroundColor: darkBlue,
                 ),
                 child: Text(
                   'Appliquer les filtres',
@@ -254,7 +255,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                   ),
                   child: TextField(
                     decoration: InputDecoration(
-                      hintText: 'Rechercher un restaurant...',
+                      hintText: 'Rechercher une plage...',
                       hintStyle: TextStyle(color: Colors.grey[600]),
                       prefixIcon: Icon(Icons.search, color: primaryColor),
                       border: InputBorder.none,
@@ -372,12 +373,9 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                                   height: 180,
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
+                                      colors: [Colors.transparent, primaryColor.withOpacity(0.3)],
                                       begin: Alignment.topCenter,
                                       end: Alignment.bottomCenter,
-                                      colors: [
-                                        primaryColor.withOpacity(0.7),
-                                        secondaryColor.withOpacity(0.7),
-                                      ],
                                     ),
                                   ),
                                   child: Center(
@@ -393,18 +391,13 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                               },
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  height: 180,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        primaryColor,
-                                        secondaryColor,
-                                      ],
-                                    ),
+                                  color: whiteFoam,
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.umbrella, color: accentColor),
+                                      Text('Plage de...', style: TextStyle(color: darkBlue)),
+                                    ],
                                   ),
-                                  child: Icon(Icons.restaurant, color: Colors.white, size: 50),
                                 );
                               },
                             ),
@@ -432,7 +425,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.restaurant_menu, size: 16, color: Colors.white),
+                                    Icon(Icons.beach_access, size: 16, color: Colors.white),
                                     SizedBox(width: 4),
                                     Text(
                                       offre.categorie,
@@ -508,12 +501,16 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                             SizedBox(height: 8),
                             Row(
                               children: [
-                                Icon(Icons.attach_money, size: 16, color: Colors.green[700]),
+                                Icon(
+                                  offre.tarifs?.isEmpty ?? true ? Icons.money_off : Icons.attach_money,
+                                  size: 16,
+                                  color: offre.tarifs?.isEmpty ?? true ? Colors.grey[600] : Colors.green[700],
+                                ),
                                 SizedBox(width: 4),
                                 Text(
-                                  offre.tarifs,
+                                  offre.tarifs?.isEmpty ?? true ? 'Entrée gratuite' : offre.tarifs!,
                                   style: TextStyle(
-                                    color: Colors.green[700],
+                                    color: offre.tarifs?.isEmpty ?? true ? Colors.grey[600] : Colors.green[700],
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -567,6 +564,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
     final filteredOffres = offres.where((offre) {
@@ -595,7 +593,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
       appBar: AppBar(
         centerTitle: false,
         title: Text(
-          'Restaurants',
+          'Plages 🏖️',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -644,7 +642,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                       Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
                       SizedBox(height: 16),
                       Text(
-                        'Aucun restaurant trouvé',
+                        'Aucune plage trouvé',
                         style: TextStyle(
                           color: Colors.grey[600],
                           fontSize: 18,

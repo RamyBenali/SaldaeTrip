@@ -14,17 +14,27 @@ class _OffresPageState extends State<OffresPage> {
   List<Offre> offres = [];
   bool isLoading = true;
   String searchQuery = '';
-  String? selectedCategorie;
   String? selectedVille;
+  String? selectedCategorie;
   double? selectedTarifMax;
+  final ScrollController _scrollController = ScrollController();
+
+  // Couleurs par catégorie cohérentes avec votre DA
+  final Map<String, Color> categoryColors = {
+    'Hôtel': Color(0xFF0367A6),
+    'Restaurant': Color(0xFFC5283D),
+    'Loisirs': Color(0xFF6A4C93),
+    'Plage': Color(0xFF1E88E5),
+    'Point d\'intérêt': Color(0xFF4CAF50),
+  };
 
   @override
   void initState() {
     super.initState();
-    fetchOffres();
+    fetchAllOffres();
   }
 
-  Future<void> fetchOffres() async {
+  Future<void> fetchAllOffres() async {
     try {
       final response = await supabase.from('offre').select();
       final data = response as List;
@@ -34,7 +44,7 @@ class _OffresPageState extends State<OffresPage> {
         isLoading = false;
       });
     } catch (e) {
-      print("Erreur lors du fetch : $e");
+      print("Erreur lors de la récupération : $e");
       setState(() {
         isLoading = false;
       });
@@ -50,233 +60,543 @@ class _OffresPageState extends State<OffresPage> {
 
       final data = response as List;
       if (data.isNotEmpty) {
-        final totalRating = data.fold(0.0, (sum, element) => sum + (element['note'] as num).toDouble());
-        return totalRating / data.length;
+        final total = data.fold(0.0, (sum, item) => sum + (item['note'] as num).toDouble());
+        return total / data.length;
       }
       return 0.0;
     } catch (e) {
-      print("Erreur lors de la récupération des avis : $e");
+      print("Erreur avis : $e");
       return 0.0;
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final filteredOffres = offres.where((offre) {
-      final query = searchQuery.toLowerCase();
-      final matchQuery = offre.nom.toLowerCase().contains(query) ||
-          offre.categorie.toLowerCase().contains(query) ||
-          offre.adresse.toLowerCase().contains(query);
-      final matchCategorie = selectedCategorie == null || offre.categorie == selectedCategorie;
-      final matchVille = selectedVille == null || offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
-      final matchTarif = selectedTarifMax == null || (() {
-        final regex = RegExp(r'(\d+)(?=\s*-|\s*D|\s*da|\s*$)');
-        final match = regex.firstMatch(offre.tarifs);
-        if (match == null) return true;
-        final firstNumber = int.tryParse(match.group(0) ?? '0');
-        return firstNumber == null || firstNumber <= selectedTarifMax!;
-      })();
-      return matchQuery && matchCategorie && matchVille && matchTarif;
-    }).toList();
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        centerTitle: true,
-        title: const Text('Toutes les Offres', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blueAccent,
-        elevation: 0,
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16.0),
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
               decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Rechercher une offre...',
-                        prefixIcon: Icon(Icons.search, color: Colors.white),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(30),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          searchQuery = value;
-                        });
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(Icons.filter_alt_outlined, color: Colors.white),
-                    onPressed: () {
-                      showModalBottomSheet(
-                        context: context,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                        ),
-                        builder: (context) => buildFilterSheet(),
-                      );
-                    },
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Rechercher...',
+                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  prefixIcon: Icon(Icons.search, color: Colors.blue[800]),
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                ),
+                onChanged: (value) => setState(() => searchQuery = value),
+              ),
             ),
-            const SizedBox(height: 16),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: filteredOffres.length,
-              itemBuilder: (context, index) {
-                final offre = filteredOffres[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OffreDetailPage(offre: offre),
-                      ),
-                    );
-                  },
-                  child: Card(
-                    margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    elevation: 5,
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16.0),
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(offre.image, width: 60, height: 60, fit: BoxFit.cover),
-                      ),
-                      title: Text(offre.nom, style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                      Text('${offre.categorie} - ${offre.tarifs}'),
-                      FutureBuilder<double>(
-                        future: getAverageRating(offre.id), // Calcul de la moyenne des avis
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Text('Chargement...');
-                          }
-                          if (snapshot.hasError) {
-                            return Text('Erreur');
-                          }
-                          final averageRating = snapshot.data ?? 0.0;
-                          return Row(
-                            children: [
-                              Text(
-                                averageRating.toStringAsFixed(1), // Affichage de la moyenne avec 1 décimale
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              Icon(Icons.star, color: Colors.yellow, size: 16),
-                            ],
-                          );
-                        },
-                      ),
-                      ],
+          ),
+          SizedBox(width: 10),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.blue[800],
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 6,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: Icon(Icons.filter_list, color: Colors.white, size: 22),
+              onPressed: _showFilterSheet,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFilterSheet() {
+    final List<String> villes = ['Béjaïa', 'Melbou', 'Tichy', 'Akbou'];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 50,
+                    height: 4,
+                    margin: EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
-                );
-              },
+                Text(
+                  'Filtrer les offres',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[800],
+                  ),
+                ),
+                SizedBox(height: 20),
+                _buildFilterField(
+                  label: 'Catégorie',
+                  value: selectedCategorie,
+                  items: categoryColors.keys.toList(),
+                  onChanged: (value) => setState(() => selectedCategorie = value),
+                  icon: (cat) => Container(
+                    width: 12,
+                    height: 12,
+                    margin: EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      color: categoryColors[cat],
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                _buildFilterField(
+                  label: 'Ville',
+                  value: selectedVille,
+                  items: villes,
+                  onChanged: (value) => setState(() => selectedVille = value),
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Tarif maximum (DA)',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.attach_money),
+                  ),
+                  onChanged: (value) => setState(() {
+                    selectedTarifMax = double.tryParse(value);
+                  }),
+                ),
+                SizedBox(height: 25),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedCategorie = null;
+                            selectedVille = null;
+                            selectedTarifMax = null;
+                          });
+                          Navigator.pop(context);
+                        },
+                        child: Text('Réinitialiser'),
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[800],
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text('Appliquer'),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 10),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget buildFilterSheet() {
-    List<String> villes = ['Béjaïa', 'Béjaïa centre', 'Melbou', 'Tichy', 'Elkseur', 'Akbou'];
-    List<String> categories = offres.map((o) => o.categorie).toSet().where((c) => c.isNotEmpty).toList();
+  Widget _buildFilterField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    Widget Function(String)? icon,
+  }) {
+    return DropdownButtonFormField<String>(
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(),
+      ),
+      value: value,
+      items: items.map((item) {
+        return DropdownMenuItem(
+          value: item,
+          child: Row(
+            children: [
+              if (icon != null) icon(item),
+              Text(item),
+            ],
+          ),
+        );
+      }).toList(),
+      onChanged: onChanged,
+    );
+  }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+  Widget _buildOffreCard(Offre offre) {
+    // Couleur par défaut si la catégorie n'est pas trouvée
+    final categoryColor = categoryColors[offre.categorie] ?? Colors.grey[600];
+
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+      elevation: 1,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(15),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OffreDetailPage(offre: offre)),
+          );
+        },
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+            children: [
+              // Image de l'offre
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  color: Colors.grey[200],
+                  child: (offre.image != null && offre.image.isNotEmpty)
+                      ? Image.network(
+                    offre.image,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return _buildPlaceholderIcon(offre.categorie ?? '');
+                    },
+                  )
+                      : _buildPlaceholderIcon(offre.categorie ?? ''),
+                ),
+              ),
+              SizedBox(width: 12),
+              // Détails texte
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Nom et catégorie
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            offre.nom ?? 'Nom non disponible',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: categoryColor?.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            offre.categorie ?? 'Autre',
+                            style: TextStyle(
+                              color: categoryColor,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 6),
+                    // Adresse
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                        SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            offre.adresse ?? 'Adresse non disponible',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 6),
+                    // Tarif et note
+                    Row(
+                      children: [
+                        // Tarif
+                        Icon(
+                          (offre.tarifs == null || offre.tarifs!.isEmpty)
+                              ? Icons.money_off
+                              : Icons.attach_money,
+                          size: 14,
+                          color: Colors.grey[600],
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          (offre.tarifs == null || offre.tarifs!.isEmpty)
+                              ? 'Gratuit'
+                              : offre.tarifs!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[800],
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Spacer(),
+                        // Note
+                        Icon(Icons.star, size: 14, color: Colors.amber),
+                        FutureBuilder<double>(
+                          future: getAverageRating(offre.id ?? 0),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return Container(
+                                  width: 30,
+                                  child: LinearProgressIndicator());
+                            }
+                            final rating = snapshot.data ?? 0.0;
+                            return Text(
+                              rating.toStringAsFixed(1),
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholderIcon(String category) {
+    IconData icon;
+    switch (category) {
+      case 'Hôtel':
+        icon = Icons.hotel;
+        break;
+      case 'Restaurant':
+        icon = Icons.restaurant;
+        break;
+      case 'Plage':
+        icon = Icons.beach_access;
+        break;
+      default:
+        icon = Icons.place;
+    }
+    return Center(
+      child: Icon(icon, size: 28, color: Colors.grey[400]),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+          SizedBox(height: 16),
           Text(
-            'Filtres',
+            'Aucune offre trouvée',
             style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.blue,
+              fontSize: 18,
+              color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: 'Catégorie',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            items: villes.map((v) {
-              return DropdownMenuItem(value: v, child: Text(v));
-            }).toList(),
-            onChanged: (value) => setState(() => selectedCategorie = value),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            decoration: InputDecoration(
-              labelText: 'Ville',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            items: villes.map((v) {
-              return DropdownMenuItem(value: v, child: Text(v));
-            }).toList(),
-            onChanged: (value) => setState(() => selectedVille = value),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Tarif max en DA',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onChanged: (value) {
+          SizedBox(height: 8),
+          TextButton(
+            onPressed: () {
               setState(() {
-                selectedTarifMax = double.tryParse(value);
+                searchQuery = '';
+                selectedVille = null;
+                selectedCategorie = null;
+                selectedTarifMax = null;
               });
             },
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {}); // Appliquer les filtres
-              Navigator.pop(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              padding: EdgeInsets.symmetric(vertical: 14, horizontal: 32),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+            child: Text(
+              'Réinitialiser les filtres',
+              style: TextStyle(color: Colors.blue[800]),
             ),
-            child: Text('Appliquer les filtres'),
-          )
+          ),
         ],
       ),
     );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredOffres = offres.where((offre) {
+      // Filtre recherche
+      final matchesSearch = searchQuery.isEmpty ||
+          offre.nom.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          offre.adresse.toLowerCase().contains(searchQuery.toLowerCase());
+
+      // Filtre ville
+      final matchesVille = selectedVille == null ||
+          offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
+
+      // Filtre catégorie
+      final matchesCategory = selectedCategorie == null ||
+          offre.categorie.toLowerCase() == selectedCategorie!.toLowerCase();
+
+      // Filtre tarif
+      final matchesTarif = selectedTarifMax == null ||
+          offre.tarifs!.isEmpty ?? true ||
+          _extractFirstNumber(offre.tarifs!) <= selectedTarifMax!;
+
+      return matchesSearch && matchesVille && matchesCategory && matchesTarif;
+    }).toList();
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text(
+          'Toutes les offres',
+          style: TextStyle(
+            color: Colors.blue[900],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.blue[800]),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator(color: Colors.blue[800]))
+          : Column(
+        children: [
+          _buildSearchBar(),
+          if (selectedVille != null || selectedCategorie != null || selectedTarifMax != null)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    if (selectedCategorie != null)
+                      Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Chip(
+                          label: Text(selectedCategorie!),
+                          backgroundColor:
+                          categoryColors[selectedCategorie]?.withOpacity(0.1),
+                          deleteIcon: Icon(Icons.close, size: 16),
+                          onDeleted: () => setState(() => selectedCategorie = null),
+                        ),
+                      ),
+                    if (selectedVille != null)
+                      Padding(
+                        padding: EdgeInsets.only(right: 8),
+                        child: Chip(
+                          label: Text('Ville: $selectedVille'),
+                          backgroundColor: Colors.blue[50],
+                          deleteIcon: Icon(Icons.close, size: 16),
+                          onDeleted: () => setState(() => selectedVille = null),
+                        ),
+                      ),
+                    if (selectedTarifMax != null)
+                      Chip(
+                        label: Text('Max: ${selectedTarifMax!.toInt()} DA'),
+                        backgroundColor: Colors.green[50],
+                        deleteIcon: Icon(Icons.close, size: 16),
+                        onDeleted: () => setState(() => selectedTarifMax = null),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: fetchAllOffres,
+              color: Colors.blue[800],
+              child: filteredOffres.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                controller: _scrollController,
+                itemCount: filteredOffres.length,
+                itemBuilder: (context, index) =>
+                    _buildOffreCard(filteredOffres[index]),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  double _extractFirstNumber(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return 0.0;
+
+      final match = RegExp(r'(\d+)').firstMatch(tarifs);
+      if (match == null || match.group(0) == null) return 0.0;
+
+      final numberString = match.group(0)!;
+      return double.tryParse(numberString) ?? 0.0;
+    } catch (e) {
+      print("Erreur d'extraction du tarif: $e");
+      return 0.0;
+    }
   }
 }
