@@ -10,6 +10,7 @@ class Offre {
   final String offreFb;
   final double latitude;
   final double longitude;
+  final double noteMoyenne;
 
   Offre({
     required this.id,
@@ -23,6 +24,7 @@ class Offre {
     required this.offreFb,
     required this.latitude,
     required this.longitude,
+    required this.noteMoyenne,
   });
 
   factory Offre.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class Offre {
       offreFb: json['offre_fb'] ?? '',
       latitude: json['latitude']?.toDouble() ?? 0.0,
       longitude: json['longitude']?.toDouble() ?? 0.0,
+      noteMoyenne: json['note_moyenne']?.toDouble() ?? 0.0,
     );
   }
 
