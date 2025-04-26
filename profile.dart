@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'EditprofilePage.dart';
@@ -17,6 +19,11 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final Color primaryColor = Color(0xFF4361EE);
+  final Color secondaryColor = Color(0xFF1E40AF);
+  final Color accentColor = Color(0xFFEC4899);
+  final Color backgroundColor = Color(0xFFF9FAFB);
+  final Color cardColor = Colors.white;
   String? profileImageUrl;
   String? bannerImageUrl;
   int _selectedIndex = 3;
@@ -434,70 +441,78 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildBottomNavBar() {
-    return Positioned(
-      left: 16,
-      right: 16,
-      bottom: 16,
-      child: Container(
-        height: 60,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(30),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              spreadRadius: 2,
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 20,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+          child: Container(
+            height: 65,
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9)),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(Icons.home_rounded, 'Accueil', 0),
+                _buildNavItem(Icons.map_rounded, 'Carte', 1),
+                _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
+                _buildNavItem(Icons.person_rounded, 'Profil', 3),
+              ],
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _buildNavItem(0, Icons.home, "Accueil"),
-            _buildNavItem(1, Icons.map, "Carte"),
-            _buildNavItem(2, Icons.favorite, "Favoris"),
-            _buildNavItem(3, Icons.person, "Profil"),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _selectedIndex == index;
 
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    bool isSelected = _selectedIndex == index;
     return GestureDetector(
       onTap: () => _onItemTapped(index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color:
-                  isSelected
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.transparent,
-            ),
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.blue : Colors.grey,
-              size: 22,
-            ),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color:
+          isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+        ),
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? primaryColor : Colors.grey,
+                size: isSelected ? 26 : 24,
+              ),
+              if (isSelected) ...[
+                SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              color: isSelected ? Colors.blue : Colors.grey,
-              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -801,7 +816,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 100),
+                        SizedBox(height: 20),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -960,10 +975,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
             ),
           ),
-
-          _buildBottomNavBar(),
         ],
       ),
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 }

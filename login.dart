@@ -16,9 +16,10 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final SupabaseClient _supabase = Supabase.instance.client;
   bool _isFalseConnect = false;
-  bool _isResetPasswordMode =
-      false; 
+  bool _isResetPasswordMode = false;
   bool _isLoading = false;
+  bool _obscurePassword = true;
+
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -193,31 +194,51 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           if (!_isResetPasswordMode) ...[
                             const SizedBox(height: 15),
-                            TextField(
+                            TextFormField(
                               controller: _passwordController,
-                              obscureText: true,
+                              obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                labelText: 'Mot de passe',
-                                border: OutlineInputBorder(),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color:
-                                        !_isFalseConnect
-                                            ? Colors.blue
-                                            : Colors.red,
-                                    width: 2,
+                                labelText: 'New Password',
+                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                                    color: Colors.grey,
                                   ),
+                                  onPressed: () {
+                                    setState(() => _obscurePassword = !_obscurePassword);
+                                  },
+                                ),focusedBorder: OutlineInputBorder(
+                                borderSide: BorderSide(
+                                  color:
+                                  !_isFalseConnect
+                                      ? Colors.blue
+                                      : Colors.red,
+                                  width: 2,
                                 ),
+                              ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color:
-                                        !_isFalseConnect
-                                            ? Colors.grey
-                                            : Colors.red,
+                                    !_isFalseConnect
+                                        ? Colors.grey
+                                        : Colors.red,
                                     width: 1,
                                   ),
                                 ),
                               ),
+
+                              validator: (value) {
+                                if (value == null || value.isEmpty) return 'Password is required';
+                                if (value.length < 8) return 'Minimum 8 characters';
+                                if (!value.contains(RegExp(r'[A-Z]')))
+                                  return 'Include uppercase letter';
+                                if (!value.contains(RegExp(r'[0-9]'))) return 'Include number';
+                                if (!value.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+                                  return 'Include special character';
+                                }
+                                return null;
+                              },
                             ),
                             const SizedBox(height: 10),
                             Align(

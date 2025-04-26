@@ -34,7 +34,7 @@ class _FavorisPageState extends State<FavorisPage>
   late AnimationController _animationController;
   late Animation<double> _animation;
 
-  final Color primaryColor = Color(0xFF3B82F6);
+  final Color primaryColor = Color(0xFF4361EE);
   final Color secondaryColor = Color(0xFF1E40AF);
   final Color accentColor = Color(0xFFEC4899);
   final Color backgroundColor = Color(0xFFF9FAFB);
@@ -1128,7 +1128,7 @@ class _FavorisPageState extends State<FavorisPage>
                 ),
               ),
               SizedBox(height: 8),
-                Slider(
+              Slider(
                 value: selectedTarifMax ?? 5000,
                 min: 500,
                 max: 10000,
@@ -1141,7 +1141,7 @@ class _FavorisPageState extends State<FavorisPage>
                   selectedTarifMax = value;
                   });
                 },
-                ),
+              ),
               SizedBox(height: 20),
               Text(
                 'Catégorie',

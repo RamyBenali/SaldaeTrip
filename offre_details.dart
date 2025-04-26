@@ -37,12 +37,12 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       if (user == null) return;
 
       final response =
-          await supabase
-              .from('ajouterfavoris')
-              .select()
-              .eq('idoffre', idOffre)
-              .eq('user_id', user.id)
-              .maybeSingle();
+      await supabase
+          .from('ajouterfavoris')
+          .select()
+          .eq('idoffre', idOffre)
+          .eq('user_id', user.id)
+          .maybeSingle();
 
       if (response != null) {
         setState(() {
@@ -186,11 +186,11 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   Future<void> incrementVisites() async {
     try {
       final response =
-          await supabase
-              .from('voyageur_offre')
-              .select('nombres_visites')
-              .eq('idoffre', widget.offre.id)
-              .single();
+      await supabase
+          .from('voyageur_offre')
+          .select('nombres_visites')
+          .eq('idoffre', widget.offre.id)
+          .single();
 
       final currentVisites = response['nombres_visites'] ?? 0;
 
@@ -237,9 +237,9 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
               MaterialPageRoute(
                 builder:
                     (context) => MapScreen(
-                      initialLocation: LatLng(offre.latitude, offre.longitude),
-                      markerTitle: offre.nom,
-                    ),
+                  initialLocation: LatLng(offre.latitude, offre.longitude),
+                  markerTitle: offre.nom,
+                ),
               ),
             );
           },
@@ -280,9 +280,9 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                       setState(() {
                         isFavori = !isFavori;
                         favoriMessage =
-                            isFavori
-                                ? "Ajouté aux favoris"
-                                : "Retiré des favoris";
+                        isFavori
+                            ? "Ajouté aux favoris"
+                            : "Retiré des favoris";
                         showFavoriMessage = true;
                       });
 
@@ -468,12 +468,12 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                               children: [
                                 CircleAvatar(
                                   backgroundImage:
-                                      profilePhoto != null
-                                          ? NetworkImage(profilePhoto as String)
-                                          : const AssetImage(
-                                                'assets/default_avatar.png',
-                                              )
-                                              as ImageProvider,
+                                  profilePhoto != null
+                                      ? NetworkImage(profilePhoto as String)
+                                      : const AssetImage(
+                                    'assets/default_avatar.png',
+                                  )
+                                  as ImageProvider,
                                   radius: 22,
                                 ),
                                 const SizedBox(width: 10),
@@ -487,13 +487,13 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                 Row(
                                   children: List.generate(
                                     5,
-                                    (index) => Icon(
+                                        (index) => Icon(
                                       Icons.star,
                                       size: 18,
                                       color:
-                                          index < note
-                                              ? Colors.amber
-                                              : Colors.grey,
+                                      index < note
+                                          ? Colors.amber
+                                          : Colors.grey,
                                     ),
                                   ),
                                 ),
@@ -522,13 +522,13 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                   Row(
                     children: List.generate(
                       5,
-                      (index) => IconButton(
+                          (index) => IconButton(
                         icon: Icon(
                           Icons.star,
                           color:
-                              index < selectedRating
-                                  ? Colors.amber
-                                  : Colors.grey,
+                          index < selectedRating
+                              ? Colors.amber
+                              : Colors.grey,
                         ),
                         onPressed:
                             () => setState(() => selectedRating = index + 1),
@@ -565,16 +565,16 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                       ElevatedButton(
                         onPressed: isPublishing ? null : publishAvis,
                         child:
-                            isPublishing
-                                ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                                : const Text("Publier"),
+                        isPublishing
+                            ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                            : const Text("Publier"),
                       ),
                     ],
                   ),

@@ -195,38 +195,6 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                   onChanged: (value) => setState(() => selectedVille = value),
                 ),
               ),
-              SizedBox(height: 20),
-              Text(
-                'Budget maximum',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Montant en DA',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                    prefixIcon: Icon(Icons.attach_money, color: Colors.white70),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedTarifMax = double.tryParse(value);
-                    });
-                  },
-                ),
-              ),
               SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
@@ -196,30 +195,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ],
       );
 
-      if (croppedFile != null) {
-        final compressedFile = await FlutterImageCompress.compressAndGetFile(
-          croppedFile.path,
-          path.join(
-            (await getTemporaryDirectory()).path,
-            '${DateTime.now().millisecondsSinceEpoch}.jpg',
-          ),
-          quality: 80,
-        );
-
-        setState(() {
-          if (isProfileImage) {
-            _profileImage =
-                compressedFile != null
-                    ? File(compressedFile.path)
-                    : File(croppedFile.path);
-          } else {
-            _bannerImage =
-                compressedFile != null
-                    ? File(compressedFile.path)
-                    : File(croppedFile.path);
-          }
-        });
-      }
     } catch (e) {
       _showSnackBar("Erreur: ${e.toString()}");
     }

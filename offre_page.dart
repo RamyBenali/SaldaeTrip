@@ -130,112 +130,137 @@ class _OffresPageState extends State<OffresPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-        ),
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom,
-        ),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: Container(
-                    width: 50,
-                    height: 4,
-                    margin: EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                Text(
-                  'Filtrer les offres',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue[800],
-                  ),
-                ),
-                SizedBox(height: 20),
-                _buildFilterField(
-                  label: 'Catégorie',
-                  value: selectedCategorie,
-                  items: categoryColors.keys.toList(),
-                  onChanged: (value) => setState(() => selectedCategorie = value),
-                  icon: (cat) => Container(
-                    width: 12,
-                    height: 12,
-                    margin: EdgeInsets.only(right: 8),
-                    decoration: BoxDecoration(
-                      color: categoryColors[cat],
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 16),
-                _buildFilterField(
-                  label: 'Ville',
-                  value: selectedVille,
-                  items: villes,
-                  onChanged: (value) => setState(() => selectedVille = value),
-                ),
-                SizedBox(height: 16),
-                TextField(
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Tarif maximum (DA)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.attach_money),
-                  ),
-                  onChanged: (value) => setState(() {
-                    selectedTarifMax = double.tryParse(value);
-                  }),
-                ),
-                SizedBox(height: 25),
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        onPressed: () {
-                          setState(() {
-                            selectedCategorie = null;
-                            selectedVille = null;
-                            selectedTarifMax = null;
-                          });
-                          Navigator.pop(context);
-                        },
-                        child: Text('Réinitialiser'),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[800],
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+              ),
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 50,
+                          height: 4,
+                          margin: EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        child: Text('Appliquer'),
                       ),
-                    ),
-                  ],
+                      Text(
+                        'Filtrer les offres',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[800],
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      _buildFilterField(
+                        label: 'Catégorie',
+                        value: selectedCategorie,
+                        items: categoryColors.keys.toList(),
+                        onChanged: (value) => setModalState(() => selectedCategorie = value),
+                        icon: (cat) => Container(
+                          width: 12,
+                          height: 12,
+                          margin: EdgeInsets.only(right: 8),
+                          decoration: BoxDecoration(
+                            color: categoryColors[cat],
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      _buildFilterField(
+                        label: 'Ville',
+                        value: selectedVille,
+                        items: villes,
+                        onChanged: (value) => setModalState(() => selectedVille = value),
+                      ),
+                      SizedBox(height: 16),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Tarif maximum: ${selectedTarifMax?.round() ?? 0} DA',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey[800],
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Slider(
+                              value: selectedTarifMax ?? 5000,
+                              min: 0,
+                              max: 10000,
+                              divisions: 20,
+                              activeColor: Colors.blue[800],
+                              inactiveColor: Colors.blue[100],
+                              label: '${selectedTarifMax?.round() ?? 0} DA',
+                              onChanged: (value) {
+                                setModalState(() {
+                                  selectedTarifMax = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 25),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  selectedCategorie = null;
+                                  selectedVille = null;
+                                  selectedTarifMax = null;
+                                });
+                                Navigator.pop(context);
+                              },
+                              child: Text('Réinitialiser', style: TextStyle(color: Colors.blue[800])),
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[800],
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text('Appliquer', style: TextStyle(color: Colors.white),),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 10),
-              ],
-            ),
-          ),
-        ),
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

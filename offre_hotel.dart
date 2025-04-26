@@ -74,157 +74,153 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
       'Akbou'
     ];
 
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            primaryColor.withOpacity(0.95),
-            secondaryColor.withOpacity(0.9),
-          ],
-        ),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 60,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Filtrer les hôtels',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(height: 24),
-              Text(
-                'Localisation',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: DropdownButtonFormField<String>(
-                  dropdownColor: primaryColor,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Ville',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                  ),
-                  items: villes.map((v) {
-                    return DropdownMenuItem(
-                      value: v,
-                      child: Text(v, style: TextStyle(fontSize: 14)),
-                    );
-                  }).toList(),
-                  onChanged: (value) => setState(() => selectedVille = value),
-                ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                'Budget maximum',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              SizedBox(height: 8),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  keyboardType: TextInputType.number,
-                  style: TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Montant en DA',
-                    labelStyle: TextStyle(color: Colors.white70),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16),
-                    prefixIcon: Icon(Icons.attach_money, color: Colors.white70),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedTarifMax = double.tryParse(value);
-                    });
-                  },
-                ),
-              ),
-              SizedBox(height: 30),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {});
-                  Navigator.pop(context);
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accentColor,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                ),
-                child: Text(
-                  'Appliquer les filtres',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-              TextButton(
-                onPressed: () {
-                  setState(() {
-                    selectedVille = null;
-                    selectedTarifMax = null;
-                  });
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Réinitialiser les filtres',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setModalState) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                primaryColor.withOpacity(0.95),
+                primaryColor.withOpacity(0.9),
+              ],
+            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
-        ),
-      ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 60,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Filtrer les restaurants',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'Localisation',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      dropdownColor: primaryColor,
+                      style: TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Ville',
+                        labelStyle: TextStyle(color: Colors.white70),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
+                      ),
+                      items: villes.map((v) {
+                        return DropdownMenuItem(
+                          value: v,
+                          child: Text(v, style: TextStyle(fontSize: 14)),
+                        );
+                      }).toList(),
+                      onChanged: (value) => setModalState(() => selectedVille = value),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Budget maximum',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Slider(
+                    value: selectedTarifMax ?? 5000,
+                    min: 500,
+                    max: 10000,
+                    divisions: 19,
+                    activeColor: accentColor,
+                    inactiveColor: secondaryColor.withOpacity(0.2),
+                    label: '${(selectedTarifMax ?? 5000).round()} DA',
+                    onChanged: (value) {
+                      print("Nouvelle valeur du slider: $value");
+                      setModalState(() {
+                        selectedTarifMax = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {}); // Met à jour l'écran parent
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentColor,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                    ),
+                    child: Text(
+                      'Appliquer les filtres',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
+                      setModalState(() {
+                        selectedVille = null;
+                        selectedTarifMax = null;
+                      });
+                    },
+                    child: Text(
+                      'Réinitialiser les filtres',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
