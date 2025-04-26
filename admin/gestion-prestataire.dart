@@ -12,6 +12,7 @@ class GestionPrestatairePage extends StatefulWidget {
 }
 
 class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
+  final supabase = Supabase.instance.client;
   List<Map<String, dynamic>> prestataires = [];
   List<Map<String, dynamic>> filteredPrestataires = [];
   final TextEditingController searchController = TextEditingController();

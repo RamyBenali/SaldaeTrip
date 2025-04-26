@@ -13,6 +13,7 @@ class ModifierVoyageurPage extends StatefulWidget {
 }
 
 class _ModifierVoyageurPageState extends State<ModifierVoyageurPage> {
+  final supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController nomController;
   late TextEditingController prenomController;

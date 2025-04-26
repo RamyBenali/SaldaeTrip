@@ -11,6 +11,7 @@ class AjouterPrestatairePage extends StatefulWidget {
 }
 
 class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
+  final supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
 
   final typeServiceController = TextEditingController();

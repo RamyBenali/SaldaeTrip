@@ -12,6 +12,7 @@ class AdminPanelPage extends StatefulWidget {
 }
 
 class _AdminPanelPageState extends State<AdminPanelPage> {
+  final supabase = Supabase.instance.client;
   int numVoyageurs = 0;
   int numPrestataires = 0;
   int numOffres = 0;

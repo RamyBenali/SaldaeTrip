@@ -12,6 +12,7 @@ class GestionOffrePage extends StatefulWidget {
 }
 
 class _GestionOffrePageState extends State<GestionOffrePage> {
+  final supabase = Supabase.instance.client;
   List<Map<String, dynamic>> offres = [];
   List<Map<String, dynamic>> filteredOffres = [];
   final TextEditingController searchController = TextEditingController();

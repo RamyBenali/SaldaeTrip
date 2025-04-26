@@ -11,6 +11,7 @@ class GestionVoyageurPage extends StatefulWidget {
 }
 
 class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
+  final supabase = Supabase.instance.client;
   List<Map<String, dynamic>> voyageurs = [];
   List<Map<String, dynamic>> voyageursFiltres = [];
   TextEditingController searchController = TextEditingController();

@@ -12,6 +12,7 @@ class ModifierPrestatairePage extends StatefulWidget {
 }
 
 class _ModifierPrestatairePageState extends State<ModifierPrestatairePage> {
+  final supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController nomController;
