@@ -169,7 +169,7 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                       SizedBox(height: 10),
                       Text(
-                        'SaldaTrip',
+                        'SaldaeTrip',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 28,

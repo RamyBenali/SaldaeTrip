@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> fetchWeather() async {
     try {
       final response = await http.get(Uri.parse(
-        'https://api.open-meteo.com/v1/forecast?latitude=47.31&longitude=5.01&current_weather=true',
+        'https://api.open-meteo.com/v1/forecast?latitude=36.7509&longitude=5.0567&current_weather=true',
       ));
 
       if (response.statusCode == 200) {
@@ -475,14 +475,14 @@ class _HomePageState extends State<HomePage> {
                     crossAxisCount: 2,
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
-                    childAspectRatio: 1.2,
+                    childAspectRatio: 0.9,
                   ),
                   itemCount: activities.length,
                   itemBuilder: (context, index) {
-                    // Style spécial pour la dernière carte "Toutes les offres"
                     return _buildActivityCard(activities[index]);
                   },
                 ),
+
                 SizedBox(height: 15),
                 GridView.builder(
                   shrinkWrap: true,
@@ -492,7 +492,7 @@ class _HomePageState extends State<HomePage> {
                     crossAxisCount: 1,
                     crossAxisSpacing: 15,
                     mainAxisSpacing: 15,
-                    childAspectRatio: 7,
+                    childAspectRatio: 6,
                   ),
                   itemCount: allactivities.length,
                   itemBuilder: (context, index) {
@@ -518,8 +518,6 @@ class _HomePageState extends State<HomePage> {
         child: Icon(Icons.assistant, color: Colors.white),
         elevation: 4,
       ),
-
-      // Barre de navigation inférieure
       bottomNavigationBar: _buildBottomNavBar(),
     );
   }
@@ -550,8 +548,8 @@ class _HomePageState extends State<HomePage> {
             height: 100, // Hauteur plus basse
             color: Colors.white,
             child: Stack(
+              alignment: AlignmentDirectional.center,
               children: [
-                // Contenu
                 Padding(
                   padding: EdgeInsets.all(16),
                   child: Row(
