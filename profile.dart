@@ -1,8 +1,9 @@
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'EditprofilePage.dart';
+
+import 'GlovalColors.dart';
 import 'map.dart';
 import 'weather_main.dart';
 import 'parametres.dart';
@@ -19,11 +20,6 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final Color primaryColor = Color(0xFF4361EE);
-  final Color secondaryColor = Color(0xFF1E40AF);
-  final Color accentColor = Color(0xFFEC4899);
-  final Color backgroundColor = Color(0xFFF9FAFB);
-  final Color cardColor = Colors.white;
   String? profileImageUrl;
   String? bannerImageUrl;
   int _selectedIndex = 3;
@@ -36,6 +32,7 @@ class _ProfilePageState extends State<ProfilePage> {
   List<String> userInterests = [];
   List<String> weatherPreferences = [];
   String userAddress = "Adresse non renseignée";
+  String role = "Invité";
 
   @override
   void initState() {
@@ -107,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
             responseProfile?['description'] ?? "Pas de description disponible";
         profileImageUrl = responseProfile?['profile_photo'];
         bannerImageUrl = responseProfile?['banner_photo'];
-        isPrestataire = responsePersonne['role'] == 'Prestataire';
+        role = responsePersonne['role'];
 
         if (responseProfile?['centre_interet'] != null) {
           userInterests = List<String>.from(responseProfile!['centre_interet']);
@@ -143,7 +140,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Drawer _buildSideMenu() {
     return Drawer(
-      width: MediaQuery.of(context).size.width * 0.6,
+      width: MediaQuery.of(context).size.width * 0.75,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.only(
           topRight: Radius.circular(30),
@@ -151,7 +148,10 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
       elevation: 20,
-      backgroundColor: Colors.white.withOpacity(0.97),
+      backgroundColor:
+          GlobalColors.isDarkMode
+              ? Colors.grey[900]!.withOpacity(0.97)
+              : Colors.white.withOpacity(0.97),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,11 +159,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               height: 180,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blue.shade700, Colors.lightBlue.shade400],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: Colors.blue,
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.circular(30),
                 ),
@@ -179,7 +175,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: Colors.white.withOpacity(0.3),
+                    backgroundColor:
+                        GlobalColors.isDarkMode
+                            ? Colors.white.withOpacity(0.2)
+                            : Colors.white.withOpacity(0.3),
                     child: CircleAvatar(
                       radius: 36,
                       backgroundImage:
@@ -198,7 +197,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           '$firstName $lastName',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: GlobalColors.secondaryColor,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
@@ -207,9 +206,15 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         SizedBox(height: 4),
                         Text(
-                          isPrestataire ? 'Prestataire' : 'Explorateur',
+                          role == 'prestataire'
+                              ? 'Prestataire'
+                              : role == 'client'
+                              ? 'Client'
+                              : role == 'Administrateur'
+                              ? 'Administrateur'
+                              : 'Invité',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: GlobalColors.secondaryColor.withOpacity(0.9),
                             fontSize: 14,
                           ),
                         ),
@@ -220,16 +225,20 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
 
-            // --- Section Principale ---
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
               child: Column(
                 children: [
-                  // --- Item Service Client ---
                   _buildMenuItem(
                     icon: Icons.help_center_outlined,
-                    iconColor: Colors.blue.shade600,
-                    iconBg: Colors.blue.shade50,
+                    iconColor:
+                        GlobalColors.isDarkMode
+                            ? Colors.lightBlue[200]!
+                            : Colors.blue.shade600,
+                    iconBg:
+                        GlobalColors.isDarkMode
+                            ? Colors.blueGrey[800]!.withOpacity(0.3)
+                            : Colors.blue.shade50,
                     title: "Service Client",
                     onTap:
                         () => Navigator.push(
@@ -238,15 +247,19 @@ class _ProfilePageState extends State<ProfilePage> {
                             builder: (context) => ChatBotScreen(),
                           ),
                         ),
-                    badge: null,
                   ),
 
-                  // --- Devenir Prestataire ---
                   if (!isAnonymous && !isPrestataire)
                     _buildMenuItem(
                       icon: Icons.verified_user_outlined,
-                      iconColor: Colors.purple.shade600,
-                      iconBg: Colors.purple.shade50,
+                      iconColor:
+                          GlobalColors.isDarkMode
+                              ? Colors.purple[200]!
+                              : Colors.purple.shade600,
+                      iconBg:
+                          GlobalColors.isDarkMode
+                              ? Colors.purple[900]!.withOpacity(0.3)
+                              : Colors.purple.shade50,
                       title: "Devenir Prestataire",
                       onTap: () {
                         final url = Uri.parse(
@@ -256,11 +269,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       },
                     ),
 
-                  // --- Séparateur ---
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
                     child: Divider(
-                      color: Colors.grey.shade300,
+                      color: GlobalColors.secondaryColor.withOpacity(0.2),
                       height: 1,
                       thickness: 1,
                       indent: 20,
@@ -268,11 +280,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
 
-                  // --- Paramètres ---
                   _buildMenuItem(
                     icon: Icons.settings_outlined,
-                    iconColor: Colors.orange.shade600,
-                    iconBg: Colors.orange.shade50,
+                    iconColor:
+                        GlobalColors.isDarkMode
+                            ? Colors.orange[200]!
+                            : Colors.orange.shade600,
+                    iconBg:
+                        GlobalColors.isDarkMode
+                            ? Colors.orange[900]!.withOpacity(0.3)
+                            : Colors.orange.shade50,
                     title: "Paramètres",
                     onTap:
                         () => Navigator.push(
@@ -283,27 +300,40 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                   ),
 
-                  // --- Mode Sombre (Exemple) ---
                   _buildMenuItem(
                     icon: Icons.dark_mode_outlined,
-                    iconColor: Colors.grey.shade700,
-                    iconBg: Colors.grey.shade100,
+                    iconColor:
+                        GlobalColors.isDarkMode
+                            ? Colors.amber[200]!
+                            : Colors.grey.shade700,
+                    iconBg:
+                        GlobalColors.isDarkMode
+                            ? Colors.amber[900]!.withOpacity(0.3)
+                            : Colors.grey.shade200,
                     title: "Mode Sombre",
                     onTap: () {
-                      // Implémentez le dark mode ici
+                      setState(() {
+                        GlobalColors.isDarkMode = !GlobalColors.isDarkMode;
+                      });
                     },
                     trailing: Switch(
-                      value: false,
-                      onChanged: (val) {},
-                      activeColor: Colors.blue,
+                      value: GlobalColors.isDarkMode,
+                      onChanged: (value) {
+                        setState(() {
+                          GlobalColors.isDarkMode = value;
+                        });
+                      },
+                      activeColor: Colors.amber,
+                      activeTrackColor: Colors.amber.withOpacity(0.3),
+                      inactiveThumbColor: Colors.grey.shade400,
+                      inactiveTrackColor: Colors.grey.shade300,
                     ),
                   ),
 
-                  // --- Séparateur ---
                   Padding(
                     padding: EdgeInsets.symmetric(vertical: 10),
                     child: Divider(
-                      color: Colors.grey.shade300,
+                      color: GlobalColors.secondaryColor.withOpacity(0.2),
                       height: 1,
                       thickness: 1,
                       indent: 20,
@@ -311,12 +341,17 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
 
-                  // --- Déconnexion/Connexion ---
                   if (!isAnonymous)
                     _buildMenuItem(
                       icon: Icons.logout,
-                      iconColor: Colors.red.shade600,
-                      iconBg: Colors.red.shade50,
+                      iconColor:
+                          GlobalColors.isDarkMode
+                              ? Colors.red[300]!
+                              : Colors.red.shade600,
+                      iconBg:
+                          GlobalColors.isDarkMode
+                              ? Colors.red[900]!.withOpacity(0.3)
+                              : Colors.red.shade50,
                       title: "Déconnexion",
                       onTap: () async {
                         await Supabase.instance.client.auth.signOut();
@@ -336,8 +371,14 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         _buildMenuItem(
                           icon: Icons.login,
-                          iconColor: Colors.green.shade600,
-                          iconBg: Colors.green.shade50,
+                          iconColor:
+                              GlobalColors.isDarkMode
+                                  ? Colors.green[300]!
+                                  : Colors.green.shade600,
+                          iconBg:
+                              GlobalColors.isDarkMode
+                                  ? Colors.green[900]!.withOpacity(0.3)
+                                  : Colors.green.shade50,
                           title: "Connexion",
                           onTap:
                               () => Navigator.pushReplacement(
@@ -349,8 +390,14 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         _buildMenuItem(
                           icon: Icons.person_add_alt_1,
-                          iconColor: Colors.teal.shade600,
-                          iconBg: Colors.teal.shade50,
+                          iconColor:
+                              GlobalColors.isDarkMode
+                                  ? Colors.teal[300]!
+                                  : Colors.teal.shade600,
+                          iconBg:
+                              GlobalColors.isDarkMode
+                                  ? Colors.teal[900]!.withOpacity(0.3)
+                                  : Colors.teal.shade50,
                           title: "Inscription",
                           onTap:
                               () => Navigator.pushReplacement(
@@ -395,45 +442,49 @@ class _ProfilePageState extends State<ProfilePage> {
         style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w500,
-          color: Colors.grey.shade800,
+          color: GlobalColors.secondaryColor,
         ),
       ),
       trailing:
           trailing ??
           (badge != null
               ? badge
-              : Icon(Icons.chevron_right, color: Colors.grey.shade400)),
+              : Icon(
+                Icons.chevron_right,
+                color: GlobalColors.secondaryColor.withOpacity(0.4),
+              )),
       onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
     );
   }
 
   void _onItemTapped(int index) {
+    if (_selectedIndex == index) return;
+
     setState(() {
       _selectedIndex = index;
     });
 
     switch (index) {
       case 0:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
         );
         break;
       case 1:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => MapScreen()),
         );
         break;
       case 2:
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => FavorisPage()),
         );
         break;
       case 3:
-        // Already on profile page
         break;
       default:
         break;
@@ -441,34 +492,54 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildBottomNavBar() {
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            height: 65,
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.home_rounded, 'Accueil', 0),
-                _buildNavItem(Icons.map_rounded, 'Carte', 1),
-                _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
-                _buildNavItem(Icons.person_rounded, 'Profil', 3),
-              ],
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow:
+              GlobalColors.isDarkMode
+                  ? []
+                  : [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+            child: Container(
+              height: 65,
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color:
+                    GlobalColors.isDarkMode
+                        ? GlobalColors.accentColor.withOpacity(0.2)
+                        : GlobalColors.primaryColor.withOpacity(0.9),
+                border:
+                    GlobalColors.isDarkMode
+                        ? Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        )
+                        : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(Icons.home_rounded, 'Accueil', 0),
+                  _buildNavItem(Icons.map_rounded, 'Carte', 1),
+                  _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
+                  _buildNavItem(Icons.person_rounded, 'Profil', 3),
+                ],
+              ),
             ),
           ),
         ),
@@ -476,9 +547,11 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
+    Color selectedColor =
+        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
@@ -487,7 +560,11 @@ class _ProfilePageState extends State<ProfilePage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color:
-          isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+              isSelected
+                  ? (GlobalColors.isDarkMode
+                      ? Colors.blue.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.1))
+                  : Colors.transparent,
         ),
         child: AnimatedContainer(
           duration: Duration(milliseconds: 200),
@@ -496,7 +573,12 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? primaryColor : Colors.grey,
+                color:
+                    isSelected
+                        ? selectedColor
+                        : (GlobalColors.isDarkMode
+                            ? Colors.grey.shade400
+                            : Colors.grey),
                 size: isSelected ? 26 : 24,
               ),
               if (isSelected) ...[
@@ -504,7 +586,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Text(
                   label,
                   style: TextStyle(
-                    color: primaryColor,
+                    color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -521,10 +603,18 @@ class _ProfilePageState extends State<ProfilePage> {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color:
+            GlobalColors.isDarkMode
+                ? GlobalColors.accentColor.withOpacity(0.1)
+                : GlobalColors.primaryColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2),
+          BoxShadow(
+            color:
+                GlobalColors.isDarkMode ? Colors.transparent : Colors.black12,
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
         ],
       ),
       padding: EdgeInsets.all(16),
@@ -552,16 +642,29 @@ class _ProfilePageState extends State<ProfilePage> {
                 userInterests.map((interest) {
                   return Chip(
                     avatar: CircleAvatar(
-                      backgroundColor: Colors.green.shade100,
+                      backgroundColor:
+                          GlobalColors.isDarkMode
+                              ? GlobalColors.accentColor.withOpacity(0.3)
+                              : Colors.green.shade100,
                       child: Icon(
                         _getInterestIcon(interest),
                         size: 16,
                         color: Colors.green.shade700,
                       ),
                     ),
-                    label: Text(interest),
-                    backgroundColor: Colors.green.shade50,
-                    labelStyle: TextStyle(color: Colors.green.shade700),
+                    label: Text(
+                      interest,
+                      style: TextStyle(
+                        color:
+                            GlobalColors.isDarkMode
+                                ? Colors.white
+                                : Colors.green.shade700,
+                      ),
+                    ),
+                    backgroundColor:
+                        GlobalColors.isDarkMode
+                            ? GlobalColors.accentColor.withOpacity(0.2)
+                            : Colors.green.shade50,
                   );
                 }).toList(),
           ),
@@ -597,10 +700,18 @@ class _ProfilePageState extends State<ProfilePage> {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color:
+            GlobalColors.isDarkMode
+                ? GlobalColors.accentColor.withOpacity(0.1)
+                : GlobalColors.primaryColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2),
+          BoxShadow(
+            color:
+                GlobalColors.isDarkMode ? Colors.transparent : Colors.black12,
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
         ],
       ),
       padding: EdgeInsets.all(16),
@@ -609,11 +720,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.location_pin,
-                color: Colors.pink,
-                size: 22,
-              ), // Icône jolie
+              Icon(Icons.location_pin, color: Colors.pink, size: 22),
               SizedBox(width: 10),
               Text(
                 'ADRESSE',
@@ -630,20 +737,25 @@ class _ProfilePageState extends State<ProfilePage> {
               Container(
                 padding: EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.pink.shade50,
+                  color:
+                      GlobalColors.isDarkMode
+                          ? GlobalColors.accentColor.withOpacity(0.2)
+                          : Colors.pink.shade50,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(
-                  Icons.home_rounded, // Icône moderne
-                  color: Colors.pink,
-                  size: 28,
-                ),
+                child: Icon(Icons.home_rounded, color: Colors.pink, size: 28),
               ),
               SizedBox(width: 15),
               Expanded(
                 child: Text(
                   userAddress,
-                  style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                  style: TextStyle(
+                    fontSize: 16,
+                    color:
+                        GlobalColors.isDarkMode
+                            ? Colors.white
+                            : GlobalColors.secondaryColor,
+                  ),
                 ),
               ),
             ],
@@ -657,14 +769,18 @@ class _ProfilePageState extends State<ProfilePage> {
     return AnimatedContainer(
       duration: Duration(milliseconds: 300),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[100]!, Colors.white],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color:
+            GlobalColors.isDarkMode
+                ? GlobalColors.accentColor.withOpacity(0.1)
+                : GlobalColors.primaryColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2),
+          BoxShadow(
+            color:
+                GlobalColors.isDarkMode ? Colors.transparent : Colors.black12,
+            blurRadius: 10,
+            spreadRadius: 2,
+          ),
         ],
       ),
       padding: EdgeInsets.all(16),
@@ -708,7 +824,10 @@ class _ProfilePageState extends State<ProfilePage> {
         Container(
           padding: EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color:
+                GlobalColors.isDarkMode
+                    ? GlobalColors.accentColor.withOpacity(0.2)
+                    : color.withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 30),
@@ -717,7 +836,10 @@ class _ProfilePageState extends State<ProfilePage> {
         Text(
           label,
           style: TextStyle(
-            color: color.withAlpha(200),
+            color:
+                GlobalColors.isDarkMode
+                    ? Colors.white.withOpacity(0.9)
+                    : color.withAlpha(200),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -766,14 +888,14 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       drawer: _buildSideMenu(),
       body: Stack(
         children: [
           CustomScrollView(
             slivers: [
               SliverAppBar(
-                automaticallyImplyLeading:
-                    false, // Supprime le bouton menu noir
+                automaticallyImplyLeading: false,
                 expandedHeight: 200.0,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Stack(
@@ -816,7 +938,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 20),
+                        SizedBox(height: 100),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -864,7 +986,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                       style: TextStyle(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
-                                        color: Colors.blueGrey[900],
+                                        color: GlobalColors.secondaryColor,
                                       ),
                                     ),
                                   ),
@@ -873,7 +995,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                       icon: Icon(
                                         Icons.edit_note_rounded,
                                         size: 35,
-                                        color: Colors.blueGrey[700],
+                                        color: GlobalColors.secondaryColor
+                                            .withOpacity(0.7),
                                       ),
                                       onPressed: _navigateToEditProfile,
                                       tooltip: 'Modifier le profil',
@@ -887,11 +1010,17 @@ class _ProfilePageState extends State<ProfilePage> {
                         AnimatedContainer(
                           duration: Duration(milliseconds: 300),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color:
+                                GlobalColors.isDarkMode
+                                    ? GlobalColors.accentColor.withOpacity(0.1)
+                                    : GlobalColors.primaryColor,
                             borderRadius: BorderRadius.circular(15),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black12,
+                                color:
+                                    GlobalColors.isDarkMode
+                                        ? Colors.transparent
+                                        : Colors.black12,
                                 blurRadius: 10,
                                 spreadRadius: 2,
                               ),
@@ -919,14 +1048,25 @@ class _ProfilePageState extends State<ProfilePage> {
                                 ],
                               ),
                               SizedBox(height: 10),
-                              Text(
-                                description != null && description!.isNotEmpty
-                                    ? description!
-                                    : 'Pas de description disponible',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: Colors.grey[700],
-                                  height: 1.4,
+                              Container(
+                                decoration: BoxDecoration(
+                                  color:
+                                      GlobalColors.isDarkMode
+                                          ? GlobalColors.accentColor
+                                              .withOpacity(0.2)
+                                          : GlobalColors.primaryColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: EdgeInsets.all(10),
+                                child: Text(
+                                  description != null && description!.isNotEmpty
+                                      ? description!
+                                      : 'Pas de description disponible',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: GlobalColors.secondaryColor,
+                                    height: 1.4,
+                                  ),
                                 ),
                               ),
                             ],
@@ -949,7 +1089,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 18,
-                                  color: Colors.black.withOpacity(0.6),
+                                  color: GlobalColors.secondaryColor
+                                      .withOpacity(0.6),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -963,7 +1104,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ],
           ),
-
           Positioned(
             top: 40,
             left: 20,
@@ -975,9 +1115,9 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
             ),
           ),
+          _buildBottomNavBar(),
         ],
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 }

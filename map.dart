@@ -4,13 +4,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:http/http.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:lottie/lottie.dart' hide Marker;
+import 'GlovalColors.dart';
 import 'profile.dart';
 import 'weather_main.dart';
 import 'favoris.dart';
@@ -34,35 +34,35 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'OSM Map - Béjaïa',
+      title: 'Carte OSM - Béjaïa',
       theme: ThemeData(primarySwatch: Colors.blue),
       home: const MapScreen(),
     );
   }
 }
 
-class Place {
-  final String name;
+class Lieu {
+  final String nom;
   final String description;
-  final String category;
+  final String categorie;
   final String? image;
   final double latitude;
   final double longitude;
 
-  Place({
-    required this.name,
+  Lieu({
+    required this.nom,
     required this.description,
-    required this.category,
+    required this.categorie,
     this.image,
     required this.latitude,
     required this.longitude,
   });
 
-  factory Place.fromJson(Map<String, dynamic> json) {
-    return Place(
-      name: json['nom'] ?? json['name'] ?? '',
+  factory Lieu.fromJson(Map<String, dynamic> json) {
+    return Lieu(
+      nom: json['nom'] ?? json['name'] ?? '',
       description: json['description'] ?? '',
-      category: json['categorie'] ?? json['category'] ?? 'other',
+      categorie: json['categorie'] ?? json['category'] ?? 'autre',
       image: json['image'],
       latitude: double.parse(json['latitude'].toString()),
       longitude: double.parse(json['longitude'].toString()),
@@ -71,134 +71,203 @@ class Place {
 }
 
 class MapScreen extends StatefulWidget {
-  final LatLng? initialLocation;
-  final String? markerTitle;
+  final LatLng? positionInitiale;
+  final String? titreMarqueur;
 
-  const MapScreen({super.key, this.initialLocation, this.markerTitle});
+  const MapScreen({super.key, this.positionInitiale, this.titreMarqueur});
 
   @override
   _MapScreenState createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
-  bool _isLoadingMap = true;
-  final MapController _mapController = MapController();
-  final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  int _selectedIndex = 1;
-  bool _isLoadingLocation = false;
-  String _locationError = '';
-  LatLng? _currentLocation;
-  double? _accuracy;
-  late AnimationController _pulseAnimationController;
-  late Animation<double> _pulseAnimation;
-  late AnimationController _routeAnimationController;
-  late Animation<double> _routeAnimation;
-  bool _isSearching = false;
-  List<Map<String, dynamic>> _searchResults = [];
-  LatLng? _searchedLocation;
-  List<LatLng> _routePoints = [];
-  List<LatLng> _animatedRoutePoints = [];
-  bool _showRoute = false;
-  List<Place> _places = [];
-  bool _isLoadingPlaces = false;
+  bool _chargementCarte = true;
+  final MapController _controleurCarte = MapController();
+  final TextEditingController _controleurRecherche = TextEditingController();
+  final FocusNode _focusRecherche = FocusNode();
+  int _indexSelectionne = 1;
+  bool _chargementPosition = false;
+  String _erreurLocalisation = '';
+  LatLng? _positionActuelle;
+  double? _precision;
+  late AnimationController _controleurAnimationPulse;
+  late Animation<double> _animationPulse;
+  late AnimationController _controleurAnimationItineraire;
+  late Animation<double> _animationItineraire;
+  bool _rechercheEnCours = false;
+  List<Map<String, dynamic>> _resultatsRecherche = [];
+  LatLng? _positionRecherchee;
+  List<LatLng> _pointsItineraire = [];
+  List<LatLng> _pointsItineraireAnime = [];
+  bool _afficherItineraire = false;
+  List<Lieu> _lieux = [];
+  bool _chargementLieux = false;
   final SupabaseClient _supabase = Supabase.instance.client;
-  bool _isPanelOpen = false;
-  Set<String> _selectedCategories = {};
-  final _panelController = ScrollController();
-  List<Place> _filteredPlaces = [];
+  bool _panneauOuvert = false;
+  Set<String> _categoriesSelectionnees = {};
+  List<Lieu> _lieuxFiltres = [];
+  Timer? _timerErreur;
 
-  // Béjaïa boundaries
-  static const double minLat = 36.5;
-  static const double maxLat = 36.9;
-  static const double minLon = 4.8;
-  static const double maxLon = 5.3;
+  static const double latMin = 36.5;
+  static const double latMax = 36.9;
+  static const double lonMin = 4.8;
+  static const double lonMax = 5.3;
 
   @override
   void initState() {
     super.initState();
-    _initLocation();
-    _loadPlacesFromSupabase();
+    _initialiserLocalisation();
+    _chargerLieuxDepuisSupabase();
 
-    // Pulse animation for location markers
-    _pulseAnimationController = AnimationController(
+    _controleurAnimationPulse = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween(begin: 0.8, end: 1.2).animate(
+    _animationPulse = Tween(begin: 0.8, end: 1.2).animate(
       CurvedAnimation(
-        parent: _pulseAnimationController,
+        parent: _controleurAnimationPulse,
         curve: Curves.easeInOut,
       ),
     );
 
-    // Route drawing animation
-    _routeAnimationController = AnimationController(
+    _controleurAnimationItineraire = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
     );
 
-    _routeAnimation = Tween(begin: 0.0, end: 1.0).animate(
+    _animationItineraire = Tween(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
-        parent: _routeAnimationController,
+        parent: _controleurAnimationItineraire,
         curve: Curves.easeInOut,
       ),
     )..addListener(() {
-      _updateAnimatedRoute();
+      _mettreAJourItineraireAnime();
     });
 
-    if (widget.initialLocation != null) {
-      _searchedLocation = widget.initialLocation;
+    if (widget.positionInitiale != null) {
+      _positionRecherchee = widget.positionInitiale;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _mapController.move(widget.initialLocation!, 15.0);
+        _controleurCarte.move(widget.positionInitiale!, 15.0);
       });
     }
 
-    _searchFocusNode.addListener(() {
-      if (!_searchFocusNode.hasFocus) {
+    _focusRecherche.addListener(() {
+      if (!_focusRecherche.hasFocus) {
         setState(() {
-          _searchResults.clear();
+          _resultatsRecherche.clear();
         });
       }
     });
   }
 
-  Future<void> _initLocation() async {
+  @override
+  void dispose() {
+    _controleurAnimationPulse.dispose();
+    _controleurAnimationItineraire.dispose();
+    _controleurRecherche.dispose();
+    _focusRecherche.dispose();
+    _timerErreur?.cancel();
+    super.dispose();
+  }
+
+  void _afficherErreurTemporaire(String message) {
     setState(() {
-      _isLoadingMap = true;
+      _erreurLocalisation = message;
+    });
+
+    _timerErreur?.cancel();
+    _timerErreur = Timer(const Duration(seconds: 0), () {
+      if (mounted) {
+        setState(() {
+          _erreurLocalisation = '';
+        });
+      }
+    });
+  }
+
+  Future<void> _initialiserLocalisation() async {
+    setState(() {
+      _chargementCarte = true;
     });
 
     try {
+      bool permissionAccordee = await _verifierPermissionLocalisation();
+      if (!permissionAccordee) return;
+
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
       setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-        _accuracy = position.accuracy;
+        _positionActuelle = LatLng(position.latitude, position.longitude);
+        _precision = position.accuracy;
       });
 
-      if (widget.initialLocation == null) {
-        _mapController.move(_currentLocation!, 15.0);
+      if (widget.positionInitiale == null) {
+        _controleurCarte.move(_positionActuelle!, 15.0);
       }
     } catch (e) {
-      setState(() {
-        _locationError = 'Erreur de localisation : $e';
-      });
+      _afficherErreurTemporaire('Erreur de localisation : $e');
     } finally {
       setState(() {
-        _isLoadingMap = false;
+        _chargementCarte = false;
       });
     }
   }
 
-  Future<void> _loadPlacesFromSupabase() async {
+  Future<bool> _verifierPermissionLocalisation() async {
+    bool serviceActive = await Geolocator.isLocationServiceEnabled();
+    if (!serviceActive) {
+      bool ouvrirParametres = await showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Service de localisation désactivé'),
+              content: const Text(
+                'Voulez-vous activer la localisation dans les paramètres ?',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Non'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Oui'),
+                ),
+              ],
+            ),
+      );
+
+      if (ouvrirParametres) {
+        await Geolocator.openLocationSettings();
+      }
+
+      return false;
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.deniedForever) {
+      await Geolocator.openAppSettings();
+      return false;
+    }
+
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      return permission == LocationPermission.whileInUse ||
+          permission == LocationPermission.always;
+    }
+
+    return true;
+  }
+
+  Future<void> _chargerLieuxDepuisSupabase() async {
     if (!mounted) return;
 
-    setState(() => _isLoadingPlaces = true);
+    setState(() => _chargementLieux = true);
 
     try {
-      final List<dynamic> data = await _supabase.from('offre').select(''' 
+      final List<dynamic> donnees = await _supabase.from('offre').select(''' 
         nom, 
         description, 
         categorie, 
@@ -210,87 +279,79 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       if (!mounted) return;
 
       setState(() {
-        // Convertir les données JSON en objets Place
-        _places = data.map((json) => Place.fromJson(json)).toList();
-
-        // Initialiser les lieux filtrés avec tous les lieux
-        _filteredPlaces = List<Place>.from(_places);
-
-        // Récupérer toutes les catégories uniques et les sélectionner par défaut
-        _selectedCategories =
-            _places
-                .map((p) => p.category)
+        _lieux = donnees.map((json) => Lieu.fromJson(json)).toList();
+        _lieuxFiltres = List<Lieu>.from(_lieux);
+        _categoriesSelectionnees =
+            _lieux
+                .map((p) => p.categorie)
                 .toSet()
                 .toList()
                 .whereType<String>()
                 .toSet();
-
-        // Trier les lieux par nom pour une meilleure organisation
-        _places.sort((a, b) => a.name.compareTo(b.name));
-        _filteredPlaces.sort((a, b) => a.name.compareTo(b.name));
+        _lieux.sort((a, b) => a.nom.compareTo(b.nom));
+        _lieuxFiltres.sort((a, b) => a.nom.compareTo(b.nom));
       });
 
-      // Vérifier si des catégories ont été trouvées
-      if (_selectedCategories.isEmpty) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Aucune catégorie trouvée'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+      if (_categoriesSelectionnees.isEmpty && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Aucune catégorie trouvée'),
+            duration: Duration(seconds: 2),
+          ),
+        );
       }
     } on PostgrestException catch (e) {
       if (!mounted) return;
-      _showError('Erreur Supabase: ${e.message}');
+      _afficherErreur('Erreur Supabase: ${e.message}');
     } on SocketException catch (_) {
       if (!mounted) return;
-      _showError('Erreur de connexion internet');
+      _afficherErreur('Erreur de connexion internet');
     } on TimeoutException catch (_) {
       if (!mounted) return;
-      _showError('La requête a expiré');
+      _afficherErreur('La requête a expiré');
     } catch (e) {
       if (!mounted) return;
-      _showError('Erreur inattendue: ${e.toString()}');
+      _afficherErreur('Erreur inattendue: ${e.toString()}');
     } finally {
       if (mounted) {
-        setState(() => _isLoadingPlaces = false);
+        setState(() => _chargementLieux = false);
       }
     }
   }
 
-  void _filterPlaces() {
+  void _filtrerLieux() {
     setState(() {
-      if (_selectedCategories.isEmpty) {
-        _filteredPlaces = [];
+      if (_categoriesSelectionnees.isEmpty) {
+        _lieuxFiltres = [];
       } else {
-        _filteredPlaces =
-            _places
-                .where((place) => _selectedCategories.contains(place.category))
+        _lieuxFiltres =
+            _lieux
+                .where(
+                  (lieu) => _categoriesSelectionnees.contains(lieu.categorie),
+                )
                 .toList();
       }
     });
   }
 
-  void _toggleCategory(String category) {
+  void _basculerCategorie(String categorie) {
     setState(() {
-      if (_selectedCategories.contains(category)) {
-        _selectedCategories.remove(category);
+      if (_categoriesSelectionnees.contains(categorie)) {
+        _categoriesSelectionnees.remove(categorie);
       } else {
-        _selectedCategories.add(category);
+        _categoriesSelectionnees.add(categorie);
       }
-      _filterPlaces();
+      _filtrerLieux();
     });
   }
 
-  void _togglePanel() {
+  void _basculerPanneau() {
     setState(() {
-      _isPanelOpen = !_isPanelOpen;
+      _panneauOuvert = !_panneauOuvert;
     });
   }
 
-  void _showError(String message) {
+  void _afficherErreur(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -301,383 +362,401 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  IconData _getIconForCategory(String category) {
-    switch (category.toLowerCase()) {
-      // Nourriture
+  IconData _obtenirIconePourCategorie(String categorie) {
+    switch (categorie.toLowerCase()) {
       case 'restaurant':
-        return FontAwesomeIcons
-            .utensils; // Plus élégant que l'icône restaurant basique
+        return FontAwesomeIcons.utensils;
       case 'pizzeria':
-        return FontAwesomeIcons
-            .pizzaSlice; // Icône spécifique pour les pizzerias
+        return FontAwesomeIcons.pizzaSlice;
       case 'café':
       case 'cafe':
-        return FontAwesomeIcons.mugHot; // Parfait pour les cafés
-
-      // Hébergement
+        return FontAwesomeIcons.mugHot;
       case 'hôtel':
       case 'hotel':
-        return FontAwesomeIcons.hotel; // Icône moderne d'hôtel
+        return FontAwesomeIcons.hotel;
       case 'auberge':
-        return FontAwesomeIcons.houseChimney; // Pour les petites auberges
-
-      // Loisirs
+        return FontAwesomeIcons.houseChimney;
       case 'loisirs':
-        return FontAwesomeIcons.gamepad; // Icône générique pour les loisirs
+        return FontAwesomeIcons.gamepad;
       case 'cinéma':
         return FontAwesomeIcons.film;
       case 'bowling':
         return FontAwesomeIcons.bowlingBall;
-
-      // Points d'intérêt
       case 'point dintérêt':
       case 'point d\'intérêt':
-        return FontAwesomeIcons.binoculars; // Symbole d'exploration
+        return FontAwesomeIcons.binoculars;
       case 'point dintérêt historique':
       case 'point d\'intérêt historique':
-        return FontAwesomeIcons.landmark; // Parfait pour les sites historiques
+        return FontAwesomeIcons.landmark;
       case 'monument':
         return FontAwesomeIcons.monument;
-
-      // Plages et nature
       case 'plage':
       case 'beach':
-        return FontAwesomeIcons.umbrellaBeach; // Icône moderne de plage
+        return FontAwesomeIcons.umbrellaBeach;
       case 'parc':
       case 'park':
-        return FontAwesomeIcons.tree; // Plus nature que l'icône park basique
+        return FontAwesomeIcons.tree;
       case 'jardin':
         return FontAwesomeIcons.leaf;
-
-      // Shopping
       case 'shop':
       case 'magasin':
-        return FontAwesomeIcons.bagShopping; // Plus moderne que shopping-cart
+        return FontAwesomeIcons.bagShopping;
       case 'centre commercial':
         return FontAwesomeIcons.shop;
-
-      // Santé
       case 'hôpital':
       case 'hospital':
-        return FontAwesomeIcons.hospital; // Icône plus reconnaissable
+        return FontAwesomeIcons.hospital;
       case 'pharmacie':
         return FontAwesomeIcons.pills;
-
-      // Transport
       case 'gare':
         return FontAwesomeIcons.train;
       case 'aéroport':
         return FontAwesomeIcons.plane;
-
       default:
         return FontAwesomeIcons.locationDot;
     }
   }
 
-  Color _getColorForCategory(String category) {
-    final String lowerCategory = category.toLowerCase();
+  Color _obtenirCouleurPourCategorie(String categorie) {
+    final String categorieMin = categorie.toLowerCase();
 
-    const Color restaurantColor = Color(0xFFE53935); // Rouge vif
-    const Color pizzeriaColor = Color(0xFFD81B60); // Rose foncé
-    const Color hotelColor = Color(0xFF1E88E5); // Bleu professionnel
-    const Color loisirsColor = Color(0xFF8E24AA); // Violet
-    const Color pointInteretColor = Color(0xFFF4511E); // Orange vif
-    const Color historiqueColor = Color(0xFF795548); // Brun terre
-    const Color plageColor = Color(0xFFFFB300); // Jaune doré
-    const Color parcColor = Color(0xFF43A047); // Vert nature
-    const Color shopColor = Color(0xFFFB8C00); // Orange chaud
-    const Color defaultColor = Color(0xFF757575); // Gris neutre
+    const Color rouge = Color(0xFFE53935);
+    const Color rose = Color(0xFFD81B60);
+    const Color bleu = Color(0xFF1E88E5);
+    const Color violet = Color(0xFF8E24AA);
+    const Color orange = Color(0xFFF4511E);
+    const Color brun = Color(0xFF795548);
+    const Color jaune = Color(0xFFFFB300);
+    const Color vert = Color(0xFF43A047);
+    const Color gris = Color(0xFF757575);
 
-    switch (lowerCategory) {
-      // Nourriture
+    switch (categorieMin) {
       case 'restaurant':
-        return restaurantColor;
+        return rouge;
       case 'pizzeria':
-        return pizzeriaColor;
+        return rose;
       case 'café':
       case 'cafe':
-        return const Color(0xFF6D4C41); // Brun café
-
-      // Hébergement
+        return const Color(0xFF6D4C41);
       case 'hôtel':
       case 'hotel':
-        return hotelColor;
+        return bleu;
       case 'auberge':
-        return const Color(0xFF5E35B1); // Violet profond
-
-      // Loisirs
+        return const Color(0xFF5E35B1);
       case 'loisirs':
-        return loisirsColor;
+        return violet;
       case 'cinéma':
-        return const Color(0xFF3949AB); // Bleu nuit
+        return const Color(0xFF3949AB);
       case 'bowling':
-        return const Color(0xFF00897B); // Teal
-
+        return const Color(0xFF00897B);
       case 'point dintérêt':
       case 'point d\'intérêt':
-        return pointInteretColor;
+        return orange;
       case 'point dintérêt historique':
       case 'point d\'intérêt historique':
-        return historiqueColor;
+        return brun;
       case 'monument':
         return const Color(0xFF6D4C41);
-
       case 'plage':
       case 'beach':
-        return plageColor;
+        return jaune;
       case 'parc':
       case 'park':
-        return parcColor;
+        return vert;
       case 'jardin':
-        return const Color(0xFF7CB342); // Vert clair
-
+        return const Color(0xFF7CB342);
       case 'shop':
       case 'magasin':
-        return shopColor;
+        return const Color(0xFFFB8C00);
       case 'centre commercial':
-        return const Color(0xFFE040FB); // Violet fluo
-
+        return const Color(0xFFE040FB);
       case 'hôpital':
       case 'hospital':
-        return const Color(0xFFD32F2F); // Rouge foncé
+        return const Color(0xFFD32F2F);
       case 'pharmacie':
-        return const Color(0xFF00ACC1); // Cyan
-
+        return const Color(0xFF00ACC1);
       case 'gare':
-        return const Color(0xFF5C6BC0); // Bleu indigo
+        return const Color(0xFF5C6BC0);
       case 'aéroport':
-        return const Color(0xFF039BE5); // Bleu ciel
-
+        return const Color(0xFF039BE5);
       default:
-        return defaultColor;
+        return gris;
     }
   }
 
-  Widget _buildSidePanel() {
-    final allCategories = _places.map((p) => p.category).toSet().toList();
-    allCategories.sort();
+  Widget _construirePanneauLateral() {
+    final toutesCategories = _lieux.map((p) => p.categorie).toSet().toList();
+    toutesCategories.sort();
 
-    return AnimatedPositioned(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      left: 0,
-      right: 0,
-      top:
-          _isPanelOpen
-              ? MediaQuery.of(context).size.height * 0.1
-              : -MediaQuery.of(context).size.height,
-      child: Center(
-        child: Material(
-          elevation: 24,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.85,
-            constraints: BoxConstraints(
-              maxHeight:
-                  MediaQuery.of(context).size.height *
-                  0.75, // Augmenté légèrement
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 20,
-                  spreadRadius: 5,
+    return Stack(
+      children: [
+        // Overlay flou avec fond semi-transparent
+        if (_panneauOuvert)
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _basculerPanneau,
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0),
+                child: Container(
+                  color:
+                      GlobalColors.isDarkMode
+                          ? Colors.black.withOpacity(0.5)
+                          : Colors.black.withOpacity(0.3),
                 ),
-              ],
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Header avec plus de marge en bas
-                Container(
-                  padding: const EdgeInsets.fromLTRB(
-                    20,
-                    16,
-                    16,
-                    16,
-                  ), // Marge ajustée
-                  decoration: BoxDecoration(
-                    color: Colors.blue[700],
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20),
+          ),
+
+        // Panneau principal
+        AnimatedPositioned(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          left: 0,
+          right: 0,
+          top:
+              _panneauOuvert
+                  ? MediaQuery.of(context).size.height * 0.1
+                  : -MediaQuery.of(context).size.height,
+          child: Center(
+            child: Material(
+              elevation: 24,
+              borderRadius: BorderRadius.circular(20),
+              color: Colors.transparent,
+              child: Container(
+                width: MediaQuery.of(context).size.width * 0.85,
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.of(context).size.height * 0.75,
+                ),
+                decoration: BoxDecoration(
+                  color:
+                      GlobalColors.isDarkMode
+                          ? Colors.grey[900]!.withOpacity(0.95)
+                          : Colors.white.withOpacity(0.97),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 5,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        'Filtrer les lieux',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  ],
+                  border:
+                      GlobalColors.isDarkMode
+                          ? Border.all(color: Colors.grey[800]!)
+                          : null,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // En-tête du panneau
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+                      decoration: BoxDecoration(
+                        color:
+                            GlobalColors.isDarkMode
+                                ? Colors.blue[800]
+                                : Colors.blue[700],
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(20),
+                          topRight: Radius.circular(20),
                         ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: _togglePanel,
-                        padding: EdgeInsets.zero, // Réduit le padding
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Ajout d'un espace avant la liste
-                const SizedBox(height: 8),
-
-                // Categories List avec marge ajustée
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                    ), // Marge horizontale augmentée
-                    itemCount: allCategories.length,
-                    itemBuilder: (context, index) {
-                      final category = allCategories[index];
-                      final isSelected = _selectedCategories.contains(category);
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 6,
-                          horizontal: 8,
-                        ), // Marge verticale réduite
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          decoration: BoxDecoration(
-                            color:
-                                isSelected
-                                    ? _getColorForCategory(
-                                      category,
-                                    ).withOpacity(0.1)
-                                    : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Filtrer les lieux',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                            ), // Padding interne ajusté
-                            leading: Container(
-                              padding: const EdgeInsets.all(6),
+                          IconButton(
+                            icon: Icon(Icons.close, color: Colors.white),
+                            onPressed: _basculerPanneau,
+                            padding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // Liste des catégories
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: toutesCategories.length,
+                        itemBuilder: (context, index) {
+                          final categorie = toutesCategories[index];
+                          final estSelectionnee = _categoriesSelectionnees
+                              .contains(categorie);
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 6,
+                              horizontal: 8,
+                            ),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
                               decoration: BoxDecoration(
                                 color:
-                                    isSelected
-                                        ? _getColorForCategory(category)
-                                        : Colors.grey[200],
-                                shape: BoxShape.circle,
+                                    estSelectionnee
+                                        ? _obtenirCouleurPourCategorie(
+                                          categorie,
+                                        ).withOpacity(0.1)
+                                        : Colors.transparent,
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Icon(
-                                _getIconForCategory(category),
-                                size: 20,
-                                color:
-                                    isSelected
-                                        ? Colors.white
-                                        : Colors.grey[700],
+                              child: ListTile(
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
+                                leading: Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        estSelectionnee
+                                            ? _obtenirCouleurPourCategorie(
+                                              categorie,
+                                            )
+                                            : GlobalColors.isDarkMode
+                                            ? Colors.grey[800]!
+                                            : Colors.grey[200]!,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    _obtenirIconePourCategorie(categorie),
+                                    size: 20,
+                                    color:
+                                        estSelectionnee
+                                            ? Colors.white
+                                            : GlobalColors.isDarkMode
+                                            ? Colors.grey[300]!
+                                            : Colors.grey[700]!,
+                                  ),
+                                ),
+                                title: Text(
+                                  categorie,
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color:
+                                        GlobalColors.isDarkMode
+                                            ? Colors.white
+                                            : Colors.black,
+                                  ),
+                                ),
+                                trailing:
+                                    estSelectionnee
+                                        ? Icon(
+                                          Icons.check,
+                                          color: Colors.green,
+                                          size: 22,
+                                        )
+                                        : null,
+                                onTap: () => _basculerCategorie(categorie),
                               ),
                             ),
-                            title: Text(
-                              category,
-                              style: TextStyle(
-                                fontSize:
-                                    15, // Taille de police légèrement réduite
-                              ),
-                            ),
-                            trailing:
-                                isSelected
-                                    ? const Icon(
-                                      Icons.check,
-                                      color: Colors.green,
-                                      size: 22,
-                                    )
-                                    : null,
-                            onTap: () => _toggleCategory(category),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+                          );
+                        },
+                      ),
+                    ),
 
-                // Action Buttons avec marge ajustée
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    20,
-                    12,
-                    20,
-                    20,
-                  ), // Marge supérieure réduite
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.blue[700],
-                            side: BorderSide(color: Colors.blue[700]!),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 14,
-                            ), // Hauteur de bouton augmentée
-                          ),
-                          child: const Text('Tout sélectionner'),
-                          onPressed: () {
-                            setState(() {
-                              _selectedCategories = allCategories.toSet();
-                              _filterPlaces();
-                            });
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12), // Espacement augmenté
-                      Expanded(
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white, // Fond blanc
-                            foregroundColor: Colors.blue[700], // Texte bleu
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              side: BorderSide(
-                                color: Colors.blue[700]!, // Bordure bleue
-                                width: 1.5,
+                    // Boutons en bas du panneau
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                      child: Row(
+                        children: [
+                          // Bouton "Tout sélectionner"
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor:
+                                    GlobalColors.isDarkMode
+                                        ? Colors.blue[200]
+                                        : Colors.blue[700],
+                                side: BorderSide(
+                                  color:
+                                      GlobalColors.isDarkMode
+                                          ? Colors.blue[200]!
+                                          : Colors.blue[700]!,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                               ),
+                              child: Text('Tout sélectionner'),
+                              onPressed: () {
+                                setState(() {
+                                  _categoriesSelectionnees =
+                                      toutesCategories.toSet();
+                                  _filtrerLieux();
+                                });
+                              },
                             ),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            elevation: 2, // Légère ombre
                           ),
-                          child: const Text(
-                            'Appliquer',
-                            style: TextStyle(
-                              fontWeight:
-                                  FontWeight.w600, // Texte légèrement gras
+                          const SizedBox(width: 12),
+                          // Bouton "Appliquer"
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    GlobalColors.isDarkMode
+                                        ? Colors.blue[800]!
+                                        : Colors.white,
+                                foregroundColor:
+                                    GlobalColors.isDarkMode
+                                        ? Colors.white
+                                        : Colors.blue[700],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color:
+                                        GlobalColors.isDarkMode
+                                            ? Colors.blue[200]!
+                                            : Colors.blue[700]!,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                elevation: 2,
+                              ),
+                              child: Text(
+                                'Appliquer',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                              onPressed: _basculerPanneau,
                             ),
                           ),
-                          onPressed: _togglePanel,
-                        ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildPlacesMarkers() {
+  Widget _construireMarqueursLieux() {
     return MarkerLayer(
       markers:
-          _filteredPlaces.map((place) {
+          _lieuxFiltres.map((lieu) {
             return Marker(
-              point: LatLng(place.latitude, place.longitude),
+              point: LatLng(lieu.latitude, lieu.longitude),
               width: 50.0,
               height: 50.0,
               child: GestureDetector(
-                onTap: () => _showPlaceDetails(place),
+                onTap: () => _afficherDetailsLieu(lieu),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.all(8.0),
@@ -692,41 +771,38 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       ),
                     ],
                     border: Border.all(
-                      color: _getColorForCategory(place.category),
+                      color: _obtenirCouleurPourCategorie(lieu.categorie),
                       width: 2.0,
                     ),
                   ),
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Pulsing effect background
-                      if (_selectedIndex == 1) // Only animate when on map tab
+                      if (_indexSelectionne == 1)
                         AnimatedBuilder(
-                          animation: _pulseAnimation,
+                          animation: _animationPulse,
                           builder: (context, child) {
                             return Transform.scale(
-                              scale: _pulseAnimation.value * 0.8,
+                              scale: _animationPulse.value * 0.8,
                               child: Container(
                                 width: 30.0,
                                 height: 30.0,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  color: _getColorForCategory(
-                                    place.category,
+                                  color: _obtenirCouleurPourCategorie(
+                                    lieu.categorie,
                                   ).withOpacity(0.2),
                                 ),
                               ),
                             );
                           },
                         ),
-                      // Main icon
                       Icon(
-                        _getIconForCategory(place.category),
-                        color: _getColorForCategory(place.category),
+                        _obtenirIconePourCategorie(lieu.categorie),
+                        color: _obtenirCouleurPourCategorie(lieu.categorie),
                         size: 24.0,
                       ),
-                      // Badge for special places
-                      if (place.category.toLowerCase().contains('historique'))
+                      if (lieu.categorie.toLowerCase().contains('historique'))
                         Positioned(
                           right: 0,
                           top: 0,
@@ -756,7 +832,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _showPlaceDetails(Place place) {
+  void _afficherDetailsLieu(Lieu lieu) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -768,111 +844,137 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           child: Container(
             height: MediaQuery.of(context).size.height * 0.65,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color:
+                  GlobalColors.isDarkMode
+                      ? Colors.grey[900]!.withOpacity(0.95)
+                      : Colors.white,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(25),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
+                  color: Colors.black.withOpacity(0.3),
                   blurRadius: 20,
                   spreadRadius: 5,
                 ),
               ],
+              border:
+                  GlobalColors.isDarkMode
+                      ? Border.all(color: Colors.grey[800]!)
+                      : null,
             ),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Handle de drag
+                  // Handle drag
                   Container(
                     margin: const EdgeInsets.only(top: 12, bottom: 8),
                     width: 40,
                     height: 5,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color:
+                          GlobalColors.isDarkMode
+                              ? Colors.grey[700]
+                              : Colors.grey[300],
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
 
-                  // Image avec effet de parallaxe
-                  _buildImageSection(place),
+                  // Image section
+                  _construireSectionImage(lieu),
 
-                  // Contenu
+                  // Content
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Titre avec animation
+                        // Title
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 300),
                           child: Text(
-                            place.name,
-                            key: ValueKey(place.name),
-                            style: const TextStyle(
+                            lieu.nom,
+                            key: ValueKey(lieu.nom),
+                            style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               height: 1.2,
+                              color:
+                                  GlobalColors.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black,
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 10),
 
-                        // Catégorie avec badge stylisé
+                        // Category chip
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: _getColorForCategory(
-                              place.category,
-                            ).withOpacity(0.1),
+                            color: _obtenirCouleurPourCategorie(
+                              lieu.categorie,
+                            ).withOpacity(GlobalColors.isDarkMode ? 0.2 : 0.1),
                             borderRadius: BorderRadius.circular(20),
+                            border:
+                                GlobalColors.isDarkMode
+                                    ? Border.all(
+                                      color: _obtenirCouleurPourCategorie(
+                                        lieu.categorie,
+                                      ).withOpacity(0.4),
+                                      width: 1,
+                                    )
+                                    : null,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _getIconForCategory(place.category),
-                                color: _getColorForCategory(place.category),
+                                _obtenirIconePourCategorie(lieu.categorie),
+                                color: _obtenirCouleurPourCategorie(
+                                  lieu.categorie,
+                                ),
                                 size: 18,
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                place.category,
+                                lieu.categorie,
                                 style: TextStyle(
-                                  color: _getColorForCategory(place.category),
+                                  color: _obtenirCouleurPourCategorie(
+                                    lieu.categorie,
+                                  ),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 20),
 
-                        // Description avec effet de fondu
+                        // Description
                         AnimatedOpacity(
                           opacity: 1,
                           duration: const Duration(milliseconds: 500),
                           child: Text(
-                            place.description,
+                            lieu.description,
                             style: TextStyle(
                               fontSize: 16,
-                              color: Colors.grey[700],
+                              color:
+                                  GlobalColors.isDarkMode
+                                      ? Colors.grey[300]
+                                      : Colors.grey[700],
                               height: 1.5,
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 25),
 
-                        // Boutons avec animation scale
-                        _buildActionButtons(place),
-
+                        // Action buttons
+                        _construireBoutonsAction(lieu),
                         const SizedBox(height: 20),
                       ],
                     ),
@@ -886,46 +988,70 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildImageSection(Place place) {
+  Widget _construireSectionImage(Lieu lieu) {
     return SizedBox(
       height: 200,
       child: Stack(
         children: [
-          // Image de fond floutée
-          if (place.image != null)
+          if (lieu.image != null)
             Positioned.fill(
               child: ImageFiltered(
-                imageFilter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
-                child: Image.network(place.image!, fit: BoxFit.cover),
+                imageFilter: ImageFilter.blur(
+                  sigmaX: GlobalColors.isDarkMode ? 4 : 2,
+                  sigmaY: GlobalColors.isDarkMode ? 4 : 2,
+                ),
+                child: Image.network(
+                  lieu.image!,
+                  fit: BoxFit.cover,
+                  color:
+                      GlobalColors.isDarkMode
+                          ? Colors.black.withOpacity(0.3)
+                          : null,
+                  colorBlendMode:
+                      GlobalColors.isDarkMode
+                          ? BlendMode.darken
+                          : BlendMode.dst,
+                ),
               ),
             ),
-
-          // Image principale
           Positioned.fill(
             child:
-                place.image != null
+                lieu.image != null
                     ? ClipRRect(
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(25),
                       ),
-                      child: Image.network(place.image!, fit: BoxFit.cover),
+                      child: Image.network(lieu.image!, fit: BoxFit.cover),
                     )
                     : Container(
-                      color: Colors.grey[200],
-                      child: const Center(
-                        child: Icon(Icons.photo, size: 50, color: Colors.grey),
+                      color:
+                          GlobalColors.isDarkMode
+                              ? Colors.grey[850]
+                              : Colors.grey[200],
+                      child: Center(
+                        child: Icon(
+                          Icons.photo,
+                          size: 50,
+                          color:
+                              GlobalColors.isDarkMode
+                                  ? Colors.grey[600]
+                                  : Colors.grey,
+                        ),
                       ),
                     ),
           ),
-
-          // Overlay de dégradé
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
-                  colors: [Colors.black.withOpacity(0.3), Colors.transparent],
+                  colors: [
+                    Colors.black.withOpacity(
+                      GlobalColors.isDarkMode ? 0.5 : 0.3,
+                    ),
+                    Colors.transparent,
+                  ],
                 ),
               ),
             ),
@@ -935,10 +1061,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildActionButtons(Place place) {
+  Widget _construireBoutonsAction(Lieu lieu) {
     return Row(
       children: [
-        // Bouton Itinéraire
         Expanded(
           child: AnimatedScale(
             scale: 1,
@@ -957,15 +1082,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                _setRouteToPlace(place);
+                _definirItineraireVersLieu(lieu);
               },
             ),
           ),
         ),
-
         const SizedBox(width: 15),
-
-        // Bouton Fermer
         Expanded(
           child: AnimatedScale(
             scale: 1,
@@ -983,10 +1105,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ),
               onPressed: () {
                 setState(() {
-                  _searchedLocation = LatLng(place.latitude, place.longitude);
+                  _positionRecherchee = LatLng(lieu.latitude, lieu.longitude);
                 });
                 Navigator.pop(context);
-                _mapController.move(_searchedLocation!, 15.0);
+                _controleurCarte.move(_positionRecherchee!, 15.0);
               },
             ),
           ),
@@ -995,174 +1117,96 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _setRouteToPlace(Place place) {
+  void _definirItineraireVersLieu(Lieu lieu) {
     setState(() {
-      _searchedLocation = LatLng(place.latitude, place.longitude);
+      _positionRecherchee = LatLng(lieu.latitude, lieu.longitude);
     });
-    _showRouteBetweenLocations();
+    _afficherItineraireEntrePositions();
   }
 
-  void _updateAnimatedRoute() {
-    if (_routePoints.isEmpty) return;
+  void _mettreAJourItineraireAnime() {
+    if (_pointsItineraire.isEmpty) return;
 
-    final totalPoints = _routePoints.length;
-    final animatedPointsCount = (totalPoints * _routeAnimation.value).round();
+    final totalPoints = _pointsItineraire.length;
+    final pointsAnimes = (totalPoints * _animationItineraire.value).round();
 
     setState(() {
-      _animatedRoutePoints = _routePoints.sublist(
+      _pointsItineraireAnime = _pointsItineraire.sublist(
         0,
-        animatedPointsCount.clamp(0, totalPoints),
+        pointsAnimes.clamp(0, totalPoints),
       );
     });
   }
 
-  @override
-  void dispose() {
-    _pulseAnimationController.dispose();
-    _routeAnimationController.dispose();
-    _searchController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
-  }
-
-  Future<bool> _checkLocationPermission() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      setState(() {
-        _locationError = 'Les services de localisation sont désactivés';
-      });
-
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _locationError = '';
-          });
-        }
-      });
-      return false;
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.deniedForever) {
-      setState(() {
-        _locationError =
-            'Les permissions de localisation sont définitivement refusées';
-      });
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _locationError = '';
-          });
-        }
-      });
-      return false;
-    }
-
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission != LocationPermission.whileInUse &&
-          permission != LocationPermission.always) {
-        setState(() {
-          _locationError = 'Les permissions de localisation sont refusées';
-        });
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted) {
-            setState(() {
-              _locationError = '';
-            });
-          }
-        });
-        return false;
-      }
-    }
-    return true;
-  }
-
-  Future<void> _centerOnMyLocation() async {
+  Future<void> _centrerSurMaPosition() async {
     setState(() {
-      _isLoadingLocation = true;
-      _locationError = '';
+      _chargementPosition = true;
+      _erreurLocalisation = '';
     });
 
     try {
-      bool hasPermission = await _checkLocationPermission();
-      if (!hasPermission) return;
+      bool permissionAccordee = await _verifierPermissionLocalisation();
+      if (!permissionAccordee) return;
 
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       ).timeout(const Duration(seconds: 10));
 
       setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-        _accuracy = position.accuracy;
-        _showRoute = false;
+        _positionActuelle = LatLng(position.latitude, position.longitude);
+        _precision = position.accuracy;
+        _afficherItineraire = false;
       });
 
-      _mapController.move(_currentLocation!, 15.0);
+      _controleurCarte.move(_positionActuelle!, 15.0);
     } on TimeoutException {
-      setState(() {
-        _locationError = 'La demande de localisation a expiré';
-      });
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _locationError = '';
-          });
-        }
-      });
+      _afficherErreurTemporaire('La demande de localisation a expiré');
     } catch (e) {
-      setState(() {
-        _locationError = 'Erreur lors de la localisation: ${e.toString()}';
-      });
-      Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _locationError = '';
-          });
-        }
-      });
+      _afficherErreurTemporaire(
+        'Erreur lors de la localisation: ${e.toString()}',
+      );
     } finally {
       setState(() {
-        _isLoadingLocation = false;
+        _chargementPosition = false;
       });
     }
   }
 
-  Future<void> _searchLocation() async {
-    final query = _searchController.text.trim();
-    if (query.isEmpty) {
+  Future<void> _rechercherLieu() async {
+    final requete = _controleurRecherche.text.trim();
+    if (requete.isEmpty) {
       setState(() {
-        _isSearching = false;
-        _searchResults.clear();
-        _searchedLocation = null;
-        _showRoute = false;
+        _rechercheEnCours = false;
+        _resultatsRecherche.clear();
+        _positionRecherchee = null;
+        _afficherItineraire = false;
       });
       return;
     }
 
     setState(() {
-      _isSearching = true;
-      _searchResults.clear();
+      _rechercheEnCours = true;
+      _resultatsRecherche.clear();
     });
 
     try {
-      final response = await http.get(
+      final reponse = await http.get(
         Uri.parse(
           'https://nominatim.openstreetmap.org/search?'
-          'q=$query'
+          'q=$requete'
           '&format=json'
           '&limit=5'
-          '&viewbox=$minLon,$minLat,$maxLon,$maxLat'
+          '&viewbox=$lonMin,$latMin,$lonMax,$latMax'
           '&bounded=1',
         ),
         headers: {'User-Agent': 'YourAppName/1.0'},
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
+      if (reponse.statusCode == 200) {
+        final List<dynamic> donnees = json.decode(reponse.body);
         setState(() {
-          _searchResults =
-              data
+          _resultatsRecherche =
+              donnees
                   .map(
                     (item) => {
                       'name': item['display_name'],
@@ -1170,18 +1214,18 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       'lon': double.parse(item['lon']),
                     },
                   )
-                  .where((result) {
-                    final lat = result['lat'];
-                    final lon = result['lon'];
-                    return lat >= minLat &&
-                        lat <= maxLat &&
-                        lon >= minLon &&
-                        lon <= maxLon;
+                  .where((resultat) {
+                    final lat = resultat['lat'];
+                    final lon = resultat['lon'];
+                    return lat >= latMin &&
+                        lat <= latMax &&
+                        lon >= lonMin &&
+                        lon <= lonMax;
                   })
                   .toList();
         });
 
-        if (_searchResults.isEmpty) {
+        if (_resultatsRecherche.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Aucun résultat trouvé à Béjaïa'),
@@ -1190,7 +1234,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           );
         }
       } else {
-        throw Exception('Failed to load search results');
+        throw Exception('Échec du chargement des résultats');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1201,24 +1245,24 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       );
     } finally {
       setState(() {
-        _isSearching = false;
+        _rechercheEnCours = false;
       });
     }
   }
 
-  void _navigateToSearchResult(Map<String, dynamic> result) {
-    final latLng = LatLng(result['lat'], result['lon']);
+  void _naviguerVersResultatRecherche(Map<String, dynamic> resultat) {
+    final latLng = LatLng(resultat['lat'], resultat['lon']);
     setState(() {
-      _searchedLocation = latLng;
-      _showRoute = false;
-      _searchResults.clear();
+      _positionRecherchee = latLng;
+      _afficherItineraire = false;
+      _resultatsRecherche.clear();
     });
-    _mapController.move(latLng, 15.0);
-    _searchFocusNode.unfocus();
+    _controleurCarte.move(latLng, 15.0);
+    _focusRecherche.unfocus();
   }
 
-  Future<void> _showRouteBetweenLocations() async {
-    if (_currentLocation == null || _searchedLocation == null) {
+  Future<void> _afficherItineraireEntrePositions() async {
+    if (_positionActuelle == null || _positionRecherchee == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
@@ -1231,37 +1275,37 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     }
 
     setState(() {
-      _isSearching = true;
+      _rechercheEnCours = true;
     });
 
     try {
-      final response = await http.get(
+      final reponse = await http.get(
         Uri.parse(
           'http://router.project-osrm.org/route/v1/driving/'
-          '${_currentLocation!.longitude},${_currentLocation!.latitude};'
-          '${_searchedLocation!.longitude},${_searchedLocation!.latitude}'
+          '${_positionActuelle!.longitude},${_positionActuelle!.latitude};'
+          '${_positionRecherchee!.longitude},${_positionRecherchee!.latitude}'
           '?overview=full&geometries=geojson',
         ),
       );
 
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['code'] == 'Ok') {
-          final coordinates = data['routes'][0]['geometry']['coordinates'];
+      if (reponse.statusCode == 200) {
+        final donnees = json.decode(reponse.body);
+        if (donnees['code'] == 'Ok') {
+          final coordonnees = donnees['routes'][0]['geometry']['coordinates'];
           setState(() {
-            _routePoints =
-                coordinates
+            _pointsItineraire =
+                coordonnees
                     .map<LatLng>((coord) => LatLng(coord[1], coord[0]))
                     .toList();
-            _showRoute = true;
-            _routeAnimationController.reset();
-            _routeAnimationController.forward();
+            _afficherItineraire = true;
+            _controleurAnimationItineraire.reset();
+            _controleurAnimationItineraire.forward();
           });
         } else {
-          throw Exception('Routing failed: ${data['message']}');
+          throw Exception('Calcul itinéraire échoué: ${donnees['message']}');
         }
       } else {
-        throw Exception('Failed to load route');
+        throw Exception('Échec du chargement de l\'itinéraire');
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1272,36 +1316,36 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           duration: const Duration(seconds: 3),
         ),
       );
-      // Fallback to straight line if routing fails
+
       setState(() {
-        _routePoints = [_currentLocation!, _searchedLocation!];
-        _showRoute = true;
-        _routeAnimationController.reset();
-        _routeAnimationController.forward();
+        _pointsItineraire = [_positionActuelle!, _positionRecherchee!];
+        _afficherItineraire = true;
+        _controleurAnimationItineraire.reset();
+        _controleurAnimationItineraire.forward();
       });
     } finally {
       setState(() {
-        _isSearching = false;
+        _rechercheEnCours = false;
       });
     }
   }
 
-  Widget _buildLocationMarker() {
+  Widget _construireMarqueurPosition() {
     return MarkerLayer(
       markers: [
-        if (_currentLocation != null)
+        if (_positionActuelle != null)
           Marker(
-            point: _currentLocation!,
+            point: _positionActuelle!,
             width: 80,
             height: 80,
             child: Stack(
               alignment: Alignment.center,
               children: [
-                if (_accuracy != null)
+                if (_precision != null)
                   Positioned(
                     child: Container(
-                      width: _accuracy! * 2,
-                      height: _accuracy! * 2,
+                      width: _precision! * 2,
+                      height: _precision! * 2,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: Colors.blue.withOpacity(0.2),
@@ -1309,10 +1353,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 AnimatedBuilder(
-                  animation: _pulseAnimation,
+                  animation: _animationPulse,
                   builder: (context, child) {
                     return Transform.scale(
-                      scale: _pulseAnimation.value,
+                      scale: _animationPulse.value,
                       child: Container(
                         width: 24,
                         height: 24,
@@ -1336,9 +1380,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               ],
             ),
           ),
-        if (_searchedLocation != null)
+        if (_positionRecherchee != null)
           Marker(
-            point: _searchedLocation!,
+            point: _positionRecherchee!,
             width: 80,
             height: 80,
             child: Column(
@@ -1358,7 +1402,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ],
                   ),
                   child: Text(
-                    widget.markerTitle ?? 'Destination',
+                    widget.titreMarqueur ?? 'Destination',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -1367,10 +1411,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 4),
                 AnimatedBuilder(
-                  animation: _pulseAnimation,
+                  animation: _animationPulse,
                   builder: (context, child) {
                     return Transform.scale(
-                      scale: _pulseAnimation.value,
+                      scale: _animationPulse.value,
                       child: Container(
                         width: 24,
                         height: 24,
@@ -1390,15 +1434,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildRouteLayer() {
-    if (!_showRoute || _animatedRoutePoints.length < 2) {
+  Widget _construireCoucheItineraire() {
+    if (!_afficherItineraire || _pointsItineraireAnime.length < 2) {
       return Container();
     }
 
     return PolylineLayer(
       polylines: [
         Polyline(
-          points: _animatedRoutePoints,
+          points: _pointsItineraireAnime,
           color: Colors.blue,
           strokeWidth: 4,
         ),
@@ -1406,9 +1450,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _onItemTapped(int index) {
+  void _surItemSelectionne(int index) {
     setState(() {
-      _selectedIndex = index;
+      _indexSelectionne = index;
     });
 
     switch (index) {
@@ -1440,30 +1484,33 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueGrey[50],
+      backgroundColor: Colors.grey[100],
       body: Stack(
         children: [
-          // Main Map Widget
-          if (_isLoadingMap)
-            const Center(
-              child: CircularProgressIndicator(
-                strokeWidth: 3,
-                color: Colors.blue,
+          if (_chargementCarte)
+            Container(
+              color: Colors.white,
+              child: Center(
+                child: Lottie.network(
+                  'https://assets3.lottiefiles.com/private_files/lf30_cgfdhxgx.json',
+                  width: 200,
+                  height: 200,
+                ),
               ),
             )
           else
             FlutterMap(
-              mapController: _mapController,
+              mapController: _controleurCarte,
               options: MapOptions(
                 initialCenter: const LatLng(36.7509, 5.0566),
                 initialZoom: 12.0,
                 minZoom: 11.0,
                 bounds: LatLngBounds(
-                  const LatLng(minLat, minLon),
-                  const LatLng(maxLat, maxLon),
+                  const LatLng(latMin, lonMin),
+                  const LatLng(latMax, lonMax),
                 ),
                 boundsOptions: const FitBoundsOptions(
-                  padding: EdgeInsets.all(8.0),
+                  padding: EdgeInsets.all(12.0),
                 ),
               ),
               children: [
@@ -1471,318 +1518,610 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   urlTemplate:
                       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                   subdomains: const ['a', 'b', 'c'],
+                  userAgentPackageName: 'com.example.app',
+                  tileBuilder: (context, widget, tile) {
+                    return TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 300),
+                      builder: (context, value, child) {
+                        return Opacity(opacity: value, child: child);
+                      },
+                      child: widget,
+                    );
+                  },
                 ),
-                _buildRouteLayer(),
-                _buildLocationMarker(),
-                _buildPlacesMarkers(),
+                _construireCoucheItineraire(),
+                _construireMarqueurPosition(),
+                _construireMarqueursLieux(),
               ],
             ),
 
-          // Side Panel
-          _buildSidePanel(),
+          _construirePanneauLateral(),
 
-          // Filter Button (only visible when panel is closed)
-          if (!_isPanelOpen)
+          if (!_panneauOuvert)
             Positioned(
-              top: 100,
+              top: 110,
               left: 20,
-              child: FloatingActionButton(
-                heroTag: 'filterButton',
-                backgroundColor: Colors.white,
-                onPressed: _togglePanel,
-                child: const Icon(Icons.filter_list, color: Colors.blue),
+              child: Material(
+                elevation: 6,
+                shadowColor: Colors.black26,
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.blue[600]!, Colors.blue[400]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.filter_list, color: Colors.white),
+                    onPressed: _basculerPanneau,
+                    iconSize: 26,
+                    padding: const EdgeInsets.all(12),
+                  ),
+                ),
               ),
             ),
 
-          // Search Bar
           Positioned(
-            top: 40,
+            top: 45,
             left: 20,
             right: 20,
-            child: Column(
-              children: [
-                Material(
-                  elevation: 4,
-                  borderRadius: BorderRadius.circular(30),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _searchController,
-                          focusNode: _searchFocusNode,
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: Colors.blue,
-                            ),
-                            suffixIcon:
-                                _isSearching
-                                    ? const Padding(
-                                      padding: EdgeInsets.all(8),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.blue,
-                                      ),
-                                    )
-                                    : _searchController.text.isNotEmpty
-                                    ? IconButton(
-                                      icon: const Icon(
-                                        Icons.close,
-                                        color: Colors.grey,
-                                      ),
-                                      onPressed: () {
-                                        _searchController.clear();
-                                        setState(() {
-                                          _searchResults.clear();
-                                          _searchedLocation = null;
-                                          _showRoute = false;
-                                        });
-                                      },
-                                    )
-                                    : null,
-                            hintText: "Rechercher un lieu à Béjaïa...",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              vertical: 12,
-                              horizontal: 20,
-                            ),
-                          ),
-                          onSubmitted: (value) => _searchLocation(),
+            child: Visibility(
+              visible: !_panneauOuvert,
+              child: Column(
+                children: [
+                  Material(
+                    elevation: 8,
+                    shadowColor: Colors.black38,
+                    borderRadius: BorderRadius.circular(30),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(30),
+                        gradient: LinearGradient(
+                          colors: [Colors.white, Colors.grey[50]!],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
                       ),
-                      if (_searchedLocation != null)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: IconButton(
-                            icon: const Icon(
-                              Icons.navigation,
-                              color: Colors.blue,
-                              size: 28,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _controleurRecherche,
+                              focusNode: _focusRecherche,
+                              decoration: InputDecoration(
+                                filled: false,
+                                prefixIcon: const Icon(
+                                  Icons.search,
+                                  color: Colors.blue,
+                                  size: 26,
+                                ),
+                                suffixIcon:
+                                    _rechercheEnCours
+                                        ? Padding(
+                                          padding: const EdgeInsets.all(10),
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.blue[600],
+                                          ),
+                                        )
+                                        : _controleurRecherche.text.isNotEmpty
+                                        ? IconButton(
+                                          icon: const Icon(
+                                            Icons.close,
+                                            color: Colors.grey,
+                                          ),
+                                          onPressed: () {
+                                            _controleurRecherche.clear();
+                                            setState(() {
+                                              _resultatsRecherche.clear();
+                                              _positionRecherchee = null;
+                                              _afficherItineraire = false;
+                                            });
+                                          },
+                                        )
+                                        : null,
+                                hintText: "Rechercher un lieu à Béjaïa...",
+                                hintStyle: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.w400,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide.none,
+                                ),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                  horizontal: 20,
+                                ),
+                              ),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              onSubmitted: (value) => _rechercherLieu(),
                             ),
-                            onPressed: () {
-                              _mapController.move(_searchedLocation!, 15.0);
-                            },
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-                if (_searchResults.isNotEmpty)
-                  Container(
-                    margin: const EdgeInsets.only(top: 5),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      children:
-                          _searchResults
-                              .map(
-                                (result) => ListTile(
-                                  leading: const Icon(
-                                    Icons.place,
-                                    color: Colors.red,
+                          if (_positionRecherchee != null)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.navigation,
+                                    color: Colors.blue[600],
+                                    size: 28,
                                   ),
-                                  title: Text(
-                                    result['name'],
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontSize: 14),
-                                  ),
-                                  onTap: () {
-                                    _navigateToSearchResult(result);
-                                    _searchController.text = result['name'];
+                                  onPressed: () {
+                                    _controleurCarte.move(
+                                      _positionRecherchee!,
+                                      15.0,
+                                    );
                                   },
                                 ),
-                              )
-                              .toList(),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-              ],
+
+                  // Search results
+                  if (_resultatsRecherche.isNotEmpty)
+                    Container(
+                      margin: const EdgeInsets.only(top: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Column(
+                            children:
+                                _resultatsRecherche.map((resultat) {
+                                  return InkWell(
+                                    onTap: () {
+                                      _naviguerVersResultatRecherche(resultat);
+                                      _controleurRecherche.text =
+                                          resultat['name'];
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 8,
+                                        horizontal: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color: Colors.grey[200]!,
+                                            width: 1,
+                                          ),
+                                        ),
+                                      ),
+                                      child: ListTile(
+                                        leading: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.red[50],
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: Icon(
+                                            Icons.place,
+                                            color: Colors.red[400],
+                                            size: 20,
+                                          ),
+                                        ),
+                                        title: Text(
+                                          resultat['name'],
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        subtitle: Text(
+                                          'Distance: ${resultat['distance'] ?? 'Inconnue'}',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                        trailing: Icon(
+                                          Icons.arrow_forward_ios,
+                                          size: 16,
+                                          color: Colors.grey[400],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
 
-          // Loading Indicator for Places
-          if (_isLoadingPlaces)
+          // Loading places indicator
+          if (_chargementLieux)
             Positioned(
-              top: 100,
+              top: 110,
               left: 0,
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.1),
                         blurRadius: 10,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue[600]!,
+                          ),
+                        ),
                       ),
-                      SizedBox(width: 10),
-                      Text('Chargement des lieux...'),
+                      const SizedBox(width: 14),
+                      Text(
+                        'Chargement des lieux...',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey[800],
+                        ),
+                      ),
                     ],
                   ),
                 ),
               ),
             ),
 
-          // Location Buttons
           Positioned(
             bottom: 160,
             right: 20,
-            child: Column(
-              children: [
-                FloatingActionButton(
-                  heroTag: 'locationButton',
-                  backgroundColor: Colors.white,
-                  onPressed: _centerOnMyLocation,
-                  child:
-                      _isLoadingLocation
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.blue,
-                            ),
-                          )
-                          : const Icon(Icons.my_location, color: Colors.blue),
-                ),
-                const SizedBox(height: 10),
-                FloatingActionButton(
-                  heroTag: 'routeButton',
-                  backgroundColor: Colors.white,
-                  onPressed: _showRouteBetweenLocations,
-                  child:
-                      _isSearching
-                          ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.green,
-                            ),
-                          )
-                          : const Icon(Icons.directions, color: Colors.green),
-                ),
-              ],
+            child: Visibility(
+              visible: !_panneauOuvert,
+              child: Column(
+                children: [
+                  // Location button
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow:
+                          GlobalColors.isDarkMode
+                              ? []
+                              : [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Material(
+                      elevation: 0,
+                      borderRadius: BorderRadius.circular(24),
+                      color:
+                          GlobalColors.isDarkMode
+                              ? Colors.grey[800]!.withOpacity(0.8)
+                              : Colors.white,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: _centrerSurMaPosition,
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            border:
+                                GlobalColors.isDarkMode
+                                    ? Border.all(
+                                      color: Colors.blue[200]!.withOpacity(0.2),
+                                      width: 1,
+                                    )
+                                    : null,
+                          ),
+                          child:
+                              _chargementPosition
+                                  ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        GlobalColors.isDarkMode
+                                            ? Colors.blue[200]!
+                                            : Colors.blue[600]!,
+                                      ),
+                                    ),
+                                  )
+                                  : Icon(
+                                    Icons.my_location,
+                                    color:
+                                        GlobalColors.isDarkMode
+                                            ? Colors.blue[200]
+                                            : Colors.blue[600],
+                                    size: 24,
+                                  ),
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // Directions button
+                  Container(
+                    decoration: BoxDecoration(
+                      boxShadow:
+                          GlobalColors.isDarkMode
+                              ? []
+                              : [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 8,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Material(
+                      elevation: 0,
+                      borderRadius: BorderRadius.circular(24),
+                      color:
+                          GlobalColors.isDarkMode
+                              ? Colors.grey[800]!.withOpacity(0.8)
+                              : Colors.white,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(24),
+                        onTap: _afficherItineraireEntrePositions,
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            border:
+                                GlobalColors.isDarkMode
+                                    ? Border.all(
+                                      color: Colors.green[200]!.withOpacity(
+                                        0.2,
+                                      ),
+                                      width: 1,
+                                    )
+                                    : null,
+                          ),
+                          child:
+                              _rechercheEnCours
+                                  ? SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        GlobalColors.isDarkMode
+                                            ? Colors.green[200]!
+                                            : Colors.green[600]!,
+                                      ),
+                                    ),
+                                  )
+                                  : Icon(
+                                    Icons.directions,
+                                    color:
+                                        GlobalColors.isDarkMode
+                                            ? Colors.green[200]
+                                            : Colors.green[600],
+                                    size: 24,
+                                  ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
 
-          // Location Error Message
-          if (_locationError.isNotEmpty)
+          if (_erreurLocalisation.isNotEmpty)
             Positioned(
               bottom: 230,
               left: 20,
               right: 20,
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red[50],
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.red),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.red),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        _locationError,
-                        style: const TextStyle(color: Colors.red),
-                      ),
+              child: GestureDetector(
+                onTap: () => _centrerSurMaPosition(),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: 1.0),
+                  duration: const Duration(milliseconds: 300),
+                  builder: (context, value, child) {
+                    return Opacity(opacity: value, child: child);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
                     ),
-                    IconButton(
-                      icon: const Icon(
-                        Icons.close,
-                        size: 18,
-                        color: Colors.red,
+                    decoration: BoxDecoration(
+                      color:
+                          GlobalColors.isDarkMode
+                              ? Colors.red[900]!.withOpacity(0.3)
+                              : Colors.red[50],
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color:
+                            GlobalColors.isDarkMode
+                                ? Colors.red[700]!
+                                : Colors.red[300]!,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _locationError = '';
-                        });
-                      },
+                      boxShadow:
+                          GlobalColors.isDarkMode
+                              ? []
+                              : [
+                                BoxShadow(
+                                  color: Colors.red.withOpacity(0.1),
+                                  blurRadius: 10,
+                                  spreadRadius: 1,
+                                ),
+                              ],
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color:
+                                GlobalColors.isDarkMode
+                                    ? Colors.red[800]!.withOpacity(0.5)
+                                    : Colors.red[100],
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.error_outline,
+                            color:
+                                GlobalColors.isDarkMode
+                                    ? Colors.red[200]
+                                    : Colors.red[700],
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            _erreurLocalisation,
+                            style: TextStyle(
+                              color:
+                                  GlobalColors.isDarkMode
+                                      ? Colors.red[200]
+                                      : Colors.red[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.settings,
+                            color:
+                                GlobalColors.isDarkMode
+                                    ? Colors.red[300]
+                                    : Colors.red[600],
+                          ),
+                          onPressed: () => Geolocator.openLocationSettings(),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomNavBar(),
-    );
-  }
 
-  Widget _buildBottomNavBar() {
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            height: 65,
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.home_rounded, 'Accueil', 0),
-                _buildNavItem(Icons.map_rounded, 'Carte', 1),
-                _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
-                _buildNavItem(Icons.person_rounded, 'Profil', 3),
-              ],
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                boxShadow:
+                    GlobalColors.isDarkMode
+                        ? []
+                        : [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 20,
+                            offset: Offset(0, 10),
+                          ),
+                        ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  child: Container(
+                    height: 65,
+                    padding: EdgeInsets.symmetric(horizontal: 8),
+                    decoration: BoxDecoration(
+                      color:
+                          GlobalColors.isDarkMode
+                              ? GlobalColors.accentColor.withOpacity(0.2)
+                              : GlobalColors.primaryColor.withOpacity(0.9),
+                      border:
+                          GlobalColors.isDarkMode
+                              ? Border.all(
+                                color: Colors.white.withOpacity(0.1),
+                                width: 1,
+                              )
+                              : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildNavItem(Icons.home_rounded, 'Accueil', 0),
+                        _buildNavItem(Icons.map_rounded, 'Carte', 1),
+                        _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
+                        _buildNavItem(Icons.person_rounded, 'Profil', 3),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
 
-
   Widget _buildNavItem(IconData icon, String label, int index) {
-    final Color primaryColor = Color(0xFF4361EE);
-    final Color secondaryColor = Color(0xFF1E40AF);
-    final Color accentColor = Color(0xFFEC4899);
-    final Color backgroundColor = Color(0xFFF9FAFB);
-    final Color cardColor = Colors.white;
-    bool isSelected = _selectedIndex == index;
+    bool isSelected = _indexSelectionne == index;
+    Color selectedColor =
+        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+
     return GestureDetector(
-      onTap: () => _onItemTapped(index),
+      onTap: () => _surItemSelectionne(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color:
-          isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+              isSelected
+                  ? (GlobalColors.isDarkMode
+                      ? Colors.blue.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.1))
+                  : Colors.transparent,
         ),
         child: AnimatedContainer(
           duration: Duration(milliseconds: 200),
@@ -1791,7 +2130,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             children: [
               Icon(
                 icon,
-                color: isSelected ? primaryColor : Colors.grey,
+                color:
+                    isSelected
+                        ? selectedColor
+                        : (GlobalColors.isDarkMode
+                            ? Colors.grey.shade400
+                            : Colors.grey),
                 size: isSelected ? 26 : 24,
               ),
               if (isSelected) ...[
@@ -1799,7 +2143,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 Text(
                   label,
                   style: TextStyle(
-                    color: primaryColor,
+                    color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
