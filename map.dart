@@ -1572,154 +1572,142 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             child: Visibility(
               visible: !_panneauOuvert,
               child: Column(
-                children: [
-                  Material(
-                    elevation: 8,
-                    shadowColor: Colors.black38,
-                    borderRadius: BorderRadius.circular(30),
-                    child: Container(
-                      decoration: BoxDecoration(
+              children: [
+                Material(
+                elevation: 8,
+                shadowColor: Colors.black38,
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  gradient: LinearGradient(
+                    colors: [
+                    GlobalColors.isDarkMode ? Colors.grey[900]! : Colors.white,
+                    GlobalColors.isDarkMode ? Colors.grey[850]! : Colors.grey[50]!,
+                    ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  ),
+                  child: Row(
+                  children: [
+                    Expanded(
+                    child: TextField(
+                      controller: _controleurRecherche,
+                      focusNode: _focusRecherche,
+                      style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: GlobalColors.isDarkMode ? Colors.grey[200] : Colors.black87,
+                      ),
+                      decoration: InputDecoration(
+                      filled: true,
+                      fillColor: GlobalColors.isDarkMode 
+                        ? Colors.grey[850]!.withOpacity(0.7)
+                        : Colors.grey[50],
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: GlobalColors.isDarkMode 
+                          ? Colors.blue[200]
+                          : Colors.blue,
+                        size: 26,
+                      ),
+                      suffixIcon: _rechercheEnCours
+                        ? Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: GlobalColors.isDarkMode 
+                              ? Colors.blue[300]
+                              : Colors.blue[600],
+                          ),
+                          )
+                        : _controleurRecherche.text.isNotEmpty
+                          ? IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: GlobalColors.isDarkMode 
+                                ? Colors.grey[400]
+                                : Colors.grey[600],
+                            ),
+                            onPressed: () {
+                              _controleurRecherche.clear();
+                              setState(() {
+                              _resultatsRecherche.clear();
+                              _positionRecherchee = null;
+                              _afficherItineraire = false;
+                              });
+                            },
+                            )
+                          : null,
+                      hintText: "Rechercher un lieu à Béjaïa...",
+                      hintStyle: TextStyle(
+                        color: GlobalColors.isDarkMode 
+                          ? Colors.grey[400]
+                          : Colors.grey[500],
+                        fontWeight: FontWeight.w400,
+                      ),
+                      border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
-                        gradient: LinearGradient(
-                          colors: [Colors.white, Colors.grey[50]!],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(
+                        color: GlobalColors.isDarkMode 
+                          ? Colors.grey[700]!
+                          : Colors.grey[300]!,
+                        width: 1,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _controleurRecherche,
-                              focusNode: _focusRecherche,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color:
-                                    Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                              ),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor:
-                                    Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.grey[800]!.withOpacity(0.7)
-                                        : Colors.grey[50],
-                                prefixIcon: Icon(
-                                  Icons.search,
-                                  color:
-                                      Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? Colors.blue[200]
-                                          : Colors.blue,
-                                  size: 26,
-                                ),
-                                suffixIcon:
-                                    _rechercheEnCours
-                                        ? Padding(
-                                          padding: const EdgeInsets.all(10),
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.blue[300]
-                                                    : Colors.blue[600],
-                                          ),
-                                        )
-                                        : _controleurRecherche.text.isNotEmpty
-                                        ? IconButton(
-                                          icon: Icon(
-                                            Icons.close,
-                                            color:
-                                                Theme.of(context).brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[400]
-                                                    : Colors.grey,
-                                          ),
-                                          onPressed: () {
-                                            _controleurRecherche.clear();
-                                            setState(() {
-                                              _resultatsRecherche.clear();
-                                              _positionRecherchee = null;
-                                              _afficherItineraire = false;
-                                            });
-                                          },
-                                        )
-                                        : null,
-                                hintText: "Rechercher un lieu à Béjaïa...",
-                                hintStyle: TextStyle(
-                                  color:
-                                      Theme.of(context).brightness ==
-                                              Brightness.dark
-                                          ? Colors.grey.shade400
-                                          : Colors.grey[500],
-                                  fontWeight: FontWeight.w400,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide.none,
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide(
-                                    color:
-                                        Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.grey[700]!
-                                            : Colors.grey[300]!,
-                                    width: 1,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                  borderSide: BorderSide(
-                                    color:
-                                        Theme.of(context).brightness ==
-                                                Brightness.dark
-                                            ? Colors.blue[400]!
-                                            : Colors.blue,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                  horizontal: 20,
-                                ),
-                              ),
-                              onSubmitted: (value) => _rechercherLieu(),
-                            ),
-                          ),
-                          if (_positionRecherchee != null)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  shape: BoxShape.circle,
-                                ),
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.navigation,
-                                    color: Colors.blue[600],
-                                    size: 28,
-                                  ),
-                                  onPressed: () {
-                                    _controleurCarte.move(
-                                      _positionRecherchee!,
-                                      15.0,
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                        ],
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(30),
+                        borderSide: BorderSide(
+                        color: GlobalColors.isDarkMode 
+                          ? Colors.blue[400]!
+                          : Colors.blue,
+                        width: 1.5,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 20,
+                      ),
+                      ),
+                      onSubmitted: (value) => _rechercherLieu(),
+                    ),
+                    ),
+                    if (_positionRecherchee != null)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Container(
+                      decoration: BoxDecoration(
+                        color: GlobalColors.isDarkMode 
+                          ? Colors.blue.withOpacity(0.2)
+                          : Colors.blue[50],
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(
+                        Icons.navigation,
+                        color: GlobalColors.isDarkMode 
+                          ? Colors.blue[300]
+                          : Colors.blue[600],
+                        size: 28,
+                        ),
+                        onPressed: () {
+                        _controleurCarte.move(
+                          _positionRecherchee!,
+                          15.0,
+                        );
+                        },
+                      ),
                       ),
                     ),
+                  ],
                   ),
+                ),
+                ),
 
                   // Search results
                   if (_resultatsRecherche.isNotEmpty)
