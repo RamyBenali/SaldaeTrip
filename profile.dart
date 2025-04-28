@@ -657,13 +657,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       style: TextStyle(
                         color:
                             GlobalColors.isDarkMode
-                                ? Colors.white
+                                ? Colors.transparent
                                 : Colors.green.shade700,
                       ),
                     ),
                     backgroundColor:
                         GlobalColors.isDarkMode
-                            ? GlobalColors.accentColor.withOpacity(0.2)
+                            ? Colors.transparent
                             : Colors.green.shade50,
                   );
                 }).toList(),

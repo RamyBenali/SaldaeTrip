@@ -1592,11 +1592,29 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             child: TextField(
                               controller: _controleurRecherche,
                               focusNode: _focusRecherche,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
+                              ),
                               decoration: InputDecoration(
-                                filled: false,
-                                prefixIcon: const Icon(
+                                filled: true,
+                                fillColor:
+                                    Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[800]!.withOpacity(0.7)
+                                        : Colors.grey[50],
+                                prefixIcon: Icon(
                                   Icons.search,
-                                  color: Colors.blue,
+                                  color:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.blue[200]
+                                          : Colors.blue,
                                   size: 26,
                                 ),
                                 suffixIcon:
@@ -1605,14 +1623,22 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                           padding: const EdgeInsets.all(10),
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            color: Colors.blue[600],
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.blue[300]
+                                                    : Colors.blue[600],
                                           ),
                                         )
                                         : _controleurRecherche.text.isNotEmpty
                                         ? IconButton(
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.close,
-                                            color: Colors.grey,
+                                            color:
+                                                Theme.of(context).brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[400]
+                                                    : Colors.grey,
                                           ),
                                           onPressed: () {
                                             _controleurRecherche.clear();
@@ -1626,21 +1652,43 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                         : null,
                                 hintText: "Rechercher un lieu à Béjaïa...",
                                 hintStyle: TextStyle(
-                                  color: Colors.grey[500],
+                                  color:
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.grey.shade400
+                                          : Colors.grey[500],
                                   fontWeight: FontWeight.w400,
                                 ),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(30),
                                   borderSide: BorderSide.none,
                                 ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.grey[700]!
+                                            : Colors.grey[300]!,
+                                    width: 1,
+                                  ),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                  borderSide: BorderSide(
+                                    color:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.blue[400]!
+                                            : Colors.blue,
+                                    width: 1.5,
+                                  ),
+                                ),
                                 contentPadding: const EdgeInsets.symmetric(
                                   vertical: 16,
                                   horizontal: 20,
                                 ),
-                              ),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
                               ),
                               onSubmitted: (value) => _rechercherLieu(),
                             ),
