@@ -5,6 +5,7 @@ import 'gestion-offres.dart';
 import 'gestion-prestataire.dart';
 import 'gestion-voyageur.dart';
 import 'gestion-avis.dart';
+import '../GlovalColors.dart';
 
 class AdminPanelPage extends StatefulWidget {
   @override
@@ -12,6 +13,10 @@ class AdminPanelPage extends StatefulWidget {
 }
 
 class _AdminPanelPageState extends State<AdminPanelPage> {
+  final primaryBackColor = GlobalColors.primaryColor;
+  final cardColor = GlobalColors.cardColor;
+  final textColor = GlobalColors.secondaryColor;
+  final accentGlobalColor = GlobalColors.accentColor;
   final supabase = Supabase.instance.client;
   int numVoyageurs = 0;
   int numPrestataires = 0;
@@ -57,6 +62,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: primaryBackColor,
       appBar: AppBar(
         title: Text(
           'Panneau Administrateur',
@@ -70,7 +76,6 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // GridView des actions administratives
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
@@ -164,6 +169,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   }
 
   Widget _buildAdminCard(BuildContext context, {required IconData icon, required String title, required VoidCallback onTap}) {
+    bool isDarkMode = GlobalColors.isDarkMode;
     return GestureDetector(
       onTap: onTap,
       child: Card(
@@ -172,7 +178,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.blue[50],
+            color: isDarkMode ? cardColor : Colors.blue[50],
           ),
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -182,7 +188,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
               SizedBox(height: 12),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDarkMode? Colors.white : Colors.black),
               ),
             ],
           ),
@@ -192,6 +198,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   }
 
   Widget _buildStatCard(String title, int count, IconData icon) {
+    bool isDarkMode = GlobalColors.isDarkMode;
     return Container(
       width: MediaQuery.of(context).size.width * 0.45, // Largeur fixe, ajustée
       height: 150, // Hauteur fixe pour uniformité
@@ -202,7 +209,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            color: Colors.blue[100],
+            color: isDarkMode ? cardColor : Colors.blue[100],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -212,7 +219,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
               SizedBox(height: 1),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDarkMode? Colors.white : Colors.black),
               ),
               SizedBox(height: 2),
               Text(
