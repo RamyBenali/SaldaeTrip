@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
+import 'GlovalColors.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -11,6 +12,10 @@ class OffrePlagePage extends StatefulWidget {
 }
 
 class _OffrePlagePageState extends State<OffrePlagePage> {
+  final primaryBackColor = GlobalColors.primaryColor;
+  final cardColor = GlobalColors.cardColor;
+  final textColor = GlobalColors.secondaryColor;
+  final accentGlobalColor = GlobalColors.accentColor;
   List<Offre> offres = [];
   bool isLoading = true;
   String searchQuery = '';
@@ -243,7 +248,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
@@ -256,7 +261,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher une plage...',
-                      hintStyle: TextStyle(color: Colors.grey[600]),
+                      hintStyle: TextStyle(color: textColor),
                       prefixIcon: Icon(Icons.search, color: primaryColor),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -444,7 +449,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardColor,
                           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
                         ),
                         child: Column(
@@ -459,7 +464,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey[900],
+                                      color: textColor,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -489,7 +494,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                   child: Text(
                                     offre.adresse,
                                     style: TextStyle(
-                                      color: Colors.grey[700],
+                                      color: accentGlobalColor,
                                       fontSize: 13,
                                     ),
                                     maxLines: 1,
@@ -504,13 +509,13 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                 Icon(
                                   offre.tarifs?.isEmpty ?? true ? Icons.money_off : Icons.attach_money,
                                   size: 16,
-                                  color: offre.tarifs?.isEmpty ?? true ? Colors.grey[600] : Colors.green[700],
+                                  color: offre.tarifs?.isEmpty ?? true ? textColor.withOpacity(0.8) : Colors.green[700],
                                 ),
                                 SizedBox(width: 4),
                                 Text(
                                   offre.tarifs?.isEmpty ?? true ? 'Entrée gratuite' : offre.tarifs!,
                                   style: TextStyle(
-                                    color: offre.tarifs?.isEmpty ?? true ? Colors.grey[600] : Colors.green[700],
+                                    color: offre.tarifs?.isEmpty ?? true ? textColor.withOpacity(0.8) : Colors.green[700],
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -588,7 +593,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: primaryBackColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         centerTitle: false,
@@ -618,7 +623,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
             end: Alignment.bottomCenter,
             colors: [
               primaryColor.withOpacity(0.2),
-              Colors.grey[100]!,
+              primaryBackColor,
             ],
             stops: [0.0, 0.3],
           ),

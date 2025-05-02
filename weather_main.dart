@@ -15,6 +15,7 @@ import 'chatbot.dart';
 import 'admin/panneau-admin.dart';
 import 'prestataire/panneau-prestataire.dart';
 import 'offre_plage.dart';
+import 'GlovalColors.dart';
 
 void main() {
   runApp(MyApp());
@@ -266,263 +267,286 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: CustomScrollView(
-        slivers: [
-          // En-tête avec météo
-          SliverAppBar(
-            expandedHeight: 300,
-            floating: false,
-            pinned: true,
-            automaticallyImplyLeading: false,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    "assets/images/background.jpg",
-                    fit: BoxFit.cover,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withOpacity(0.6),
-                          Colors.transparent,
-                        ],
+      backgroundColor: GlobalColors.primaryColor,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            slivers: [
+              // En-tête avec météo
+              SliverAppBar(
+                expandedHeight: 300,
+                floating: false,
+                pinned: true,
+                automaticallyImplyLeading: false,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(
+                        "assets/images/background.jpg",
+                        fit: BoxFit.cover,
                       ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 50,
-                    left: 20,
-                    right: 20,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Explorez Béjaïa",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            fontFamily: 'Poppins',
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.6),
+                              Colors.transparent,
+                            ],
                           ),
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          "Découvrez les meilleures activités",
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 16,
-                          ),
-                        ),
-                        SizedBox(height: 20),
-                        // Widget météo
-                        Container(
-                          padding: EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                      ),
+                      Positioned(
+                        top: 50,
+                        left: 20,
+                        right: 20,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Explorez Béjaïa",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                              ),
                             ),
-                          ),
-                          child: isLoading
-                              ? Center(child: CircularProgressIndicator(color: Colors.white))
-                              : Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                            SizedBox(height: 8),
+                            Text(
+                              "Découvrez les meilleures activités",
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 16,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            // Widget météo
+                            Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                ),
+                              ),
+                              child: isLoading
+                                  ? Center(child: CircularProgressIndicator(color: Colors.white))
+                                  : Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    "Météo actuelle",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8),
-                                  Row(
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Icon(
-                                        _getWeatherIcon(weatherDescription),
-                                        color: Colors.amber,
-                                        size: 32,
-                                      ),
-                                      SizedBox(width: 8),
                                       Text(
-                                        "${temperature.toStringAsFixed(1)}°C",
+                                        "Météo actuelle",
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            _getWeatherIcon(weatherDescription),
+                                            color: Colors.amber,
+                                            size: 32,
+                                          ),
+                                          SizedBox(width: 8),
+                                          Text(
+                                            "${temperature.toStringAsFixed(1)}°C",
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 28,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        getWeatherLabel(weatherDescription),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 16,
                                         ),
                                       ),
                                     ],
                                   ),
-                                  Text(
-                                    getWeatherLabel(weatherDescription),
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Row(
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.end,
                                     children: [
-                                      Icon(Icons.air, color: Colors.white, size: 16),
-                                      SizedBox(width: 4),
+                                      Row(
+                                        children: [
+                                          Icon(Icons.air, color: Colors.white, size: 16),
+                                          SizedBox(width: 4),
+                                          Text(
+                                            "${windSpeed.toStringAsFixed(1)} km/h",
+                                            style: TextStyle(color: Colors.white),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: 8),
                                       Text(
-                                        "${windSpeed.toStringAsFixed(1)} km/h",
-                                        style: TextStyle(color: Colors.white),
+                                        "Mis à jour: $hour:$minute",
+                                        style: TextStyle(
+                                          color: Colors.white.withOpacity(0.8),
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.refresh, color: Colors.white),
+                                        onPressed: fetchWeather,
+                                        iconSize: 20,
+                                        padding: EdgeInsets.zero,
                                       ),
                                     ],
                                   ),
-                                  SizedBox(height: 8),
-                                  Text(
-                                    "Mis à jour: $hour:$minute",
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.8),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: Icon(Icons.refresh, color: Colors.white),
-                                    onPressed: fetchWeather,
-                                    iconSize: 20,
-                                    padding: EdgeInsets.zero,
-                                  ),
                                 ],
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 15),
+
+                    // Boutons admin/prestataire
+                    if (isAdmin || isPrestataire)
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Container(
+                          alignment: AlignmentDirectional.center,
+                          child: Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: [
+                              if (isAdmin)
+                                ElevatedButton.icon(
+                                  icon: Icon(Icons.admin_panel_settings, color: Colors.white),
+                                  label: Text(
+                                    "Panneau Admin",
+                                    style: TextStyle(fontSize: 16, color: Colors.white),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => AdminPanelPage()));
+                                  },
+                                ),
+                              if (isPrestataire)
+                                ElevatedButton.icon(
+                                  icon: Icon(Icons.business, color: Colors.white),
+                                  label: Text(
+                                    "Espace Prestataire",
+                                    style: TextStyle(fontSize: 16, color: Colors.white),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    Navigator.push(context, MaterialPageRoute(builder: (_) => PanneauPrestatairePage()));
+                                  },
+                                ),
                             ],
                           ),
                         ),
-                      ],
+                      ),
+
+                    // Section activités
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
+                      child: Text(
+                        "Catégories d'activités",
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                            color: GlobalColors.secondaryColor,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+
+                    // Grille d'activités
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 15,
+                        mainAxisSpacing: 15,
+                        childAspectRatio: 0.9,
+                      ),
+                      itemCount: activities.length,
+                      itemBuilder: (context, index) {
+                        return _buildActivityCard(activities[index]);
+                      },
+                    ),
+
+                    SizedBox(height: 15),
+                    GridView.builder(
+                      shrinkWrap: true,
+                      physics: NeverScrollableScrollPhysics(),
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 1,
+                        crossAxisSpacing: 15,
+                        mainAxisSpacing: 15,
+                        childAspectRatio: 6,
+                      ),
+                      itemCount: allactivities.length,
+                      itemBuilder: (context, index) {
+                          return _buildAllOffersCard(allactivities[index]);
+                      },
+                    ),
+                    SizedBox(height: 100),
+                  ],
+                ),
               ),
-            ),
+            ],
           ),
-
-          // Contenu principal
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 15),
-
-                // Boutons admin/prestataire
-                if (isAdmin || isPrestataire)
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        if (isAdmin)
-                          ActionChip(
-                            avatar: Icon(Icons.admin_panel_settings, color: Colors.white),
-                            label: Text("Panneau Admin"),
-                            backgroundColor: primaryColor,
-                            labelStyle: TextStyle(color: Colors.white),
-                            onPressed: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => AdminPanelPage()));
-                            },
-                          ),
-                        if (isPrestataire)
-                          ActionChip(
-                            avatar: Icon(Icons.business, color: Colors.white),
-                            label: Text("Espace Prestataire"),
-                            backgroundColor: accentColor,
-                            labelStyle: TextStyle(color: Colors.white),
-                            onPressed: () {
-                              Navigator.push(context,
-                                  MaterialPageRoute(builder: (_) => PanneauPrestatairePage()));
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-
-                // Section activités
-                Padding(
-                  padding: EdgeInsets.fromLTRB(20, 20, 20, 10),
-                  child: Text(
-                    "Catégories d'activités",
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-
-                // Grille d'activités
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 0.9,
-                  ),
-                  itemCount: activities.length,
-                  itemBuilder: (context, index) {
-                    return _buildActivityCard(activities[index]);
-                  },
-                ),
-
-                SizedBox(height: 15),
-                GridView.builder(
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: 20),
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 1,
-                    crossAxisSpacing: 15,
-                    mainAxisSpacing: 15,
-                    childAspectRatio: 6,
-                  ),
-                  itemCount: allactivities.length,
-                  itemBuilder: (context, index) {
-                      return _buildAllOffersCard(allactivities[index]);
-                  },
-                ),
-                SizedBox(height: 30),
-              ],
-            ),
-          ),
+          _buildBottomNavBar(),
         ],
       ),
-
-      // Bouton chatbot flottant
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ChatBotScreen()),
-          );
-        },
-        backgroundColor: primaryColor,
-        child: Icon(Icons.assistant, color: Colors.white),
-        elevation: 4,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 90),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ChatBotScreen()),
+            );
+          },
+          backgroundColor: primaryColor,
+          child: Icon(Icons.assistant, color: Colors.white),
+          elevation: 15,
+        ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
   Widget _buildAllOffersCard(Map<String, dynamic> activity) {
+    bool isDarkMode = GlobalColors.isDarkMode;
+    Color selectedColor = GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -535,7 +559,7 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: GlobalColors.secondaryColor.withOpacity(0.1),
               blurRadius: 6,
               offset: Offset(0, 2),
             ),
@@ -545,8 +569,8 @@ class _HomePageState extends State<HomePage> {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             width: double.infinity,
-            height: 100, // Hauteur plus basse
-            color: Colors.white,
+            height: 100,
+            color: isDarkMode ? GlobalColors.darkCard : Colors.white,
             child: Stack(
               alignment: AlignmentDirectional.center,
               children: [
@@ -558,14 +582,14 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Icon(
                         activity['icon'],
-                        color: activity['color'],
+                        color: selectedColor,
                         size: 24,
                       ),
                       SizedBox(width: 8),
                       Text(
                         activity['title'],
                         style: TextStyle(
-                          color: Colors.black87,
+                          color: GlobalColors.secondaryColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
@@ -582,35 +606,54 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildBottomNavBar() {
-
-    return Container(
-      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 20,
-            offset: Offset(0, 10),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(30),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-          child: Container(
-            height: 65,
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9)),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(Icons.home_rounded, 'Accueil', 0),
-                _buildNavItem(Icons.map_rounded, 'Carte', 1),
-                _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
-                _buildNavItem(Icons.person_rounded, 'Profil', 3),
-              ],
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      child: Container(
+        margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          boxShadow:
+          GlobalColors.isDarkMode
+              ? []
+              : [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(30),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+            child: Container(
+              height: 65,
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              decoration: BoxDecoration(
+                color:
+                GlobalColors.isDarkMode
+                    ? GlobalColors.accentColor.withOpacity(0.2)
+                    : GlobalColors.primaryColor.withOpacity(0.9),
+                border:
+                GlobalColors.isDarkMode
+                    ? Border.all(
+                  color: Colors.white.withOpacity(0.1),
+                  width: 1,
+                )
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildNavItem(Icons.home_rounded, 'Accueil', 0),
+                  _buildNavItem(Icons.map_rounded, 'Carte', 1),
+                  _buildNavItem(Icons.favorite_rounded, 'Favoris', 2),
+                  _buildNavItem(Icons.person_rounded, 'Profil', 3),
+                ],
+              ),
             ),
           ),
         ),
@@ -618,14 +661,11 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
   Widget _buildNavItem(IconData icon, String label, int index) {
-    final Color primaryColor = Color(0xFF4361EE);
-    final Color secondaryColor = Color(0xFF1E40AF);
-    final Color accentColor = Color(0xFFEC4899);
-    final Color backgroundColor = Color(0xFFF9FAFB);
-    final Color cardColor = Colors.white;
     bool isSelected = _selectedIndex == index;
+    Color selectedColor =
+    GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+
     return GestureDetector(
       onTap: () => _onItemTapped(index),
       behavior: HitTestBehavior.opaque,
@@ -634,7 +674,11 @@ class _HomePageState extends State<HomePage> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color:
-          isSelected ? primaryColor.withOpacity(0.1) : Colors.transparent,
+          isSelected
+              ? (GlobalColors.isDarkMode
+              ? Colors.blue.withOpacity(0.2)
+              : Colors.blue.withOpacity(0.1))
+              : Colors.transparent,
         ),
         child: AnimatedContainer(
           duration: Duration(milliseconds: 200),
@@ -643,7 +687,12 @@ class _HomePageState extends State<HomePage> {
             children: [
               Icon(
                 icon,
-                color: isSelected ? primaryColor : Colors.grey,
+                color:
+                isSelected
+                    ? selectedColor
+                    : (GlobalColors.isDarkMode
+                    ? Colors.grey.shade400
+                    : Colors.grey),
                 size: isSelected ? 26 : 24,
               ),
               if (isSelected) ...[
@@ -651,7 +700,7 @@ class _HomePageState extends State<HomePage> {
                 Text(
                   label,
                   style: TextStyle(
-                    color: primaryColor,
+                    color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),

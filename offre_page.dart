@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
+import 'GlovalColors.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -11,6 +12,10 @@ class OffresPage extends StatefulWidget {
 }
 
 class _OffresPageState extends State<OffresPage> {
+  final primaryBackColor = GlobalColors.primaryColor;
+  final cardColor = GlobalColors.cardColor;
+  final textColor = GlobalColors.secondaryColor;
+  final accentGlobalColor = GlobalColors.accentColor;
   List<Offre> offres = [];
   bool isLoading = true;
   String searchQuery = '';
@@ -78,7 +83,7 @@ class _OffresPageState extends State<OffresPage> {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cardColor,
                 borderRadius: BorderRadius.circular(15),
                 boxShadow: [
                   BoxShadow(
@@ -90,8 +95,8 @@ class _OffresPageState extends State<OffresPage> {
               ),
               child: TextField(
                 decoration: InputDecoration(
-                  hintText: 'Rechercher...',
-                  hintStyle: TextStyle(color: Colors.grey[600]),
+                  hintText: 'Rechercher une offre',
+                  hintStyle: TextStyle(color: textColor),
                   prefixIcon: Icon(Icons.search, color: Colors.blue[800]),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -124,6 +129,7 @@ class _OffresPageState extends State<OffresPage> {
   }
 
   void _showFilterSheet() {
+    bool isDarkMode = GlobalColors.isDarkMode;
     final List<String> villes = ['Béjaïa', 'Melbou', 'Tichy', 'Akbou'];
 
     showModalBottomSheet(
@@ -135,7 +141,7 @@ class _OffresPageState extends State<OffresPage> {
           builder: (BuildContext context, StateSetter setModalState) {
             return Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: primaryBackColor,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
               ),
               padding: EdgeInsets.only(
@@ -153,7 +159,7 @@ class _OffresPageState extends State<OffresPage> {
                           height: 4,
                           margin: EdgeInsets.only(bottom: 16),
                           decoration: BoxDecoration(
-                            color: Colors.grey[300],
+                            color: isDarkMode ? accentGlobalColor : Colors.grey[300],
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
@@ -163,7 +169,7 @@ class _OffresPageState extends State<OffresPage> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue[800],
+                          color: isDarkMode ? accentGlobalColor : Colors.blue[800],
                         ),
                       ),
                       SizedBox(height: 20),
@@ -199,7 +205,7 @@ class _OffresPageState extends State<OffresPage> {
                               'Tarif maximum: ${selectedTarifMax?.round() ?? 0} DA',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[800],
+                                color: isDarkMode ? accentGlobalColor : Colors.grey[800],
                               ),
                             ),
                             SizedBox(height: 8),
@@ -233,7 +239,7 @@ class _OffresPageState extends State<OffresPage> {
                                 });
                                 Navigator.pop(context);
                               },
-                              child: Text('Réinitialiser', style: TextStyle(color: Colors.blue[800])),
+                              child: Text('Réinitialiser', style: TextStyle(color: isDarkMode ? textColor : Colors.blue[800])),
                             ),
                           ),
                           SizedBox(width: 16),
@@ -241,13 +247,13 @@ class _OffresPageState extends State<OffresPage> {
                             child: ElevatedButton(
                               onPressed: () => Navigator.pop(context),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue[800],
+                                backgroundColor: isDarkMode ? accentGlobalColor : Colors.blue[800],
                                 padding: EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: Text('Appliquer', style: TextStyle(color: Colors.white),),
+                              child: Text('Appliquer', style: TextStyle(color: isDarkMode ? Colors.blue[800] : Colors.white),),
                             ),
                           ),
                         ],
@@ -283,7 +289,7 @@ class _OffresPageState extends State<OffresPage> {
           child: Row(
             children: [
               if (icon != null) icon(item),
-              Text(item),
+              Text(item, style:TextStyle(color: accentGlobalColor)),
             ],
           ),
         );
@@ -293,10 +299,11 @@ class _OffresPageState extends State<OffresPage> {
   }
 
   Widget _buildOffreCard(Offre offre) {
-    // Couleur par défaut si la catégorie n'est pas trouvée
+    bool isDarkMode = GlobalColors.isDarkMode;
     final categoryColor = categoryColors[offre.categorie] ?? Colors.grey[600];
 
     return Card(
+      color: isDarkMode ? cardColor : Colors.grey[350],
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
@@ -314,13 +321,12 @@ class _OffresPageState extends State<OffresPage> {
           padding: EdgeInsets.all(12),
           child: Row(
             children: [
-              // Image de l'offre
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
                   width: 70,
                   height: 70,
-                  color: Colors.grey[200],
+                  color: cardColor,
                   child: (offre.image != null && offre.image.isNotEmpty)
                       ? Image.network(
                     offre.image,
@@ -344,12 +350,10 @@ class _OffresPageState extends State<OffresPage> {
                 ),
               ),
               SizedBox(width: 12),
-              // Détails texte
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nom et catégorie
                     Row(
                       children: [
                         Expanded(
@@ -358,6 +362,7 @@ class _OffresPageState extends State<OffresPage> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
+                              color: textColor,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -384,14 +389,14 @@ class _OffresPageState extends State<OffresPage> {
                     // Adresse
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 14, color: Colors.grey[600]),
+                        Icon(Icons.location_on, size: 14, color: accentGlobalColor),
                         SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             offre.adresse ?? 'Adresse non disponible',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: accentGlobalColor,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -409,7 +414,7 @@ class _OffresPageState extends State<OffresPage> {
                               ? Icons.money_off
                               : Icons.attach_money,
                           size: 14,
-                          color: Colors.grey[600],
+                          color: accentGlobalColor,
                         ),
                         SizedBox(width: 4),
                         Text(
@@ -418,7 +423,7 @@ class _OffresPageState extends State<OffresPage> {
                               : offre.tarifs!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[800],
+                            color: accentGlobalColor,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -439,6 +444,7 @@ class _OffresPageState extends State<OffresPage> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
+                                color: textColor,
                               ),
                             );
                           },
@@ -511,6 +517,7 @@ class _OffresPageState extends State<OffresPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isDarkMode = GlobalColors.isDarkMode;
     final filteredOffres = offres.where((offre) {
       // Filtre recherche
       final matchesSearch = searchQuery.isEmpty ||
@@ -534,21 +541,21 @@ class _OffresPageState extends State<OffresPage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: primaryBackColor,
       appBar: AppBar(
         title: Text(
           'Toutes les offres',
           style: TextStyle(
-            color: Colors.blue[900],
+            color: isDarkMode ? textColor : Colors.blue[900],
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: primaryBackColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.blue[800]),
+        iconTheme: IconThemeData(color: isDarkMode ? textColor : Colors.blue[900]),
       ),
       body: isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.blue[800]))
+          ? Center(child: CircularProgressIndicator(color: isDarkMode ? textColor : Colors.blue[900]))
           : Column(
         children: [
           _buildSearchBar(),

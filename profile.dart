@@ -76,8 +76,8 @@ class _ProfilePageState extends State<ProfilePage> {
               .select('nom, prenom,adresse,role')
               .eq('user_id', userId)
               .maybeSingle();
-
       if (responsePersonne == null) {
+
         setState(() {
           isLoading = false;
           firstName = "Utilisateur";
@@ -105,6 +105,10 @@ class _ProfilePageState extends State<ProfilePage> {
         profileImageUrl = responseProfile?['profile_photo'];
         bannerImageUrl = responseProfile?['banner_photo'];
         role = responsePersonne['role'];
+
+        if(role == 'Prestataire'){
+          isPrestataire = true;
+        }
 
         if (responseProfile?['centre_interet'] != null) {
           userInterests = List<String>.from(responseProfile!['centre_interet']);
@@ -657,13 +661,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       style: TextStyle(
                         color:
                             GlobalColors.isDarkMode
-                                ? Colors.transparent
+                                ? Colors.white70
                                 : Colors.green.shade700,
                       ),
                     ),
                     backgroundColor:
                         GlobalColors.isDarkMode
-                            ? Colors.transparent
+                            ? Colors.grey.shade800
                             : Colors.green.shade50,
                   );
                 }).toList(),

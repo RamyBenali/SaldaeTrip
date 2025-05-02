@@ -113,6 +113,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   static const double lonMin = 4.8;
   static const double lonMax = 5.3;
 
+  bool isDarkMode  = GlobalColors.isDarkMode;
+
   @override
   void initState() {
     super.initState();
@@ -2089,6 +2091,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             child: Container(
               margin: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
+                color: GlobalColors.isDarkMode
+                      ? Colors.grey[800]!.withOpacity(0.8)
+                      : Colors.transparent,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow:
                     GlobalColors.isDarkMode
@@ -2104,7 +2109,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                  filter: !isDarkMode ? ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0) : ImageFilter.blur(sigmaX: 0.0, sigmaY: 0.0),
                   child: Container(
                     height: 65,
                     padding: EdgeInsets.symmetric(horizontal: 8),

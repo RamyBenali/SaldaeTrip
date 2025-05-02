@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
+import 'GlovalColors.dart';
 
 final supabase = Supabase.instance.client;
 
@@ -11,6 +12,10 @@ class OffreRestaurantPage extends StatefulWidget {
 }
 
 class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
+  final primaryBackColor = GlobalColors.primaryColor;
+  final cardColor = GlobalColors.cardColor;
+  final textColor = GlobalColors.secondaryColor;
+  final accentGlobalColor = GlobalColors.accentColor;
   List<Offre> offres = [];
   bool isLoading = true;
   String searchQuery = '';
@@ -18,7 +23,6 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
   double? selectedTarifMax;
   final ScrollController _scrollController = ScrollController();
 
-  // Couleurs thématiques pour les restaurants
   final Color primaryColor = Color(0xFFC5283D); // Rouge bordeaux
   final Color secondaryColor = Color(0xFFE9724C); // Saumon
   final Color accentColor = Color(0xFFF9C80E); // Jaune doré
@@ -238,7 +242,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
               Expanded(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: cardColor,
                     borderRadius: BorderRadius.circular(15),
                     boxShadow: [
                       BoxShadow(
@@ -251,7 +255,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher un restaurant...',
-                      hintStyle: TextStyle(color: Colors.grey[600]),
+                      hintStyle: TextStyle(color: textColor),
                       prefixIcon: Icon(Icons.search, color: primaryColor),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -447,7 +451,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                       Container(
                         padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: cardColor,
                           borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
                         ),
                         child: Column(
@@ -462,7 +466,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.grey[900],
+                                      color: textColor,
                                     ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
@@ -492,7 +496,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                                   child: Text(
                                     offre.adresse,
                                     style: TextStyle(
-                                      color: Colors.grey[700],
+                                      color: accentGlobalColor,
                                       fontSize: 13,
                                     ),
                                     maxLines: 1,
@@ -586,7 +590,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: primaryBackColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         centerTitle: false,
@@ -616,7 +620,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
             end: Alignment.bottomCenter,
             colors: [
               primaryColor.withOpacity(0.2),
-              Colors.grey[100]!,
+              primaryBackColor,
             ],
             stops: [0.0, 0.3],
           ),

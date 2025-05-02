@@ -1203,7 +1203,7 @@ class _FavorisPageState extends State<FavorisPage>
                         selectedCategorie = null;
                       });
                     },
-                    child: Text('Réinitialiser'),
+                    child: Text('Réinitialiser', style: TextStyle(color: GlobalColors.secondaryColor),),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(
