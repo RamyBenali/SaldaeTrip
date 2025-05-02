@@ -11,6 +11,8 @@ class Offre {
   final double latitude;
   final double longitude;
   final double noteMoyenne;
+  final List<String> images;
+
 
   Offre({
     required this.id,
@@ -18,6 +20,7 @@ class Offre {
     required this.description,
     required this.categorie,
     required this.image,
+    required this.images,
     required this.tarifs,
     required this.adresse,
     required this.offreInsta,
@@ -34,6 +37,7 @@ class Offre {
       description: json['description'] ?? '',
       categorie: json['categorie'] ?? '',
       image: json['image'] ?? '',
+      images: List<String>.from(json['images'] ?? []),
       tarifs: json['tarifs'] ?? '',
       adresse: json['adresse'] ?? '',
       offreInsta: json['offre_insta'] ?? '',
