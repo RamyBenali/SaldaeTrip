@@ -22,6 +22,7 @@ class FavorisPage extends StatefulWidget {
 
 class _FavorisPageState extends State<FavorisPage>
     with SingleTickerProviderStateMixin {
+  final Color bleuTurquoise = Color(0xFF41A6B4);
   int _selectedIndex = 2;
   bool isLoading = true;
   String searchQuery = '';
@@ -972,7 +973,7 @@ class _FavorisPageState extends State<FavorisPage>
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     Color selectedColor =
-        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+        GlobalColors.isDarkMode ? bleuTurquoise : bleuTurquoise;
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
@@ -984,8 +985,8 @@ class _FavorisPageState extends State<FavorisPage>
           color:
               isSelected
                   ? (GlobalColors.isDarkMode
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.blue.withOpacity(0.1))
+                      ? bleuTurquoise.withOpacity(0.2)
+                      : bleuTurquoise.withOpacity(0.1))
                   : Colors.transparent,
         ),
         child: AnimatedContainer(

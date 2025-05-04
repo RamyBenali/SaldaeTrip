@@ -20,6 +20,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final Color bleuTurquoise = Color(0xFF41A6B4);
   String? profileImageUrl;
   String? bannerImageUrl;
   int _selectedIndex = 3;
@@ -554,7 +555,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     Color selectedColor =
-        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+        GlobalColors.isDarkMode ? bleuTurquoise : bleuTurquoise;
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
@@ -566,8 +567,8 @@ class _ProfilePageState extends State<ProfilePage> {
           color:
               isSelected
                   ? (GlobalColors.isDarkMode
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.blue.withOpacity(0.1))
+                      ? bleuTurquoise.withOpacity(0.2)
+                      : bleuTurquoise.withOpacity(0.1))
                   : Colors.transparent,
         ),
         child: AnimatedContainer(

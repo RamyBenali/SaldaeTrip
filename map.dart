@@ -81,6 +81,7 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
+  final Color bleuTurquoise = Color(0xFF41A6B4);
   bool _chargementCarte = true;
   final MapController _controleurCarte = MapController();
   final TextEditingController _controleurRecherche = TextEditingController();
@@ -509,7 +510,6 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             ),
           ),
 
-        // Panneau principal
         AnimatedPositioned(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
@@ -2148,7 +2148,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _indexSelectionne == index;
     Color selectedColor =
-        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+        GlobalColors.isDarkMode ? bleuTurquoise : bleuTurquoise;
 
     return GestureDetector(
       onTap: () => _surItemSelectionne(index),
@@ -2160,8 +2160,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           color:
               isSelected
                   ? (GlobalColors.isDarkMode
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.blue.withOpacity(0.1))
+                      ? bleuTurquoise.withOpacity(0.2)
+                      : bleuTurquoise.withOpacity(0.1))
                   : Colors.transparent,
         ),
         child: AnimatedContainer(

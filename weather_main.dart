@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
   final Color secondaryColor = Color(0xFF3F37C9);
   final Color accentColor = Color(0xFF7209B7);
   final Color backgroundColor = Color(0xFFF8F9FA);
+  final Color bleuTurquoise = Color(0xFF41A6B4);
   final Color cardColor = Colors.white;
   String userRole = "Voyageur";
   int _selectedIndex = 0;
@@ -94,7 +95,7 @@ class _HomePageState extends State<HomePage> {
       "title": "Toutes les offres",
       "image": "assets/images/autres.jpg",
       "icon": Icons.explore,
-      "color": Color(0xFF4361EE)
+      "color": Color(0xFF41A6B4),
     },
   ];
 
@@ -536,7 +537,7 @@ class _HomePageState extends State<HomePage> {
               MaterialPageRoute(builder: (context) => ChatBotScreen()),
             );
           },
-          backgroundColor: primaryColor,
+          backgroundColor: bleuTurquoise,
           child: Icon(Icons.assistant, color: Colors.white),
           elevation: 15,
         ),
@@ -546,7 +547,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildAllOffersCard(Map<String, dynamic> activity) {
     bool isDarkMode = GlobalColors.isDarkMode;
-    Color selectedColor = GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+    Color selectedColor = GlobalColors.isDarkMode ? bleuTurquoise : bleuTurquoise;
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -664,7 +665,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     Color selectedColor =
-    GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+    GlobalColors.isDarkMode ? bleuTurquoise : bleuTurquoise;
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
@@ -676,8 +677,8 @@ class _HomePageState extends State<HomePage> {
           color:
           isSelected
               ? (GlobalColors.isDarkMode
-              ? Colors.blue.withOpacity(0.2)
-              : Colors.blue.withOpacity(0.1))
+              ? bleuTurquoise.withOpacity(0.2)
+              : bleuTurquoise.withOpacity(0.1))
               : Colors.transparent,
         ),
         child: AnimatedContainer(

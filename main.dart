@@ -135,6 +135,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final Color blueAccent = Color(0xFF0077C9);
     return Scaffold(
       body: Stack(
         children: [
@@ -153,6 +154,7 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             ),
           ),
+
           Center(
             child: AnimatedBuilder(
               animation: _controller,
@@ -161,6 +163,8 @@ class _SplashScreenState extends State<SplashScreen>
                   offset: Offset(0, _logoAnimation.value),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment. center,
                     children: [
                       Image.asset(
                         'assets/images/logo.png',
@@ -172,17 +176,19 @@ class _SplashScreenState extends State<SplashScreen>
                         'SaldaeTrip',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 28,
+                          fontSize: 32,
                           fontFamily: 'Montserrat',
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.56,
                         ),
                       ),
+                      SizedBox(height: 5,),
                       Text(
-                        'Explore the real Béjaia',
+                        'Between sea and mountains, \n every step is a story',
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 16,
+                          fontSize: 20,
                           fontFamily: 'ABeeZee',
                           fontWeight: FontWeight.w400,
                           letterSpacing: -0.32,
@@ -215,7 +221,7 @@ class _SplashScreenState extends State<SplashScreen>
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
+                              backgroundColor: blueAccent,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -240,7 +246,7 @@ class _SplashScreenState extends State<SplashScreen>
                               );
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: Colors.blue),
+                              side: BorderSide(color: blueAccent),
                               backgroundColor: Colors.white.withOpacity(0.7),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -250,7 +256,7 @@ class _SplashScreenState extends State<SplashScreen>
                             child: Text(
                               "S'inscrire",
                               style: TextStyle(
-                                color: Colors.blue,
+                                color:blueAccent,
                                 fontSize: 18,
                               ),
                             ),

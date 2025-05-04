@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -10,8 +11,10 @@ import 'models/offre_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
+import 'GlovalColors.dart';
 import 'package:latlong2/latlong.dart';
+import 'UserProfilePage.dart';
+
 
 class OffreDetailPage extends StatefulWidget {
   final Offre offre;
@@ -23,7 +26,10 @@ class OffreDetailPage extends StatefulWidget {
 }
 
 class _OffreDetailPageState extends State<OffreDetailPage> {
-  final PageController _pageController = PageController(viewportFraction: 0.9);
+  final textColor = GlobalColors.secondaryColor;
+  final primaryColor = GlobalColors.primaryColor;
+  int? hotelEtoiles;
+  late PageController _pageController;
   int _currentPage = 0;
   bool isFavori = false;
   bool showFavoriMessage = false;
@@ -227,6 +233,31 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     }
   }
 
+  Future<int?> fetchHotelEtoiles(int idOffre) async {
+    try {
+      final response = await supabase
+          .from('hotel')
+          .select('etoile')
+          .eq('idoffre', idOffre)
+          .maybeSingle();
+
+      return response?['etoile'] as int?;
+    } catch (e) {
+      print("Erreur lors de la récupération des étoiles: $e");
+      return null;
+    }
+  }
+
+  Future<void> _fetchHotelEtoilesIfNeeded() async {
+    if (widget.offre.categorie.toLowerCase() == 'hôtel' ||
+        widget.offre.categorie.toLowerCase() == 'hotel') {
+      final etoiles = await fetchHotelEtoiles(widget.offre.id);
+      setState(() {
+        hotelEtoiles = etoiles;
+      });
+    }
+  }
+
   Future<void> isFreeOffre() async {
     final offre = widget.offre;
     if(offre.tarifs == '0'){
@@ -250,10 +281,13 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   void initState() {
     super.initState();
     _currentPage = 0;
+    _pageController = PageController();
     checkIfFavori(widget.offre.id);
     fetchAvis();
     incrementVisites();
     isFreeOffre();
+    _fetchHotelEtoilesIfNeeded();
+
   }
 
   @override
@@ -268,14 +302,13 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     final offre = widget.offre;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: GlobalColors.primaryColor,
       body: Stack(
         children: [
           _buildImageCarousel(),
 
-          // Overlay sombre
           Positioned.fill(
-            child: IgnorePointer( // Important: désactive les gestes pour l'overlay
+            child: IgnorePointer(
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -285,7 +318,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                       Colors.black.withOpacity(0.7),
                       Colors.transparent,
                     ],
-                    stops: [0.0, 0.5],
+                    stops: const [0.0, 0.5],
                   ),
                 ),
               ),
@@ -293,10 +326,18 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
           ),
 
           CustomScrollView(
+            physics: const ClampingScrollPhysics(),
             slivers: [
               SliverToBoxAdapter(
-                child: SizedBox(height: 450),
+                child: SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.65,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.translucent,
+                    onVerticalDragUpdate: (_) {}, // Bloque le scroll vertical sur cette zone
+                  ),
+                ),
               ),
+
               SliverToBoxAdapter(
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
@@ -312,8 +353,8 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.white.withOpacity(0.4),
-                            Colors.white.withOpacity(1.0),
+                            GlobalColors.primaryColor.withOpacity(0.2),
+                            GlobalColors.primaryColor.withOpacity(1.0),
                           ],
                           stops: const [0.0, 0.1],
                         ),
@@ -327,17 +368,36 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                if ((widget.offre.categorie.toLowerCase() == 'hôtel' ||
+                                    widget.offre.categorie.toLowerCase() == 'hotel') &&
+                                    hotelEtoiles != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(left: 0),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: List.generate(
+                                        hotelEtoiles!,
+                                            (index) => const Icon(Icons.star, color: Colors.amber, size: 20),
+                                      ),
+                                    ),
+                                  ),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
-                                      child: Text(
-                                        offre.nom,
-                                        style: const TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.black87,
-                                        ),
+                                      child: Row(
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              widget.offre.nom,
+                                              style: GoogleFonts.robotoSlab(
+                                                fontSize: 28,
+                                                fontWeight: FontWeight.bold,
+                                                color: GlobalColors.secondaryColor,
+                                              )
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     Container(
@@ -353,10 +413,10 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                           const SizedBox(width: 4),
                                           Text(
                                             averageRating.toStringAsFixed(1),
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
-                                              color: Colors.black87,
+                                              color: GlobalColors.secondaryColor,
                                             ),
                                           ),
                                         ],
@@ -371,9 +431,9 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                     const SizedBox(width: 5),
                                     Text(
                                       offre.adresse,
-                                      style: TextStyle(
+                                      style: GoogleFonts.robotoSlab(
                                         fontSize: 12,
-                                        color: Colors.grey[700],
+                                        color: GlobalColors.accentColor,
                                       ),
                                     ),
                                   ],
@@ -385,9 +445,9 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                     Text(
                                       tarifs,
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.blue[800],
+                                        color: Color(0xFF41A6B4),
                                       ),
                                     ),
                                     if (offre.offreFb != null || offre.offreInsta != null) // Condition d'affichage
@@ -423,10 +483,10 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                           ),
                           Text(
                             offre.description,
-                            style: const TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               fontSize: 16,
                               height: 1.5,
-                              color: Colors.black87,
+                              color: GlobalColors.secondaryColor,
                             ),
                           ),
 
@@ -442,8 +502,8 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                   Center(
                                     child: Text(
                                       'Aucun avis pour le moment',
-                                      style: GoogleFonts.roboto(
-                                        color: Colors.grey,
+                                      style: GoogleFonts.robotoSlab(
+                                        color: GlobalColors.accentColor,
                                         fontStyle: FontStyle.italic,
                                       ),
                                     ),
@@ -520,11 +580,11 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                         children: [
                                           TextButton.icon(
                                             onPressed: pickImage,
-                                            icon: const Icon(Icons.image, color: Color(0xFF2864B5)),
+                                            icon: const Icon(Icons.image, color: Color(0xFF41A6B4)),
                                             label: Text(
                                               "Ajouter une photo",
-                                              style: GoogleFonts.roboto(
-                                                color: Color(0xFF2864B5),
+                                              style: GoogleFonts.robotoSlab(
+                                                color: Color(0xFF41A6B4),
                                                 fontWeight: FontWeight.w500,
                                               ),
                                             ),
@@ -533,7 +593,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                           ElevatedButton(
                                             onPressed: isPublishing ? null : publishAvis,
                                             style: ElevatedButton.styleFrom(
-                                              backgroundColor: Color(0xFF2864B5),
+                                              backgroundColor: Color(0xFF41A6B4),
                                               padding: const EdgeInsets.symmetric(
                                                 horizontal: 24,
                                                 vertical: 12,
@@ -553,7 +613,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                             )
                                                 : Text(
                                               "Publier",
-                                              style: GoogleFonts.roboto(
+                                              style: GoogleFonts.robotoSlab(
                                                 color: Colors.white,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -576,6 +636,28 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
             ],
           ),
 
+          Positioned.fill(
+            top: 0,
+            right: 0,
+            left: 0,
+            bottom: 250,
+            child: GestureDetector(
+              onHorizontalDragEnd: (details) {
+                if (details.primaryVelocity! < 0) {
+                  _pageController.nextPage(
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeInOutCubic,
+                  );
+                } else if (details.primaryVelocity! > 0) {
+                  _pageController.previousPage(
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeInOutCubic,
+                  );
+                }
+              },
+            ),
+          ),
+
           Positioned(
             top: 50,
             right: 20,
@@ -586,7 +668,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
             top: 50,
             left: 20,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white),
+              icon: Icon(Icons.arrow_back, color: Colors.white),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -601,97 +683,70 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       ),
     );
   }
-
   Widget _buildImageCarousel() {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
+    return SizedBox(
       height: MediaQuery.of(context).size.height * 0.75,
-      child: Listener(
-        onPointerDown: (_) => print("Carousel touched"), // Debug
-        behavior: HitTestBehavior.translucent,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Image.network(
-              widget.offre.images[_currentPage],
-              height: MediaQuery.of(context).size.height * 0.75,
-              fit: BoxFit.cover,
-              alignment: Alignment.topCenter,
-            ),
+      child: Stack(
+        children: [
+          // PageView pour afficher les images
+          PageView.builder(
+            controller: _pageController,
+            physics: const NeverScrollableScrollPhysics(), // Désactiver les gestes natifs
+            itemCount: widget.offre.images.length,
+            onPageChanged: (index) {
+              setState(() => _currentPage = index);
+            },
+            itemBuilder: (context, index) {
+              String imageUrl = widget.offre.images[index]
+                  .replaceAll('["', '')
+                  .replaceAll('"]', '')
+                  .trim();
 
-            // Bouton précédent
-            if (widget.offre.images.length > 1)
-              Positioned(
-                left: 10,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: RawMaterialButton(
-                    onPressed: () {
-                      print("Previous button pressed");
-                      _goToPreviousImage();
-                    },
-                    elevation: 0,
-                    fillColor: Colors.black.withOpacity(0.3),
-                    shape: CircleBorder(),
-                    child: Icon(Icons.chevron_left, color: Colors.white),
+              return Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: Colors.grey[200],
+                    child: const Icon(Icons.broken_image, size: 50),
+                  );
+                },
+              );
+            },
+          ),
+          // Indicateurs de page
+          Positioned(
+            bottom: 100,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                widget.offre.images.length,
+                    (index) => GestureDetector(
+                  onTap: () => _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
                   ),
-                ),
-              ),
-
-            // Bouton suivant
-            if (widget.offre.images.length > 1)
-              Positioned(
-                right: 10,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: RawMaterialButton(
-                    onPressed: () {
-                      print("Next button pressed");
-                      _goToNextImage();
-                    },
-                    elevation: 0,
-                    fillColor: Colors.black.withOpacity(0.3),
-                    shape: CircleBorder(),
-                    child: Icon(Icons.chevron_right, color: Colors.white),
-                  ),
-                ),
-              ),
-
-            // Indicateurs
-            Positioned(
-              bottom: 20,
-              left: 0,
-              right: 0,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  widget.offre.images.length,
-                      (index) => GestureDetector(
-                    onTap: () {
-                      print("Dot $index pressed");
-                      setState(() => _currentPage = index);
-                    },
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      margin: EdgeInsets.symmetric(horizontal: 4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: _currentPage == index
-                            ? Colors.white
-                            : Colors.white.withOpacity(0.5),
-                      ),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: _currentPage == index ? 12 : 8,
+                    height: 8,
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _currentPage == index
+                          ? Colors.white
+                          : Colors.white.withOpacity(0.5),
                     ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -709,22 +764,29 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       ),
     );
   }
+
   void _goToNextImage() {
-    print("suivant");
+    print('Next image requested');
     if (widget.offre.images.isEmpty) return;
-    setState(() {
-      _currentPage = (_currentPage + 1) % widget.offre.images.length;
-    });
+    final nextPage = (_currentPage + 1) % widget.offre.images.length;
+    print('Moving to page $nextPage');
+    _pageController.animateToPage(
+      nextPage,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
   void _goToPreviousImage() {
     if (widget.offre.images.isEmpty) return;
-    print("suivant");
-    setState(() {
-      _currentPage = _currentPage == 0
-          ? widget.offre.images.length - 1
-          : _currentPage - 1;
-    });
+    final prevPage = _currentPage == 0
+        ? widget.offre.images.length - 1
+        : _currentPage - 1;
+    _pageController.animateToPage(
+      prevPage,
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
   Widget _buildFavoriteButton() {
     return GestureDetector(
@@ -759,7 +821,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15),
       decoration: BoxDecoration(
-        color: const Color(0xFF2864B5).withOpacity(1),
+        color: const Color(0xFF41A6B4).withOpacity(1),
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
@@ -787,10 +849,10 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
               ),
             );
           },
-          child: const Center(
+          child: Center(
             child: Text(
               'Localiser',
-              style: TextStyle(
+              style: GoogleFonts.robotoSlab(
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.w500,
@@ -809,10 +871,10 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
         SizedBox(height: 24),
         Text(
           title,
-          style: GoogleFonts.roboto(
+          style: GoogleFonts.robotoSlab(
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: Colors.black54,
+            color: GlobalColors.secondaryColor,
           ),
         ),
         SizedBox(height: 12),
@@ -833,7 +895,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     try {
       final uri = Uri.parse(url);
 
-      // Méthode recommandée pour Flutter 3.x+
       if (await canLaunchUrl(uri)) {
         await launchUrl(
           uri,
@@ -860,153 +921,158 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     }
   }
 
-  Widget _buildAvisList() {
-    if (avisList.isEmpty) {
-      return Center(
-        child: Text(
-          'Aucun avis pour le moment',
-          style: GoogleFonts.poppins(color: Colors.grey),
-        ),
-      );
-    }
-
-    return Column(
-      children: avisList.map((avis) => _buildAvisCard(avis)).toList(),
-    );
-  }
-
   Widget _buildAvisCard(Map<String, dynamic> avis) {
-    return Card(
-      margin: EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 20,
-                  backgroundImage: avis['profile_photo'] != null
-                      ? NetworkImage(avis['profile_photo'] as String)
-                      : AssetImage('assets/default_avatar.png') as ImageProvider,
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${avis['prenom'] ?? 'Anonyme'} ${avis['nom'] ?? ''}',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      Row(
-                        children: List.generate(
-                          5,
-                              (index) => Icon(
-                            Icons.star,
-                            size: 16,
-                            color: index < (avis['note'] ?? 0)
-                                ? Colors.amber
-                                : Colors.grey[300],
+    return GestureDetector(
+      onTap: () => _showAvisOptions(context, avis),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: avis['profile_photo'] != null
+                        ? NetworkImage(avis['profile_photo'] as String)
+                        : const AssetImage('assets/default_avatar.png') as ImageProvider,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${avis['prenom'] ?? 'Anonyme'} ${avis['nom'] ?? ''}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ),
-                    ],
+                        Row(
+                          children: List.generate(
+                            5,
+                                (index) => Icon(
+                              Icons.star,
+                              size: 16,
+                              color: index < (avis['note'] ?? 0)
+                                  ? Colors.amber
+                                  : Colors.grey[300],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                avis['commentaire'] ?? 'Pas de commentaire',
+                style: GoogleFonts.poppins(),
+              ),
+              if (avis['image'] != null) ...[
+                const SizedBox(height: 12),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    avis['image'] as String,
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
                 ),
               ],
-            ),
-            SizedBox(height: 12),
-            Text(
-              avis['commentaire'] ?? 'Pas de commentaire',
-              style: GoogleFonts.poppins(),
-            ),
-            if (avis['image'] != null) ...[
-              SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  avis['image'] as String,
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
-              ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _NavigationButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  const _NavigationButton({
-    required this.icon,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(30),
-        onTap: onPressed,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
-            shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: Colors.white, size: 30),
         ),
       ),
     );
   }
-}
 
-class _DotsIndicator extends StatelessWidget {
-  final int count;
-  final int currentIndex;
-  final ValueChanged<int> onDotTap;
-
-  const _DotsIndicator({
-    required this.count,
-    required this.currentIndex,
-    required this.onDotTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(count, (index) {
-        return GestureDetector(
-          onTap: () => onDotTap(index),
-          child: Container(
-            width: 10,
-            height: 10,
-            margin: EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: currentIndex == index
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.5),
+  void _showAvisOptions(BuildContext context, Map<String, dynamic> avis) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.person),
+                  title: const Text('Voir le profil'),
+                  onTap: () {
+                    Navigator.pop(context); // Fermer la fenêtre
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserProfilePage(userId: avis['user_id']),
+                      ),
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.flag),
+                  title: const Text('Signaler l\'avis'),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    if (avis['idavis'] != null) {
+                      await _signalerAvis(avis['idavis']);
+                    } else {
+                      print('Erreur : idavis est null ou invalide.');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Impossible de signaler cet avis.'),
+                          duration: Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
             ),
           ),
         );
-      }),
+      },
     );
+  }
+
+  Future<void> _signalerAvis(int idAvis) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('avis')
+          .update({'issignale' : true})
+          .eq('idavis', idAvis);
+
+      print('Réponse Supabase : $response');
+
+      if (response != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Avis signalé avec succès !'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else {
+        print('Aucune réponse de Supabase.');
+      }
+    } catch (e) {
+      print('Erreur lors du signalement de l\'avis : $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Une erreur est survenue lors du signalement.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
   }
 }

@@ -31,6 +31,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
   final Color darkBlue = Color(0xFF0D47A1);      // Bleu profond
   final Color lightSand = Color(0xFFFFF176);     // Sable clair
   final Color whiteFoam = Color(0xFFE3F2FD);     // Écume
+  final Color bleuTurquoise = Color(0xFF41A6B4);
 
   @override
   void initState() {
@@ -262,7 +263,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     decoration: InputDecoration(
                       hintText: 'Rechercher une plage...',
                       hintStyle: TextStyle(color: textColor),
-                      prefixIcon: Icon(Icons.search, color: primaryColor),
+                      prefixIcon: Icon(Icons.search, color: bleuTurquoise),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                     ),
@@ -277,7 +278,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
               SizedBox(width: 10),
               Container(
                 decoration: BoxDecoration(
-                  color: primaryColor,
+                  color: bleuTurquoise,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
