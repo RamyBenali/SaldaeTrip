@@ -22,7 +22,6 @@ class FavorisPage extends StatefulWidget {
 
 class _FavorisPageState extends State<FavorisPage>
     with SingleTickerProviderStateMixin {
-  final Color bleuTurquoise = Color(0xFF41A6B4);
   int _selectedIndex = 2;
   bool isLoading = true;
   String searchQuery = '';
@@ -32,6 +31,7 @@ class _FavorisPageState extends State<FavorisPage>
   bool isAnonymous = false;
   List<Offre> favoris = [];
   List<Offre> filteredFavoris = [];
+  final Map<int, bool> _removingFavorites = {};
 
   late AnimationController _animationController;
 
@@ -124,6 +124,55 @@ class _FavorisPageState extends State<FavorisPage>
     }
   }
 
+  Future<void> _toggleFavorite(Offre offre, int index) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    setState(() {
+      _removingFavorites[index] = true;
+    });
+
+    try {
+      await _supabase
+          .from('ajouterfavoris')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('idoffre', offre.id);
+
+      if (mounted) {
+        setState(() {
+          favoris.removeWhere((item) => item.id == offre.id);
+          filteredFavoris.removeWhere((item) => item.id == offre.id);
+          _removingFavorites.remove(index);
+        });
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Retiré des favoris'),
+          backgroundColor: GlobalColors.pinkColor,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        _removingFavorites.remove(index);
+      });
+      print('Erreur lors de la suppression du favori: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de la suppression du favori: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   void applyFilters() {
     setState(() {
       filteredFavoris =
@@ -177,46 +226,6 @@ class _FavorisPageState extends State<FavorisPage>
         break;
       default:
         return;
-    }
-  }
-
-  Future<void> _toggleFavorite(Offre offre) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-
-    setState(() {
-      favoris.removeWhere((item) => item.id == offre.id);
-      filteredFavoris.removeWhere((item) => item.id == offre.id);
-    });
-
-    try {
-      await _supabase
-          .from('ajouterfavoris')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('offre_id', offre.id);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Retiré des favoris'),
-          backgroundColor: GlobalColors.pinkColor,
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          action: SnackBarAction(
-            label: 'Annuler',
-            textColor: Colors.white,
-            onPressed: () {
-              _fetchFavoris();
-            },
-          ),
-        ),
-      );
-    } catch (e) {
-      print('Erreur lors de la suppression du favori: $e');
-      _fetchFavoris();
     }
   }
 
@@ -438,8 +447,13 @@ class _FavorisPageState extends State<FavorisPage>
               padding: EdgeInsets.fromLTRB(16, 8, 16, 90),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) =>
-                      _buildFavoriteCard(filteredOffres[index], index),
+                  (context, index) => AnimatedSwitcher(
+                    duration: Duration(milliseconds: 300),
+                    child:
+                        _removingFavorites[index] == true
+                            ? SizedBox.shrink()
+                            : _buildFavoriteCard(filteredOffres[index], index),
+                  ),
                   childCount: filteredOffres.length,
                 ),
               ),
@@ -447,6 +461,325 @@ class _FavorisPageState extends State<FavorisPage>
         ],
       ),
       bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildFavoriteCard(Offre offre, int index) {
+    final isFree =
+        offre.tarifs == "0" || offre.tarifs.toLowerCase().contains("gratuit");
+    final priceIcon =
+        isFree ? Icons.money_off_rounded : Icons.attach_money_rounded;
+    final priceText = isFree ? "Gratuit" : offre.tarifs;
+    final priceContainerColor =
+        isFree
+            ? GlobalColors.greenColor.withOpacity(0.1)
+            : GlobalColors.blueColor.withOpacity(0.1);
+    final priceTextColor =
+        isFree ? GlobalColors.greenColor : GlobalColors.blueColor;
+
+    return Hero(
+      tag: 'offre-${offre.id}',
+      child: Container(
+        key: ValueKey(offre.id),
+        margin: EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Material(
+          color: GlobalColors.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OffreDetailPage(offre: offre),
+                ),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: CachedNetworkImage(
+                          imageUrl: offre.image,
+                          width: 100,
+                          height: 100,
+                          fit: BoxFit.cover,
+                          placeholder:
+                              (context, url) => Container(
+                                color:
+                                    GlobalColors.isDarkMode
+                                        ? Colors.grey[800]
+                                        : Colors.grey[300],
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        GlobalColors.blueColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Container(
+                                width: 100,
+                                height: 100,
+                                color:
+                                    GlobalColors.isDarkMode
+                                        ? Colors.grey[800]
+                                        : Colors.grey[200],
+                                child: Icon(
+                                  Icons.image_not_supported_rounded,
+                                  color: GlobalColors.accentColor,
+                                ),
+                              ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black.withOpacity(0.7),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(16),
+                              bottomRight: Radius.circular(16),
+                            ),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6, 
+                          ),
+                          constraints: BoxConstraints(
+                            maxWidth:
+                                100, 
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize:
+                                MainAxisSize
+                                    .min, 
+                            children: [
+                              Flexible(
+                                
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _getCategoryIcon(offre.categorie),
+                                      color: Colors.white,
+                                      size: 12,
+                                    ),
+                                    SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        offre.categorie,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1, 
+                                        overflow:
+                                            TextOverflow
+                                                .ellipsis, 
+                                        softWrap: false,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                offre.nom,
+                                style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: GlobalColors.secondaryColor,
+                                  ),
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: GlobalColors.pinkColor.withOpacity(0.1),
+                              ),
+                              child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(
+                                  Icons.favorite_rounded,
+                                  color: GlobalColors.pinkColor,
+                                  size: 20,
+                                ),
+                                onPressed: () async {
+                                  await _toggleFavorite(offre, index);
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6),
+                        // Conteneur de prix modifié
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: priceContainerColor,
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(priceIcon, size: 14, color: priceTextColor),
+                              SizedBox(width: 4),
+                              Text(
+                                priceText,
+                                style: TextStyle(
+                                  color: priceTextColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star_rounded,
+                              size: 14,
+                              color: GlobalColors.amberColor,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              offre.noteMoyenne.toStringAsFixed(1),
+                              style: TextStyle(
+                                color: GlobalColors.secondaryColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              '(${(offre.noteMoyenne * 2).round() / 2})',
+                              style: TextStyle(
+                                color: GlobalColors.accentColor,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.place_rounded,
+                              size: 14,
+                              color: GlobalColors.blueColor,
+                            ),
+                            SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                offre.adresse,
+                                style: TextStyle(
+                                  color: GlobalColors.accentColor,
+                                  fontSize: 12,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (context) =>
+                                            OffreDetailPage(offre: offre),
+                                  ),
+                                );
+                              },
+                              icon: Icon(Icons.visibility_rounded, size: 16),
+                              label: Text('Voir détails'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: GlobalColors.blueColor,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 4,
+                                ),
+                                textStyle: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -629,291 +962,6 @@ class _FavorisPageState extends State<FavorisPage>
     );
   }
 
-  Widget _buildFavoriteCard(Offre offre, int index) {
-    return Hero(
-      tag: 'offre-${offre.id}',
-      child: Container(
-        margin: EdgeInsets.only(bottom: 16),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Material(
-          color: GlobalColors.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OffreDetailPage(offre: offre),
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: CachedNetworkImage(
-                          imageUrl: offre.image,
-                          width: 100,
-                          height: 100,
-                          fit: BoxFit.cover,
-                          placeholder:
-                              (context, url) => Container(
-                                color:
-                                    GlobalColors.isDarkMode
-                                        ? Colors.grey[800]
-                                        : Colors.grey[300],
-                                child: Center(
-                                  child: SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        GlobalColors.blueColor,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          errorWidget:
-                              (context, url, error) => Container(
-                                width: 100,
-                                height: 100,
-                                color:
-                                    GlobalColors.isDarkMode
-                                        ? Colors.grey[800]
-                                        : Colors.grey[200],
-                                child: Icon(
-                                  Icons.image_not_supported_rounded,
-                                  color: GlobalColors.accentColor,
-                                ),
-                              ),
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                Colors.transparent,
-                                Colors.black.withOpacity(0.7),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(16),
-                              bottomRight: Radius.circular(16),
-                            ),
-                          ),
-                          padding: EdgeInsets.all(8),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _getCategoryIcon(offre.categorie),
-                                color: Colors.white,
-                                size: 12,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                offre.categorie,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                offre.nom,
-                                style: GoogleFonts.poppins(
-                                  textStyle: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: GlobalColors.secondaryColor,
-                                  ),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: GlobalColors.pinkColor.withOpacity(0.1),
-                              ),
-                              child: IconButton(
-                                padding: EdgeInsets.zero,
-                                icon: Icon(
-                                  Icons.favorite_rounded,
-                                  color: GlobalColors.pinkColor,
-                                  size: 20,
-                                ),
-                                onPressed: () => _toggleFavorite(offre),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 6),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: GlobalColors.greenColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.paid_rounded,
-                                size: 14,
-                                color: GlobalColors.greenColor,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                offre.tarifs,
-                                style: TextStyle(
-                                  color: GlobalColors.greenColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ...[
-                          SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star_rounded,
-                                size: 14,
-                                color: GlobalColors.amberColor,
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                offre.noteMoyenne.toStringAsFixed(1),
-                                style: TextStyle(
-                                  color: GlobalColors.secondaryColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              SizedBox(width: 4),
-                              Text(
-                                '(${(offre.noteMoyenne * 2).round() / 2})',
-                                style: TextStyle(
-                                  color: GlobalColors.accentColor,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.place_rounded,
-                              size: 14,
-                              color: GlobalColors.blueColor,
-                            ),
-                            SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                offre.adresse,
-                                style: TextStyle(
-                                  color: GlobalColors.accentColor,
-                                  fontSize: 12,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton.icon(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder:
-                                        (context) =>
-                                            OffreDetailPage(offre: offre),
-                                  ),
-                                );
-                              },
-                              icon: Icon(Icons.visibility_rounded, size: 16),
-                              label: Text('Voir détails'),
-                              style: TextButton.styleFrom(
-                                foregroundColor: GlobalColors.blueColor,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 4,
-                                ),
-                                textStyle: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildBottomNavBar() {
     return Positioned(
       left: 0,
@@ -973,7 +1021,7 @@ class _FavorisPageState extends State<FavorisPage>
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     Color selectedColor =
-        GlobalColors.isDarkMode ? bleuTurquoise : bleuTurquoise;
+        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
@@ -985,8 +1033,8 @@ class _FavorisPageState extends State<FavorisPage>
           color:
               isSelected
                   ? (GlobalColors.isDarkMode
-                      ? bleuTurquoise.withOpacity(0.2)
-                      : bleuTurquoise.withOpacity(0.1))
+                      ? Colors.blue.withOpacity(0.2)
+                      : Colors.blue.withOpacity(0.1))
                   : Colors.transparent,
         ),
         child: AnimatedContainer(
@@ -1139,11 +1187,11 @@ class _FavorisPageState extends State<FavorisPage>
               SizedBox(height: 8),
               Slider(
                 value: selectedTarifMax ?? 5000,
-                min: 500,
+                min: 0,
                 max: 10000,
                 divisions: 19,
                 activeColor: GlobalColors.blueColor,
-                inactiveColor: GlobalColors.blueColor.withOpacity(0.2),
+                inactiveColor: GlobalColors.blueColor.withValues(alpha: 51),
                 label: '${(selectedTarifMax ?? 5000).round()} DA',
                 onChanged: (value) {
                   setModalState(() {
@@ -1204,7 +1252,7 @@ class _FavorisPageState extends State<FavorisPage>
                         selectedCategorie = null;
                       });
                     },
-                    child: Text('Réinitialiser', style: TextStyle(color: GlobalColors.secondaryColor),),
+                    child: Text('Réinitialiser'),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(
