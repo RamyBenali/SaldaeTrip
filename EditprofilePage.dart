@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 import 'profile.dart';
-import 'GlovalColors.dart';
 
 class EditProfilePage extends StatefulWidget {
   @override
@@ -63,12 +63,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     try {
+      
       final personneData =
           await Supabase.instance.client
               .from('personne')
-              .select('prenom, nom, adresse')
+              .select('prenom, nom,adresse')
               .eq('user_id', user.id)
               .maybeSingle();
+
+      
+
 
       final profileData =
           await Supabase.instance.client
@@ -80,18 +84,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
               .maybeSingle();
 
       setState(() {
+        
         _firstNameController.text = personneData?['prenom'] ?? '';
         _lastNameController.text = personneData?['nom'] ?? '';
-        _locationController.text = personneData?['adresse'] ?? '';
+        _locationController.text = personneData?['location'] ?? '';
         _descriptionController.text = profileData?['description'] ?? '';
 
+        
         _existingProfilePhotoUrl = profileData?['profile_photo'];
         _existingBannerPhotoUrl = profileData?['banner_photo'];
 
+        
         if (profileData?['centre_interet'] != null) {
           selectedInterests = List<String>.from(profileData?['centre_interet']);
         }
 
+        // Préférences météo
         if (profileData?['preferences_meteo'] != null) {
           weatherPreferences = List<String>.from(
             profileData?['preferences_meteo'],
@@ -118,71 +126,45 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Future<void> _pickImage(bool isProfileImage) async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
-      backgroundColor: GlobalColors.cardColor,
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: GlobalColors.cardColor,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                isProfileImage ? "Photo de profil" : "Bannière",
-                style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: GlobalColors.secondaryColor,
-                  ),
+      builder:
+          (context) => Container(
+            padding: EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isProfileImage ? "Photo de profil" : "Bannière",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-              ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.camera_alt,
-                          size: 30,
-                          color: GlobalColors.blueColor,
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Column(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.camera_alt, size: 30),
+                          onPressed:
+                              () => Navigator.pop(context, ImageSource.camera),
                         ),
-                        onPressed:
-                            () => Navigator.pop(context, ImageSource.camera),
-                      ),
-                      Text(
-                        "Appareil photo",
-                        style: TextStyle(color: GlobalColors.accentColor),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.photo_library,
-                          size: 30,
-                          color: GlobalColors.blueColor,
+                        Text("Appareil photo"),
+                      ],
+                    ),
+                    Column(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.photo_library, size: 30),
+                          onPressed:
+                              () => Navigator.pop(context, ImageSource.gallery),
                         ),
-                        onPressed:
-                            () => Navigator.pop(context, ImageSource.gallery),
-                      ),
-                      Text(
-                        "Galerie",
-                        style: TextStyle(color: GlobalColors.accentColor),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
+                        Text("Galerie"),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        );
-      },
     );
 
     if (source == null) return;
@@ -202,7 +184,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           AndroidUiSettings(
             toolbarTitle:
                 isProfileImage ? "Recadrer la photo" : "Recadrer la bannière",
-            toolbarColor: GlobalColors.blueColor,
+            toolbarColor: Colors.blue,
             toolbarWidgetColor: Colors.white,
             initAspectRatio:
                 isProfileImage
@@ -213,17 +195,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ],
       );
 
-      if (croppedFile != null) {
-        final compressedFile = File(croppedFile.path);
-
-        setState(() {
-          if (isProfileImage) {
-            _profileImage = compressedFile;
-          } else {
-            _bannerImage = compressedFile;
-          }
-        });
-      }
     } catch (e) {
       _showSnackBar("Erreur: ${e.toString()}");
     }
@@ -244,6 +215,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
 
     try {
+      // Upload des nouvelles images
       String? newProfileUrl = _existingProfilePhotoUrl;
       String? newBannerUrl = _existingBannerPhotoUrl;
       final timestamp = DateTime.now().millisecondsSinceEpoch;
@@ -304,14 +276,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor:
-            message.contains("Erreur")
-                ? GlobalColors.pinkColor
-                : GlobalColors.greenColor,
-        behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         duration: Duration(seconds: 3),
+        backgroundColor: message.contains("Erreur") ? Colors.red : Colors.green,
       ),
     );
   }
@@ -332,7 +298,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 _profileImage == null && _existingProfilePhotoUrl == null
                     ? Icon(Icons.person, size: 50, color: Colors.white)
                     : null,
-            backgroundColor: GlobalColors.accentColor.withOpacity(0.2),
+            backgroundColor: Colors.grey[300],
           ),
           Positioned(
             bottom: 0,
@@ -342,9 +308,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: GlobalColors.blueColor,
+                  color: Colors.blue,
                   shape: BoxShape.circle,
-                  border: Border.all(color: GlobalColors.cardColor, width: 2),
+                  border: Border.all(color: Colors.white, width: 2),
                 ),
                 child: Icon(Icons.edit, size: 20, color: Colors.white),
               ),
@@ -363,7 +329,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         width: double.infinity,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
-          color: GlobalColors.accentColor.withOpacity(0.2),
+          color: Colors.grey[300],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(12),
@@ -373,11 +339,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   : _existingBannerPhotoUrl != null
                   ? Image.network(_existingBannerPhotoUrl!, fit: BoxFit.cover)
                   : Center(
-                    child: Icon(
-                      Icons.image,
-                      size: 50,
-                      color: GlobalColors.accentColor,
-                    ),
+                    child: Icon(Icons.image, size: 50, color: Colors.white),
                   ),
         ),
       ),
@@ -387,9 +349,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _buildInterestsSection() {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 12),
-      color: GlobalColors.cardColor,
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -397,13 +356,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           children: [
             Text(
               "Centres d'intérêt",
-              style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: GlobalColors.secondaryColor,
-                ),
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
             Wrap(
@@ -424,19 +377,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           }
                         });
                       },
-                      selectedColor: GlobalColors.greenColor.withOpacity(0.2),
-                      checkmarkColor: GlobalColors.greenColor,
-                      labelStyle: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                          color:
-                              isSelected
-                                  ? GlobalColors.greenColor
-                                  : GlobalColors.secondaryColor,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
+                      selectedColor: Colors.green.withOpacity(0.2),
+                      checkmarkColor: Colors.green,
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.green[800] : Colors.black87,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
-                      backgroundColor: GlobalColors.primaryColor,
                     );
                   }).toList(),
             ),
@@ -449,9 +396,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget _buildWeatherPreferencesSection() {
     return Card(
       margin: EdgeInsets.symmetric(vertical: 12),
-      color: GlobalColors.cardColor,
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -459,13 +403,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           children: [
             Text(
               "Préférences météo",
-              style: GoogleFonts.poppins(
-                textStyle: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: GlobalColors.secondaryColor,
-                ),
-              ),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
             Wrap(
@@ -474,8 +412,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
               children:
                   availableWeatherPrefs.map((weather) {
                     final isSelected = weatherPreferences.contains(weather);
-                    final weatherColor = _getWeatherColor(weather);
-
                     return FilterChip(
                       label: Text(weather),
                       selected: isSelected,
@@ -483,8 +419,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         _getWeatherIcon(weather),
                         color:
                             isSelected
-                                ? weatherColor
-                                : GlobalColors.accentColor,
+                                ? _getWeatherColor(weather)
+                                : Colors.grey,
                       ),
                       onSelected: (selected) {
                         setState(() {
@@ -495,19 +431,16 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           }
                         });
                       },
-                      selectedColor: weatherColor.withOpacity(0.2),
-                      checkmarkColor: weatherColor,
-                      labelStyle: GoogleFonts.poppins(
-                        textStyle: TextStyle(
-                          color:
-                              isSelected
-                                  ? weatherColor
-                                  : GlobalColors.secondaryColor,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
+                      selectedColor: _getWeatherColor(weather).withOpacity(0.1),
+                      checkmarkColor: _getWeatherColor(weather),
+                      labelStyle: TextStyle(
+                        color:
+                            isSelected
+                                ? _getWeatherColor(weather)
+                                : Colors.black87,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
-                      backgroundColor: GlobalColors.primaryColor,
                     );
                   }).toList(),
             ),
@@ -539,11 +472,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Color _getWeatherColor(String weather) {
     switch (weather.toLowerCase()) {
       case 'ensoleillé':
-        return GlobalColors.amberColor;
+        return Colors.orange;
       case 'nuageux':
         return Colors.blueGrey;
       case 'pluvieux':
-        return GlobalColors.blueColor;
+        return Colors.blue;
       case 'chaud':
         return Colors.red;
       case 'froid':
@@ -551,27 +484,15 @@ class _EditProfilePageState extends State<EditProfilePage> {
       case 'venteux':
         return Colors.cyan;
       default:
-        return GlobalColors.accentColor;
+        return Colors.grey;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text(
-          "Modifier le profil",
-          style: GoogleFonts.poppins(
-            textStyle: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-        backgroundColor: GlobalColors.blueColor,
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
+        title: Text("Modifier le profil"),
         actions: [
           IconButton(
             icon: Icon(Icons.help_outline),
@@ -580,26 +501,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   context: context,
                   builder:
                       (context) => AlertDialog(
-                        backgroundColor: GlobalColors.cardColor,
-                        title: Text(
-                          "Aide",
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: GlobalColors.secondaryColor,
-                            ),
-                          ),
-                        ),
+                        title: Text("Aide"),
                         content: Text(
                           "Modifiez les informations de votre profil ici.",
-                          style: TextStyle(color: GlobalColors.accentColor),
                         ),
                         actions: [
                           TextButton(
-                            child: Text(
-                              "OK",
-                              style: TextStyle(color: GlobalColors.blueColor),
-                            ),
+                            child: Text("OK"),
                             onPressed: () => Navigator.pop(context),
                           ),
                         ],
@@ -610,9 +518,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       ),
       body:
           isLoading
-              ? Center(
-                child: CircularProgressIndicator(color: GlobalColors.blueColor),
-              )
+              ? Center(child: CircularProgressIndicator())
               : Form(
                 key: _formKey,
                 child: SingleChildScrollView(
@@ -624,11 +530,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       _buildBannerImageSection(),
                       SizedBox(height: 24),
                       Card(
-                        color: GlobalColors.cardColor,
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
                         child: Padding(
                           padding: EdgeInsets.all(16),
                           child: Column(
@@ -637,39 +538,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 controller: _firstNameController,
                                 decoration: InputDecoration(
                                   labelText: "Prénom*",
-                                  labelStyle: TextStyle(
-                                    color: GlobalColors.accentColor,
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.person_outline,
-                                    color: GlobalColors.accentColor,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.blueColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: GlobalColors.primaryColor,
-                                ),
-                                style: TextStyle(
-                                  color: GlobalColors.secondaryColor,
+                                  prefixIcon: Icon(Icons.person_outline),
+                                  border: OutlineInputBorder(),
                                 ),
                                 validator:
                                     (value) =>
@@ -682,39 +552,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 controller: _lastNameController,
                                 decoration: InputDecoration(
                                   labelText: "Nom*",
-                                  labelStyle: TextStyle(
-                                    color: GlobalColors.accentColor,
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.person_outline,
-                                    color: GlobalColors.accentColor,
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.blueColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: GlobalColors.primaryColor,
-                                ),
-                                style: TextStyle(
-                                  color: GlobalColors.secondaryColor,
+                                  prefixIcon: Icon(Icons.person_outline),
+                                  border: OutlineInputBorder(),
                                 ),
                                 validator:
                                     (value) =>
@@ -727,45 +566,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 controller: _locationController,
                                 decoration: InputDecoration(
                                   labelText: "Localisation",
-                                  labelStyle: TextStyle(
-                                    color: GlobalColors.accentColor,
-                                  ),
-                                  prefixIcon: Icon(
-                                    Icons.location_on_outlined,
-                                    color: GlobalColors.accentColor,
-                                  ),
+                                  prefixIcon: Icon(Icons.location_on_outlined),
                                   hintText: "Ex: Paris, France",
-                                  hintStyle: TextStyle(
-                                    color: GlobalColors.accentColor.withOpacity(
-                                      0.5,
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.blueColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: GlobalColors.primaryColor,
-                                ),
-                                style: TextStyle(
-                                  color: GlobalColors.secondaryColor,
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
                               SizedBox(height: 16),
@@ -774,42 +577,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 maxLines: 4,
                                 decoration: InputDecoration(
                                   labelText: "Description",
-                                  labelStyle: TextStyle(
-                                    color: GlobalColors.accentColor,
-                                  ),
                                   alignLabelWithHint: true,
                                   hintText: "Décrivez-vous en quelques mots...",
-                                  hintStyle: TextStyle(
-                                    color: GlobalColors.accentColor.withOpacity(
-                                      0.5,
-                                    ),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.accentColor
-                                          .withOpacity(0.2),
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                      color: GlobalColors.blueColor,
-                                      width: 2,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: GlobalColors.primaryColor,
-                                ),
-                                style: TextStyle(
-                                  color: GlobalColors.secondaryColor,
+                                  border: OutlineInputBorder(),
                                 ),
                               ),
                             ],
@@ -825,13 +595,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           onPressed: _isSaving ? null : _saveProfile,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: GlobalColors.blueColor,
-                            disabledBackgroundColor: GlobalColors.accentColor
-                                .withOpacity(0.2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            elevation: 0,
+                            backgroundColor: Colors.blue,
                           ),
                           child:
                               _isSaving
@@ -845,11 +609,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   )
                                   : Text(
                                     "ENREGISTRER LES MODIFICATIONS",
-                                    style: GoogleFonts.poppins(
-                                      textStyle: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                         ),
@@ -857,15 +619,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       SizedBox(height: 12),
                       TextButton(
                         onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          "Annuler",
-                          style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
-                              color: GlobalColors.blueColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
+                        child: Text("Annuler"),
                       ),
                       SizedBox(height: 20),
                     ],

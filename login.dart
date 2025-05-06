@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'main.dart';
 import 'manual_reset_screen.dart.dart';
 import 'weather_main.dart';
 import 'signin.dart';
 import 'database_service.dart';
+import 'GlovalColors.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -148,11 +150,10 @@ class _LoginScreenState extends State<LoginScreen> {
                             _isResetPasswordMode
                                 ? 'Réinitialisation'
                                 : 'Bienvenue',
-                            style: TextStyle(
-                              color: Color(0xFF0D8BFF),
+                            style: GoogleFonts.robotoSlab(
+                              color: GlobalColors.bleuTurquoise,
                               fontWeight: FontWeight.bold,
                               fontSize: 37,
-                              fontFamily: 'Abril Fatface',
                             ),
                           ),
                           Text(
@@ -160,10 +161,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ? 'Entrez votre email pour réinitialiser votre mot de passe'
                                 : 'Heureux de vous revoir, Veuillez entrer vos identifiants.',
                             textAlign: TextAlign.start,
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               color: Colors.black,
                               fontSize: 22,
-                              fontFamily: 'Arial',
                             ),
                           ),
                           const SizedBox(height: 50),
@@ -264,7 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             onPressed:
                                 _isResetPasswordMode ? _resetPassword : _login,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF0D8BFF),
+                              backgroundColor: GlobalColors.bleuTurquoise,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(7),
                               ),
@@ -323,7 +323,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                     TextSpan(
                                       text: 'Inscrivez-vous !',
                                       style: TextStyle(
-                                        color: Color(0xFF0D8BFF),
+                                        color: GlobalColors.bleuTurquoise,
                                         fontSize: 16,
                                       ),
                                     ),

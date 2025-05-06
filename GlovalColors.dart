@@ -30,4 +30,6 @@ class GlobalColors {
   static Color get pinkColor => Color(0xFFEC4899);
   static Color get greenColor => Color(0xFF10B981);
   static Color get amberColor => Colors.amber;
+  static Color get bleuTurquoise => Color(0xFF41A6B4);
+
 }

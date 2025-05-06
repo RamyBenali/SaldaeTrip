@@ -6,6 +6,7 @@ import 'login.dart';
 import 'manual_reset_screen.dart.dart';
 import 'signin.dart';
 import 'weather_main.dart';
+import 'GlovalColors.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -221,7 +222,7 @@ class _SplashScreenState extends State<SplashScreen>
                               );
                             },
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: blueAccent,
+                              backgroundColor: GlobalColors.bleuTurquoise,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
@@ -246,7 +247,7 @@ class _SplashScreenState extends State<SplashScreen>
                               );
                             },
                             style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: blueAccent),
+                              side: BorderSide(color: GlobalColors.bleuTurquoise),
                               backgroundColor: Colors.white.withOpacity(0.7),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
@@ -256,7 +257,7 @@ class _SplashScreenState extends State<SplashScreen>
                             child: Text(
                               "S'inscrire",
                               style: TextStyle(
-                                color:blueAccent,
+                                color:  GlobalColors.bleuTurquoise,
                                 fontSize: 18,
                               ),
                             ),
@@ -312,14 +313,14 @@ class _SplashScreenState extends State<SplashScreen>
                                       ? CircularProgressIndicator(
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
+                                              GlobalColors.bleuTurquoise,
                                             ),
                                         strokeWidth: 2,
                                       )
                                       : Text(
                                         'Continuer sans se connecter',
                                         style: TextStyle(
-                                          color: Colors.white.withOpacity(0.5),
+                                          color: Colors.white.withOpacity(0.6),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -330,7 +331,7 @@ class _SplashScreenState extends State<SplashScreen>
                       : Column(
                         children: [
                           Icon(Icons.wifi_off, size: 50, color: Colors.white),
-                          SizedBox(height: 10),
+                          SizedBox(height: 50),
                           Text(
                             "Vous n'êtes pas connecté à internet, Veuillez vérifier votre connexion",
                             style: TextStyle(
@@ -341,33 +342,6 @@ class _SplashScreenState extends State<SplashScreen>
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 30),
-                          Text(
-                            "OU",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          SizedBox(height: 30),
-                          ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              minimumSize: Size(double.infinity, 50),
-                            ),
-                            child: Text(
-                              "Accéder au mode hors ligne",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 17,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
             ),

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'login.dart';
 import 'main.dart';
 import 'TermsAndConditionScreen.dart';
-import 'database_service.dart'; // Importer le service de base de données
+import 'database_service.dart';
+import 'GlovalColors.dart';
 
 class SigninScreen extends StatefulWidget {
   @override
@@ -159,11 +161,10 @@ class _SigninScreenState extends State<SigninScreen> {
                     children: [
                       Text(
                         'Inscription',
-                        style: TextStyle(
-                          color: Color(0xFF0D8BFF),
+                        style: GoogleFonts.robotoSlab(
+                          color: GlobalColors.bleuTurquoise,
                           fontWeight: FontWeight.bold,
                           fontSize: 37,
-                          fontFamily: 'Abril Fatface',
                         ),
                       ),
                       Text(
@@ -287,7 +288,7 @@ class _SigninScreenState extends State<SigninScreen> {
                               ElevatedButton(
                                 onPressed: _register,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Color(0xFF0D8BFF),
+                                  backgroundColor: GlobalColors.bleuTurquoise,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
                                   minimumSize: Size(double.infinity, 50),
                                 ),
@@ -311,8 +312,8 @@ class _SigninScreenState extends State<SigninScreen> {
                         child: Text.rich(
                           TextSpan(
                             children: [
-                              TextSpan(text: 'Vous avez déjà un compte? ', style: TextStyle(color: Colors.black, fontSize: 16)),
-                              TextSpan(text: 'Connectez-vous !', style: TextStyle(color: Color(0xFF0D8BFF), fontSize: 16)),
+                              TextSpan(text: 'Vous avez déjà un compte? ', style: TextStyle(color: Colors.black, fontSize: 14)),
+                              TextSpan(text: 'Connectez-vous !', style: GoogleFonts.robotoSlab(color: GlobalColors.bleuTurquoise, fontSize: 14)),
                             ],
                           ),
                         ),
@@ -323,11 +324,11 @@ class _SigninScreenState extends State<SigninScreen> {
                         children: [
                           IconButton(
                             onPressed: _currentPage > 0 ? _previousPage : null,
-                            icon: Icon(Icons.arrow_back, color: _currentPage > 0 ? Color(0xFF0D8BFF) : Colors.grey, size: 32),
+                            icon: Icon(Icons.arrow_back, color: _currentPage > 0 ? GlobalColors.bleuTurquoise : Colors.grey, size: 32),
                           ),
                           IconButton(
                             onPressed: _currentPage < 2 ? _nextPage : null,
-                            icon: Icon(Icons.arrow_forward, color: _currentPage < 2 ? Color(0xFF0D8BFF) : Colors.grey, size: 32),
+                            icon: Icon(Icons.arrow_forward, color: _currentPage < 2 ? GlobalColors.bleuTurquoise : Colors.grey, size: 32),
                           ),
                         ],
                       ),
