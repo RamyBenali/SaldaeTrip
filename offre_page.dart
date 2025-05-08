@@ -29,7 +29,7 @@ class _OffresPageState extends State<OffresPage> {
     'Hôtel': Color(0xFF0367A6),
     'Restaurant': Color(0xFFC5283D),
     'Loisirs': Color(0xFF6A4C93),
-    'Plage': Color(0xFF1E88E5),
+    'Plage': GlobalColors.bleuTurquoise,
     'Point d\'intérêt': Color(0xFF4CAF50),
   };
 
@@ -97,7 +97,7 @@ class _OffresPageState extends State<OffresPage> {
                 decoration: InputDecoration(
                   hintText: 'Rechercher une offre',
                   hintStyle: TextStyle(color: textColor),
-                  prefixIcon: Icon(Icons.search, color: Colors.blue[800]),
+                  prefixIcon: Icon(Icons.search, color: GlobalColors.bleuTurquoise),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                 ),
@@ -108,7 +108,7 @@ class _OffresPageState extends State<OffresPage> {
           SizedBox(width: 10),
           Container(
             decoration: BoxDecoration(
-              color: Colors.blue[800],
+              color: GlobalColors.bleuTurquoise,
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -169,7 +169,7 @@ class _OffresPageState extends State<OffresPage> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: isDarkMode ? accentGlobalColor : Colors.blue[800],
+                          color: isDarkMode ? accentGlobalColor : GlobalColors.bleuTurquoise,
                         ),
                       ),
                       SizedBox(height: 20),
@@ -214,7 +214,7 @@ class _OffresPageState extends State<OffresPage> {
                               min: 0,
                               max: 10000,
                               divisions: 20,
-                              activeColor: Colors.blue[800],
+                              activeColor: GlobalColors.bleuTurquoise,
                               inactiveColor: Colors.blue[100],
                               label: '${selectedTarifMax?.round() ?? 0} DA',
                               onChanged: (value) {
@@ -239,7 +239,7 @@ class _OffresPageState extends State<OffresPage> {
                                 });
                                 Navigator.pop(context);
                               },
-                              child: Text('Réinitialiser', style: TextStyle(color: isDarkMode ? textColor : Colors.blue[800])),
+                              child: Text('Réinitialiser', style: TextStyle(color: isDarkMode ? textColor : GlobalColors.bleuTurquoise)),
                             ),
                           ),
                           SizedBox(width: 16),
@@ -247,13 +247,13 @@ class _OffresPageState extends State<OffresPage> {
                             child: ElevatedButton(
                               onPressed: () => Navigator.pop(context),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: isDarkMode ? accentGlobalColor : Colors.blue[800],
+                                backgroundColor: isDarkMode ? GlobalColors.bleuTurquoise : GlobalColors.bleuTurquoise,
                                 padding: EdgeInsets.symmetric(vertical: 14),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: Text('Appliquer', style: TextStyle(color: isDarkMode ? Colors.blue[800] : Colors.white),),
+                              child: Text('Appliquer', style: TextStyle(color: isDarkMode ? Colors.white : Colors.white),),
                             ),
                           ),
                         ],
@@ -546,13 +546,13 @@ class _OffresPageState extends State<OffresPage> {
         title: Text(
           'Toutes les offres',
           style: TextStyle(
-            color: isDarkMode ? textColor : Colors.blue[900],
+            color: isDarkMode ? textColor : GlobalColors.bleuTurquoise,
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: primaryBackColor,
         elevation: 0,
-        iconTheme: IconThemeData(color: isDarkMode ? textColor : Colors.blue[900]),
+        iconTheme: IconThemeData(color: isDarkMode ? textColor : GlobalColors.bleuTurquoise),
       ),
       body: isLoading
           ? Center(child: CircularProgressIndicator(color: isDarkMode ? textColor : Colors.blue[900]))

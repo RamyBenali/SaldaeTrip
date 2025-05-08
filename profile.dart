@@ -164,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               height: 180,
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: GlobalColors.bleuTurquoise,
                 borderRadius: BorderRadius.only(
                   bottomRight: Radius.circular(30),
                 ),

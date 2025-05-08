@@ -556,8 +556,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         color:
                             GlobalColors.isDarkMode
-                                ? Colors.blue[800]
-                                : Colors.blue[700],
+                                ? GlobalColors.bleuTurquoise
+                                : GlobalColors.bleuTurquoise,
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20),
                           topRight: Radius.circular(20),
@@ -681,8 +681,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                 side: BorderSide(
                                   color:
                                       GlobalColors.isDarkMode
-                                          ? Colors.blue[200]!
-                                          : Colors.blue[700]!,
+                                          ? GlobalColors.bleuTurquoise
+                                          : GlobalColors.bleuTurquoise,
                                 ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -691,7 +691,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   vertical: 14,
                                 ),
                               ),
-                              child: Text('Tout sélectionner'),
+                              child: Text('Tout sélectionner', style: TextStyle(color: GlobalColors.bleuTurquoise),),
                               onPressed: () {
                                 setState(() {
                                   _categoriesSelectionnees =
@@ -719,8 +719,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   side: BorderSide(
                                     color:
                                         GlobalColors.isDarkMode
-                                            ? Colors.blue[200]!
-                                            : Colors.blue[700]!,
+                                            ? GlobalColors.bleuTurquoise
+                                            : GlobalColors.bleuTurquoise,
                                     width: 1.5,
                                   ),
                                 ),
@@ -731,7 +731,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                               ),
                               child: Text(
                                 'Appliquer',
-                                style: TextStyle(fontWeight: FontWeight.w600),
+                                style: TextStyle(fontWeight: FontWeight.w600, color: GlobalColors.bleuTurquoise),
                               ),
                               onPressed: _basculerPanneau,
                             ),
@@ -1551,7 +1551,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [Colors.blue[600]!, Colors.blue[400]!],
+                      colors: [GlobalColors.bleuTurquoise, GlobalColors.bleuTurquoise],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
@@ -1610,8 +1610,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       prefixIcon: Icon(
                         Icons.search,
                         color: GlobalColors.isDarkMode 
-                          ? Colors.blue[200]
-                          : Colors.blue,
+                          ? GlobalColors.bleuTurquoise
+                          : GlobalColors.bleuTurquoise,
                         size: 26,
                       ),
                       suffixIcon: _rechercheEnCours
@@ -1666,8 +1666,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide(
                         color: GlobalColors.isDarkMode 
-                          ? Colors.blue[400]!
-                          : Colors.blue,
+                          ? GlobalColors.bleuTurquoise
+                          : GlobalColors.bleuTurquoise,
                         width: 1.5,
                         ),
                       ),
@@ -1685,8 +1685,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       child: Container(
                       decoration: BoxDecoration(
                         color: GlobalColors.isDarkMode 
-                          ? Colors.blue.withOpacity(0.2)
-                          : Colors.blue[50],
+                          ? GlobalColors.bleuTurquoise
+                          : GlobalColors.bleuTurquoise,
                         shape: BoxShape.circle,
                       ),
                       child: IconButton(

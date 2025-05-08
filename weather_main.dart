@@ -440,7 +440,7 @@ class _HomePageState extends State<HomePage> {
                                     style: TextStyle(fontSize: 16, color: Colors.white),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: primaryColor,
+                                    backgroundColor: GlobalColors.bleuTurquoise,
                                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(30),
@@ -458,7 +458,7 @@ class _HomePageState extends State<HomePage> {
                                     style: TextStyle(fontSize: 16, color: Colors.white),
                                   ),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: primaryColor,
+                                    backgroundColor: GlobalColors.bleuTurquoise,
                                     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(30),
