@@ -76,17 +76,17 @@ class _FavorisPageState extends State<FavorisPage>
       final favorisResponse = await _supabase
           .from('ajouterfavoris')
           .select('''
-        offre(
-          idoffre, 
-          nom, 
-          categorie, 
-          tarifs, 
-          description, 
-          adresse, 
-          image,
-          avis:avis(note)
-        )
-      ''')
+offre(
+idoffre,
+nom,
+categorie,
+tarifs,
+description,
+adresse,
+image,
+avis:avis(note)
+)
+''')
           .eq('user_id', user.id);
 
       final data = favorisResponse as List;
@@ -250,7 +250,7 @@ class _FavorisPageState extends State<FavorisPage>
             pinned: true,
             stretch: true,
             elevation: 0,
-            backgroundColor: GlobalColors.blueColor,
+            backgroundColor: GlobalColors.bleuTurquoise,
             flexibleSpace: FlexibleSpaceBar(
               titlePadding: EdgeInsets.only(left: 20, bottom: 16),
               title: Row(
@@ -276,8 +276,8 @@ class _FavorisPageState extends State<FavorisPage>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      GlobalColors.darkBlueColor,
-                      GlobalColors.blueColor,
+                      GlobalColors.bleuTurquoise,
+                      GlobalColors.bleuTurquoise,
                     ],
                   ),
                 ),
@@ -334,7 +334,7 @@ class _FavorisPageState extends State<FavorisPage>
                     decoration: InputDecoration(
                       prefixIcon: Icon(
                         Icons.search_rounded,
-                        color: GlobalColors.blueColor,
+                        color: GlobalColors.bleuTurquoise,
                       ),
                       suffixIcon: GestureDetector(
                         onTap: () {
@@ -348,12 +348,12 @@ class _FavorisPageState extends State<FavorisPage>
                         child: Container(
                           margin: EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: GlobalColors.blueColor.withOpacity(0.1),
+                            color: GlobalColors.bleuTurquoise.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
                             Icons.filter_list_rounded,
-                            color: GlobalColors.blueColor,
+                            color: GlobalColors.bleuTurquoise,
                           ),
                         ),
                       ),
@@ -473,9 +473,9 @@ class _FavorisPageState extends State<FavorisPage>
     final priceContainerColor =
         isFree
             ? GlobalColors.greenColor.withOpacity(0.1)
-            : GlobalColors.blueColor.withOpacity(0.1);
+            : GlobalColors.bleuTurquoise.withOpacity(0.1);
     final priceTextColor =
-        isFree ? GlobalColors.greenColor : GlobalColors.blueColor;
+        isFree ? GlobalColors.greenColor : GlobalColors.bleuTurquoise;
 
     return Hero(
       tag: 'offre-${offre.id}',
@@ -532,7 +532,7 @@ class _FavorisPageState extends State<FavorisPage>
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                        GlobalColors.blueColor,
+                                        GlobalColors.bleuTurquoise,
                                       ),
                                     ),
                                   ),
@@ -574,20 +574,14 @@ class _FavorisPageState extends State<FavorisPage>
                           ),
                           padding: EdgeInsets.symmetric(
                             horizontal: 8,
-                            vertical: 6, 
+                            vertical: 6,
                           ),
-                          constraints: BoxConstraints(
-                            maxWidth:
-                                100, 
-                          ),
+                          constraints: BoxConstraints(maxWidth: 100),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize:
-                                MainAxisSize
-                                    .min, 
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Flexible(
-                                
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
@@ -605,10 +599,8 @@ class _FavorisPageState extends State<FavorisPage>
                                           fontSize: 10,
                                           fontWeight: FontWeight.w500,
                                         ),
-                                        maxLines: 1, 
-                                        overflow:
-                                            TextOverflow
-                                                .ellipsis, 
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         softWrap: false,
                                       ),
                                     ),
@@ -724,7 +716,7 @@ class _FavorisPageState extends State<FavorisPage>
                             Icon(
                               Icons.place_rounded,
                               size: 14,
-                              color: GlobalColors.blueColor,
+                              color: GlobalColors.bleuTurquoise,
                             ),
                             SizedBox(width: 4),
                             Expanded(
@@ -758,7 +750,7 @@ class _FavorisPageState extends State<FavorisPage>
                               icon: Icon(Icons.visibility_rounded, size: 16),
                               label: Text('Voir détails'),
                               style: TextButton.styleFrom(
-                                foregroundColor: GlobalColors.blueColor,
+                                foregroundColor: GlobalColors.bleuTurquoise,
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 12,
                                   vertical: 4,
@@ -793,7 +785,7 @@ class _FavorisPageState extends State<FavorisPage>
       child: Container(
         margin: EdgeInsets.symmetric(vertical: 8),
         child: Material(
-          color: GlobalColors.blueColor.withOpacity(0.1),
+          color: GlobalColors.bleuTurquoise.withOpacity(0.1),
           borderRadius: BorderRadius.circular(30),
           child: InkWell(
             borderRadius: BorderRadius.circular(30),
@@ -803,18 +795,22 @@ class _FavorisPageState extends State<FavorisPage>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, size: 16, color: GlobalColors.blueColor),
+                  Icon(icon, size: 16, color: GlobalColors.bleuTurquoise),
                   SizedBox(width: 6),
                   Text(
                     label,
                     style: TextStyle(
                       fontSize: 12,
-                      color: GlobalColors.blueColor,
+                      color: GlobalColors.bleuTurquoise,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   SizedBox(width: 4),
-                  Icon(Icons.close, size: 16, color: GlobalColors.blueColor),
+                  Icon(
+                    Icons.close,
+                    size: 16,
+                    color: GlobalColors.bleuTurquoise,
+                  ),
                 ],
               ),
             ),
@@ -884,7 +880,7 @@ class _FavorisPageState extends State<FavorisPage>
                 icon: Icon(Icons.login_rounded),
                 label: Text('Se connecter'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: GlobalColors.blueColor,
+                  backgroundColor: GlobalColors.bleuTurquoise,
                   foregroundColor: Colors.white,
                   elevation: 2,
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -947,7 +943,7 @@ class _FavorisPageState extends State<FavorisPage>
                 icon: Icon(Icons.explore_rounded),
                 label: Text('Explorer les offres'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: GlobalColors.blueColor,
+                  backgroundColor: GlobalColors.bleuTurquoise,
                   foregroundColor: Colors.white,
                   padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   shape: RoundedRectangleBorder(
@@ -962,7 +958,7 @@ class _FavorisPageState extends State<FavorisPage>
     );
   }
 
-  Widget _buildBottomNavBar() {
+ Widget _buildBottomNavBar() {
     return Positioned(
       left: 0,
       right: 0,
@@ -1016,12 +1012,12 @@ class _FavorisPageState extends State<FavorisPage>
         ),
       ),
     );
-  }
+   }
 
   Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     Color selectedColor =
-        GlobalColors.isDarkMode ? Colors.blue.shade200 : Colors.blue;
+        GlobalColors.isDarkMode ? GlobalColors.bleuTurquoise: GlobalColors.bleuTurquoise;
 
     return GestureDetector(
       onTap: () => _onItemTapped(index),
@@ -1033,8 +1029,8 @@ class _FavorisPageState extends State<FavorisPage>
           color:
               isSelected
                   ? (GlobalColors.isDarkMode
-                      ? Colors.blue.withOpacity(0.2)
-                      : Colors.blue.withOpacity(0.1))
+                      ? GlobalColors.bleuTurquoise.withOpacity(0.2)
+                      : GlobalColors.bleuTurquoise.withOpacity(0.1))
                   : Colors.transparent,
         ),
         child: AnimatedContainer(
@@ -1190,8 +1186,8 @@ class _FavorisPageState extends State<FavorisPage>
                 min: 0,
                 max: 10000,
                 divisions: 19,
-                activeColor: GlobalColors.blueColor,
-                inactiveColor: GlobalColors.blueColor.withValues(alpha: 51),
+                activeColor: GlobalColors.bleuTurquoise,
+                inactiveColor: GlobalColors.bleuTurquoise.withValues(alpha: 51),
                 label: '${(selectedTarifMax ?? 5000).round()} DA',
                 onChanged: (value) {
                   setModalState(() {
@@ -1228,13 +1224,15 @@ class _FavorisPageState extends State<FavorisPage>
                             selectedCategorie = selected ? category : null;
                           });
                         },
-                        selectedColor: GlobalColors.blueColor.withOpacity(0.2),
+                        selectedColor: GlobalColors.bleuTurquoise.withOpacity(
+                          0.2,
+                        ),
                         backgroundColor: GlobalColors.primaryColor,
-                        checkmarkColor: GlobalColors.blueColor,
+                        checkmarkColor: GlobalColors.bleuTurquoise,
                         labelStyle: TextStyle(
                           color:
                               selectedCategorie == category
-                                  ? GlobalColors.blueColor
+                                  ? GlobalColors.bleuTurquoise
                                   : GlobalColors.secondaryColor,
                         ),
                       );
@@ -1262,7 +1260,7 @@ class _FavorisPageState extends State<FavorisPage>
                     },
                     child: Text('Appliquer'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: GlobalColors.blueColor,
+                      backgroundColor: GlobalColors.bleuTurquoise,
                       foregroundColor: Colors.white,
                     ),
                   ),
