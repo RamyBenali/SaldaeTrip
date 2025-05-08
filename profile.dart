@@ -217,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               ? 'Client'
                               : role == 'Administrateur'
                               ? 'Administrateur'
-                              : 'Invité',
+                              : 'touriste',
                           style: TextStyle(
                             color: GlobalColors.secondaryColor.withOpacity(0.9),
                             fontSize: 14,
