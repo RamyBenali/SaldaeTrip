@@ -68,7 +68,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           'Panneau Administrateur',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue,
         centerTitle: true,
       ),
       body: Padding(

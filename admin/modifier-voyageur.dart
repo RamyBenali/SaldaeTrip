@@ -59,8 +59,8 @@ class _ModifierVoyageurPageState extends State<ModifierVoyageurPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Modifier Voyageur'),
-        backgroundColor: Colors.orange,
+        title: Text('Modifier Voyageur', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

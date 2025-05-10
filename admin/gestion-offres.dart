@@ -92,7 +92,7 @@ class _GestionOffrePageState extends State<GestionOffrePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gestion des Offres'),
+        title: Text('Gestion des Offres' , style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
         actions: [
           IconButton(

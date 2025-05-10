@@ -89,8 +89,8 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gestion des Prestataires'),
-        backgroundColor: Colors.green,
+        title: Text('Gestion des Prestataires', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
         actions: [
           IconButton(
             icon: Icon(Icons.add),

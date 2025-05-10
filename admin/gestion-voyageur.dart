@@ -83,8 +83,8 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion des Voyageurs'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text('Gestion des Voyageurs', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
       body: Column(
         children: [

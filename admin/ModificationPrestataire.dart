@@ -80,8 +80,8 @@ class _ModifierPrestatairePageState extends State<ModifierPrestatairePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Modifier Prestataire'),
-        backgroundColor: Colors.orange,
+        title: Text('Modifier Prestataire', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),

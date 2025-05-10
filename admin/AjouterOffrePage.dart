@@ -213,7 +213,7 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ajouter une Offre'),
+        title: Text('Ajouter une Offre', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(
