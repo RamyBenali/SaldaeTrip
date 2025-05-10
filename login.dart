@@ -198,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               controller: _passwordController,
                               obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                labelText: 'New Password',
+                                labelText: 'Mot de passe',
                                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                                 suffixIcon: IconButton(
                                   icon: Icon(

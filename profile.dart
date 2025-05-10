@@ -1039,7 +1039,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 children: [
                                   Icon(
                                     Icons.info_outline,
-                                    color: Colors.blue,
+                                    color: GlobalColors.bleuTurquoise,
                                     size: 20,
                                   ),
                                   SizedBox(width: 10),
@@ -1047,7 +1047,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     'À PROPOS',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.blue,
+                                      color: GlobalColors.bleuTurquoise,
                                     ),
                                   ),
                                 ],

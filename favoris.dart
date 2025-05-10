@@ -847,15 +847,15 @@ avis:avis(note)
   Widget _buildAnonymousContent() {
     return SafeArea(
       child: SingleChildScrollView(
-        padding: EdgeInsets.only(bottom: 100, top: 32, left: 16, right: 16),
+        padding: EdgeInsets.only(bottom: 100, top: 0, left: 16, right: 16),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Lottie.network(
-                'https://assets8.lottiefiles.com/packages/lf20_t24tpvcu.json',
-                width: 150,
-                height: 150,
+                'https://lottie.host/205266c4-f967-4865-a3d4-239cfafd74e4/zRMfnOimDz.json',
+                width: 200,
+                height: 200,
               ),
               SizedBox(height: 20),
               Text(
@@ -905,7 +905,7 @@ avis:avis(note)
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Lottie.network(
-                'https://assets3.lottiefiles.com/private_files/lf30_cgfdhxgx.json',
+                'https://lottie.host/205266c4-f967-4865-a3d4-239cfafd74e4/zRMfnOimDz.json',
                 width: 180,
                 height: 180,
               ),
@@ -1250,7 +1250,7 @@ avis:avis(note)
                         selectedCategorie = null;
                       });
                     },
-                    child: Text('Réinitialiser'),
+                    child: Text('Réinitialiser', style: TextStyle(color: GlobalColors.bleuTurquoise),),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(

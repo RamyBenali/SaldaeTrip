@@ -24,7 +24,6 @@ class _OffresPageState extends State<OffresPage> {
   double? selectedTarifMax;
   final ScrollController _scrollController = ScrollController();
 
-  // Couleurs par catégorie cohérentes avec votre DA
   final Map<String, Color> categoryColors = {
     'Hôtel': Color(0xFF0367A6),
     'Restaurant': Color(0xFFC5283D),
@@ -41,18 +40,33 @@ class _OffresPageState extends State<OffresPage> {
 
   Future<void> fetchAllOffres() async {
     try {
-      final response = await supabase.from('offre').select();
-      final data = response as List;
+      final response = await supabase
+          .from('offre')
+          .select('''
+            *, 
+            offre_recommandations (priorite)
+          ''')
+          .order('offre_recommandations(priorite)', ascending: false);
 
       setState(() {
-        offres = data.map((json) => Offre.fromJson(json)).toList();
+        offres = (response as List).map((json) {
+          final recommandations = json['offre_recommandations'] as List;
+          return Offre.fromJson({
+            ...json,
+            'offre_recommandations': recommandations.isNotEmpty ? recommandations[0] : null,
+          });
+        }).toList();
         isLoading = false;
       });
     } catch (e) {
-      print("Erreur lors de la récupération : $e");
+      print('Erreur fetchAllOffres: $e');
       setState(() {
+        offres = [];
         isLoading = false;
       });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur de chargement des offres')),
+      );
     }
   }
 
@@ -253,7 +267,7 @@ class _OffresPageState extends State<OffresPage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: Text('Appliquer', style: TextStyle(color: isDarkMode ? Colors.white : Colors.white),),
+                              child: Text('Appliquer', style: TextStyle(color: isDarkMode ? Colors.white : Colors.white)),
                             ),
                           ),
                         ],
@@ -289,7 +303,7 @@ class _OffresPageState extends State<OffresPage> {
           child: Row(
             children: [
               if (icon != null) icon(item),
-              Text(item, style:TextStyle(color: accentGlobalColor)),
+              Text(item, style: TextStyle(color: accentGlobalColor)),
             ],
           ),
         );
@@ -308,155 +322,189 @@ class _OffresPageState extends State<OffresPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
-      elevation: 1,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(15),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => OffreDetailPage(offre: offre)),
-          );
-        },
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  color: cardColor,
-                  child: (offre.image != null && offre.image.isNotEmpty)
-                      ? Image.network(
-                    offre.image,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                              : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return _buildPlaceholderIcon(offre.categorie ?? '');
-                    },
-                  )
-                      : _buildPlaceholderIcon(offre.categorie ?? ''),
-                ),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            offre.nom ?? 'Nom non disponible',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: textColor,
+      elevation: offre.estRecommandee ? 4 : 1,
+      child: Stack(
+        children: [
+          InkWell(
+            borderRadius: BorderRadius.circular(15),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => OffreDetailPage(offre: offre)),
+              );
+            },
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Container(
+                      width: 70,
+                      height: 70,
+                      color: cardColor,
+                      child: (offre.images.isNotEmpty)
+                          ? Image.network(
+                        offre.images.first,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                                  : null,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: categoryColor?.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            offre.categorie ?? 'Autre',
-                            style: TextStyle(
-                              color: categoryColor,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          return _buildPlaceholderIcon(offre.categorie);
+                        },
+                      )
+                          : _buildPlaceholderIcon(offre.categorie),
                     ),
-                    SizedBox(height: 6),
-                    // Adresse
-                    Row(
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.location_on, size: 14, color: accentGlobalColor),
-                        SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            offre.adresse ?? 'Adresse non disponible',
-                            style: TextStyle(
-                              fontSize: 12,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                offre.nom,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: textColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: categoryColor?.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                offre.categorie,
+                                style: TextStyle(
+                                  color: categoryColor,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on, size: 14, color: accentGlobalColor),
+                            SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                offre.adresse,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: accentGlobalColor,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 6),
+                        Row(
+                          children: [
+                            Icon(
+                              offre.tarifs.isEmpty ? Icons.money_off : Icons.attach_money,
+                              size: 14,
                               color: accentGlobalColor,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                            SizedBox(width: 4),
+                            Text(
+                              offre.tarifs.isEmpty ? 'Gratuit' : offre.tarifs,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: accentGlobalColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            Spacer(),
+                            Icon(Icons.star, size: 14, color: Colors.amber),
+                            FutureBuilder<double>(
+                              future: getAverageRating(offre.id),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return Container(
+                                      width: 30,
+                                      child: LinearProgressIndicator());
+                                }
+                                final rating = snapshot.data ?? 0.0;
+                                return Text(
+                                  rating.toStringAsFixed(1),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    SizedBox(height: 6),
-                    // Tarif et note
-                    Row(
-                      children: [
-                        // Tarif
-                        Icon(
-                          (offre.tarifs == null || offre.tarifs!.isEmpty)
-                              ? Icons.money_off
-                              : Icons.attach_money,
-                          size: 14,
-                          color: accentGlobalColor,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          (offre.tarifs == null || offre.tarifs!.isEmpty)
-                              ? 'Gratuit'
-                              : offre.tarifs!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: accentGlobalColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        Spacer(),
-                        // Note
-                        Icon(Icons.star, size: 14, color: Colors.amber),
-                        FutureBuilder<double>(
-                          future: getAverageRating(offre.id ?? 0),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return Container(
-                                  width: 30,
-                                  child: LinearProgressIndicator());
-                            }
-                            final rating = snapshot.data ?? 0.0;
-                            return Text(
-                              rating.toStringAsFixed(1),
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: textColor,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (offre.estRecommandee)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.amber, Colors.orange],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.star, size: 16, color: Colors.white),
+                    SizedBox(width: 4),
+                    Text(
+                      'Recommandé',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -518,24 +566,37 @@ class _OffresPageState extends State<OffresPage> {
   @override
   Widget build(BuildContext context) {
     bool isDarkMode = GlobalColors.isDarkMode;
-    final filteredOffres = offres.where((offre) {
-      // Filtre recherche
+
+    // Triez les offres
+    final sortedOffres = [...offres]
+      ..sort((a, b) {
+        // D'abord par recommandation
+        if (a.estRecommandee != b.estRecommandee) {
+          return b.estRecommandee ? 1 : -1;
+        }
+        // Ensuite par priorité si les deux sont recommandées
+        if (a.estRecommandee && b.estRecommandee) {
+          return b.prioriteRecommandation.compareTo(a.prioriteRecommandation);
+        }
+        // Enfin par nom
+        return a.nom.compareTo(b.nom);
+      });
+
+    // Appliquez les filtres
+    final filteredOffres = sortedOffres.where((offre) {
       final matchesSearch = searchQuery.isEmpty ||
           offre.nom.toLowerCase().contains(searchQuery.toLowerCase()) ||
           offre.adresse.toLowerCase().contains(searchQuery.toLowerCase());
 
-      // Filtre ville
       final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
 
-      // Filtre catégorie
       final matchesCategory = selectedCategorie == null ||
           offre.categorie.toLowerCase() == selectedCategorie!.toLowerCase();
 
-      // Filtre tarif
       final matchesTarif = selectedTarifMax == null ||
-          offre.tarifs!.isEmpty ?? true ||
-          _extractFirstNumber(offre.tarifs!) <= selectedTarifMax!;
+          offre.tarifs.isEmpty ||
+          _extractFirstNumber(offre.tarifs) <= selectedTarifMax!;
 
       return matchesSearch && matchesVille && matchesCategory && matchesTarif;
     }).toList();
@@ -607,8 +668,7 @@ class _OffresPageState extends State<OffresPage> {
                   : ListView.builder(
                 controller: _scrollController,
                 itemCount: filteredOffres.length,
-                itemBuilder: (context, index) =>
-                    _buildOffreCard(filteredOffres[index]),
+                itemBuilder: (context, index) => _buildOffreCard(filteredOffres[index]),
               ),
             ),
           ),

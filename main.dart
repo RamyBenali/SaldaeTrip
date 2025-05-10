@@ -7,6 +7,8 @@ import 'manual_reset_screen.dart.dart';
 import 'signin.dart';
 import 'weather_main.dart';
 import 'GlovalColors.dart';
+import 'package:lottie/lottie.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -310,13 +312,12 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               child:
                                   isLoading
-                                      ? CircularProgressIndicator(
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              GlobalColors.bleuTurquoise,
-                                            ),
-                                        strokeWidth: 2,
-                                      )
+                                      ?
+                                    Lottie.network(
+                                    'https://lottie.host/101e260f-028d-4057-b80e-cfc6103becd6/lpf4RUKrIc.json',
+                                    width: 30,
+                                    height: 30,
+                                    )
                                       : Text(
                                         'Continuer sans se connecter',
                                         style: TextStyle(

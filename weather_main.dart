@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'offre_restaurant.dart';
@@ -16,6 +17,7 @@ import 'admin/panneau-admin.dart';
 import 'prestataire/panneau-prestataire.dart';
 import 'offre_plage.dart';
 import 'GlovalColors.dart';
+
 
 void main() {
   runApp(MyApp());
@@ -335,7 +337,11 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                               child: isLoading
-                                  ? Center(child: CircularProgressIndicator(color: Colors.white))
+                                  ? Center(child: Lottie.network(
+                                'https://lottie.host/6c851f73-e73d-4900-aa25-9cd5b7133718/EtOGuILcn8.json',
+                                width: 150,
+                                height: 150,
+                              ))
                                   : Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [

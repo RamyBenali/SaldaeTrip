@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -118,15 +119,73 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
   Future<void> fetchAvis() async {
     try {
-      final response = await supabase
+      final avisResponse = await supabase
           .from('avis_avec_utilisateur')
           .select('*')
           .eq('idoffre', widget.offre.id)
           .order('idavis', ascending: false);
 
-      if (response != null) {
+      if (avisResponse != null) {
+        final List<Map<String, dynamic>> completeAvisList = [];
+
+        for (final avis in avisResponse) {
+          // Conversion explicite en Map<String, dynamic>
+          final avisMap = Map<String, dynamic>.from(avis);
+
+          final reponsesResponse = await supabase
+              .from('reponses_avis')
+              .select('*')
+              .eq('id_avis', avisMap['idavis']);
+
+          // Conversion des réponses et ajout des utilisateurs
+          final reponsesWithUsers = await Future.wait(
+            (reponsesResponse as List).map((reponse) async {
+              final reponseMap = Map<String, dynamic>.from(reponse);
+
+              // Récupération des données depuis la table personne
+              final personneData = await supabase
+                  .from('personne')
+                  .select('prenom, nom')
+                  .eq('user_id', reponseMap['user_id'])
+                  .maybeSingle();
+
+              // Récupération de la photo depuis la table profiles
+              final profileData = await supabase
+                  .from('profiles')
+                  .select('profile_photo')
+                  .eq('user_id', reponseMap['user_id'])
+                  .maybeSingle();
+
+              return {
+                ...reponseMap,
+                'user': {
+                  'prenom': personneData?['prenom'] ?? 'Anonyme',
+                  'nom': personneData?['nom'] ?? '',
+                  'profile_photo': profileData?['profile_photo'],
+                },
+              };
+            }),
+          );
+
+          final likesResponse = await supabase
+              .from('avis_likes')
+              .select('user_id')
+              .eq('avis_id', avisMap['idavis']);
+
+          completeAvisList.add({
+            ...avisMap,
+            'reponses': reponsesWithUsers,
+            'likes': likesResponse != null
+                ? List<Map<String, dynamic>>.from(likesResponse.map((like) => Map<String, dynamic>.from(like)))
+                : [],
+            'isExpanded': false,
+            'reponseText': '',
+            'showReplyField': false,
+          });
+        }
+
         setState(() {
-          avisList = List<Map<String, dynamic>>.from(response);
+          avisList = completeAvisList;
         });
       }
     } catch (e) {
@@ -136,6 +195,96 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
           SnackBar(content: Text("Erreur lors du chargement des avis")),
         );
       }
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getReponsesWithUsers(List<dynamic> reponses) async {
+    final List<Map<String, dynamic>> result = [];
+
+    for (final reponse in reponses) {
+      final user = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', reponse['user_id'])
+          .single();
+
+      result.add({
+        ...reponse,
+        'user': user,
+      });
+    }
+
+    return result;
+  }
+
+  Future<void> toggleLike(int avisId) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vous devez être connecté pour liker')),
+      );
+      return;
+    }
+
+    try {
+      // Trouver l'avis dans la liste
+      final avisIndex = avisList.indexWhere((a) => a['idavis'] == avisId);
+      if (avisIndex == -1) return;
+
+      final avis = avisList[avisIndex];
+      final isLiked = (avis['likes'] as List).any((like) => like['user_id'] == user.id);
+
+      if (isLiked) {
+        await supabase
+            .from('avis_likes')
+            .delete()
+            .eq('avis_id', avisId)
+            .eq('user_id', user.id);
+      } else {
+        await supabase.from('avis_likes').insert({
+          'avis_id': avisId,
+          'user_id': user.id,
+        });
+      }
+
+      // Rafraîchir les données
+      await fetchAvis();
+    } catch (e) {
+      print("Erreur lors du like: $e");
+    }
+  }
+
+  Future<void> addReponse(int avisId, String reponseText) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Vous devez être connecté pour répondre')),
+      );
+      return;
+    }
+
+    if (reponseText.isEmpty) return;
+
+    try {
+      await supabase.from('reponses_avis').insert({
+        'id_avis': avisId,
+        'user_id': user.id,
+        'reponse': reponseText,
+        'date': DateTime.now().toIso8601String(),
+      });
+
+      // Rafraîchir les données et masquer le champ de réponse
+      setState(() {
+        final avisIndex = avisList.indexWhere((a) => a['idavis'] == avisId);
+        if (avisIndex != -1) {
+          avisList[avisIndex]['showReplyField'] = false;
+          avisList[avisIndex]['reponseText'] = '';
+        }
+      });
+
+      await fetchAvis();
+    } catch (e) {
+      print("Erreur lors de l'ajout de la réponse: $e");
     }
   }
 
@@ -922,73 +1071,221 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   }
 
   Widget _buildAvisCard(Map<String, dynamic> avis) {
-    return GestureDetector(
-      onTap: () => _showAvisOptions(context, avis),
-      child: Card(
-        margin: const EdgeInsets.only(bottom: 16),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20,
-                    backgroundImage: avis['profile_photo'] != null
-                        ? NetworkImage(avis['profile_photo'] as String)
-                        : const AssetImage('assets/default_avatar.png') as ImageProvider,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${avis['prenom'] ?? 'Anonyme'} ${avis['nom'] ?? ''}',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
+    final user = supabase.auth.currentUser;
+    final isLiked = (avis['likes'] as List).any((like) => like['user_id'] == user?.id);
+    final reponses = avis['reponses'] as List<dynamic>? ?? [];
+    final isExpanded = avis['isExpanded'] as bool;
+    final showReplyField = avis['showReplyField'] as bool;
+    final reponseController = TextEditingController(text: avis['reponseText'] ?? '');
+
+    // Les infos viennent directement de avis_avec_utilisateur
+    final userName = '${avis['prenom'] ?? 'Anonyme'} ${avis['nom'] ?? ''}';
+    final userPhoto = avis['profile_photo'];
+
+    return Card(
+      color: GlobalColors.cardColor,
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundImage: userPhoto != null
+                      ? NetworkImage(userPhoto as String)
+                      : const AssetImage('assets/images/profile.jpg') as ImageProvider,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w600,
+                          color: GlobalColors.accentColor,
+                        ),
+                      ),
+                      Row(
+                        children: List.generate(
+                          5,
+                              (index) => Icon(
+                            Icons.star,
+                            size: 16,
+                            color: index < (avis['note'] ?? 0)
+                                ? Colors.amber
+                                : Colors.grey[300],
                           ),
                         ),
-                        Row(
-                          children: List.generate(
-                            5,
-                                (index) => Icon(
-                              Icons.star,
-                              size: 16,
-                              color: index < (avis['note'] ?? 0)
-                                  ? Colors.amber
-                                  : Colors.grey[300],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(
-                avis['commentaire'] ?? 'Pas de commentaire',
-                style: GoogleFonts.poppins(),
-              ),
-              if (avis['image'] != null) ...[
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    avis['image'] as String,
-                    height: 150,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
+                      ),
+                    ],
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              avis['commentaire'] ?? 'Pas de commentaire',
+              style: TextStyle(color: GlobalColors.accentColor),
+            ),
+            if (avis['image'] != null) ...[
+              const SizedBox(height: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.network(
+                  avis['image'] as String,
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
             ],
-          ),
+            // Boutons Like et Répondre
+            Row(
+              children: [
+                IconButton(
+                  icon: Icon(
+                    isLiked ? Icons.favorite : Icons.favorite_border,
+                    color: isLiked ? Colors.red : null,
+                  ),
+                  onPressed: () => toggleLike(avis['idavis']),
+                ),
+                Text('${(avis['likes'] as List).length}'),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.reply),
+                  onPressed: () {
+                    setState(() {
+                      avis['showReplyField'] = !showReplyField;
+                    });
+                  },
+                ),
+                if (reponses.isNotEmpty)
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        avis['isExpanded'] = !isExpanded;
+                      });
+                    },
+                    child: Text(
+                      isExpanded ? 'Masquer les réponses' : 'Voir les réponses (${reponses.length})',
+                      style: const TextStyle(color: Colors.blue),
+                    ),
+                  ),
+              ],
+            ),
+            // Champ de réponse
+            if (showReplyField)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: reponseController,
+                        decoration: InputDecoration(
+                          hintText: 'Écrire une réponse...',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        onChanged: (value) {
+                          avis['reponseText'] = value;
+                        },
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.send),
+                      onPressed: () {
+                        if (reponseController.text.isNotEmpty) {
+                          addReponse(avis['idavis'], reponseController.text);
+                        }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            // Affichage des réponses
+            if (isExpanded && reponses.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 16.0, top: 8.0),
+                child: Column(
+                  children: reponses.map((reponse) {
+                    final reponseMap = reponse is Map<String, dynamic>
+                        ? reponse
+                        : Map<String, dynamic>.from(reponse as Map);
+                    return _buildReponseItem(reponseMap);
+                  }).toList(),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReponseItem(dynamic reponse) {
+    final reponseMap = reponse is Map<String, dynamic>
+        ? reponse
+        : Map<String, dynamic>.from(reponse as Map);
+
+    final userInfo = reponseMap['user'] as Map<String, dynamic>? ?? {};
+    final prenom = userInfo['prenom'] ?? 'Anonyme';
+    final nom = userInfo['nom'] ?? '';
+    final userName = nom.isEmpty ? prenom : '$prenom $nom';
+    final userPhoto = userInfo['profile_photo'];
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      color: Colors.grey[100],
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 16,
+                  backgroundImage: userPhoto != null
+                      ? NetworkImage(userPhoto as String)
+                      : const AssetImage('assets/images/profile.jpg') as ImageProvider,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                      Text(
+                        DateFormat('dd/MM/yyyy HH:mm').format(
+                            DateTime.parse(reponseMap['date'].toString())
+                        ),
+                        style: TextStyle(color: Colors.grey, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Padding(
+              padding: const EdgeInsets.only(left: 40.0),
+              child: Text(reponseMap['reponse']?.toString() ?? ''),
+            ),
+          ],
         ),
       ),
     );
