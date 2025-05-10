@@ -12,6 +12,8 @@ class Offre {
   final double longitude;
   final double noteMoyenne;
   final List<String> images;
+  late final bool estRecommandee;
+  late final int prioriteRecommandation;
 
 
   Offre({
@@ -28,6 +30,8 @@ class Offre {
     required this.latitude,
     required this.longitude,
     required this.noteMoyenne,
+    required this.estRecommandee,
+    required this.prioriteRecommandation,
   });
 
   factory Offre.fromJson(Map<String, dynamic> json) {
@@ -45,6 +49,8 @@ class Offre {
       latitude: json['latitude']?.toDouble() ?? 0.0,
       longitude: json['longitude']?.toDouble() ?? 0.0,
       noteMoyenne: json['note_moyenne']?.toDouble() ?? 0.0,
+      estRecommandee: json['offre_recommandations'] != null,
+      prioriteRecommandation: json['offre_recommandations']?['priorite'] ?? 0,
     );
   }
 
