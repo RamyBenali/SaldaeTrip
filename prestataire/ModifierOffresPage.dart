@@ -91,8 +91,8 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Modifier l\'offre'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Modifier l\'offre', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

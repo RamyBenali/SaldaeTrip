@@ -81,8 +81,8 @@ class _ListeOffresPrestatairePageState extends State<ListeOffresPrestatairePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mes Offres"),
-        backgroundColor: Colors.blueAccent,
+        title: Text("Mes Offres", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.green,
       ),
       body: Column(
         children: [
