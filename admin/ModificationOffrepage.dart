@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ModifierOffrePage extends StatefulWidget {
@@ -158,7 +159,7 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Modifier l\'Offre', style: TextStyle(color: Colors.white)),
+        title: Text('Modifier l\'Offre', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(

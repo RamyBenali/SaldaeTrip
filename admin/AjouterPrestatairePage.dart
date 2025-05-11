@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import '../favoris.dart';
@@ -75,7 +76,7 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ajouter un Prestataire', style: TextStyle(color: Colors.white)),
+        title: Text('Ajouter un Prestataire', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(

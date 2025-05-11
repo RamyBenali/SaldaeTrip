@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -96,7 +97,7 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            child: Text('Supprimer', style: GoogleFonts.robotoSlab(color: Colors.red)),
           ),
         ],
       ),
@@ -136,7 +137,7 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Supprimer', style: TextStyle(color: Colors.red)),
+            child: Text('Supprimer', style: GoogleFonts.robotoSlab(color: Colors.red)),
           ),
         ],
       ),
@@ -190,7 +191,7 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestion des Avis', style: TextStyle(color: Colors.white)),
+        title: Text('Gestion des Avis', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: isLoading
@@ -285,8 +286,8 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
                             CrossAxisAlignment.start,
                             children: [
                               const Divider(),
-                              const Text('Réponses:',
-                                  style: TextStyle(
+                              Text('Réponses:',
+                                  style: GoogleFonts.robotoSlab(
                                       fontWeight: FontWeight.bold)),
                               if (reponses.isEmpty)
                                 const Padding(
@@ -311,7 +312,7 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
                                           DateFormat('dd/MM/yyyy HH:mm')
                                               .format(DateTime.parse(
                                               reponse['date'])),
-                                          style: const TextStyle(
+                                          style: GoogleFonts.robotoSlab(
                                               fontSize: 12),
                                         ),
                                       ],

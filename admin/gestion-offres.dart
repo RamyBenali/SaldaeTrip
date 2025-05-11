@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../favoris.dart';
 import 'AjouterOffrePage.dart';
@@ -92,7 +93,7 @@ class _GestionOffrePageState extends State<GestionOffrePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Gestion des Offres' , style: TextStyle(color: Colors.white)),
+        title: Text('Gestion des Offres' , style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.blue,
         actions: [
           IconButton(

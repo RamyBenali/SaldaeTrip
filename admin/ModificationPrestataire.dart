@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../favoris.dart';
 
@@ -80,7 +81,7 @@ class _ModifierPrestatairePageState extends State<ModifierPrestatairePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Modifier Prestataire', style: TextStyle(color: Colors.white)),
+        title: Text('Modifier Prestataire', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(

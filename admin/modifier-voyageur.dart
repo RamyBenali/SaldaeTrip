@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../favoris.dart';
@@ -59,7 +60,7 @@ class _ModifierVoyageurPageState extends State<ModifierVoyageurPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Modifier Voyageur', style: TextStyle(color: Colors.white)),
+        title: Text('Modifier Voyageur', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.blue,
       ),
       body: Padding(

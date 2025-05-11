@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../favoris.dart';
 import 'gestion-offres.dart';
 import 'gestion-prestataire.dart';
 import 'gestion-voyageur.dart';
 import 'gestion-avis.dart';
+import 'GestionRecommendations.dart';
 import '../GlovalColors.dart';
 
 class AdminPanelPage extends StatefulWidget {
@@ -22,6 +24,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   int numPrestataires = 0;
   int numOffres = 0;
   int numAvis = 0;
+  int numRecommandations = 0;
 
   @override
   void initState() {
@@ -29,10 +32,8 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     fetchStatistics();
   }
 
-  // Fonction pour récupérer les statistiques
   Future<void> fetchStatistics() async {
     try {
-      // Récupération du nombre de voyageurs
       final voyageurResponse = await supabase
           .from('personne')
           .select('user_id')
@@ -45,19 +46,19 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           .count();
       final offreResponse = await supabase.from('offre').select('idoffre').count();
       final avisResponse = await supabase.from('avis').select('idavis').count();
+      final recommandationResponse = await supabase.from('offre_recommandations').select('id').count();
 
       setState(() {
-        // Accéder au premier (et seul) élément de la réponse pour récupérer le count
         numVoyageurs = voyageurResponse.count ?? 0;
         numPrestataires = prestataireResponse.count ?? 0;
         numOffres = offreResponse.count ?? 0;
         numAvis = avisResponse.count ?? 0;
+        numRecommandations = recommandationResponse.count ?? 0;
       });
     } catch (e) {
       print("Erreur lors de la récupération des statistiques : $e");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +67,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
       appBar: AppBar(
         title: Text(
           'Panneau Administrateur',
-          style: TextStyle(color: Colors.white),
+          style: GoogleFonts.robotoSlab(color: Colors.white),
         ),
         backgroundColor: Colors.blue,
         centerTitle: true,
@@ -76,11 +77,13 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Section des cartes d'administration
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
+                childAspectRatio: 1.2, // Rend les cartes plus carrées
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
                 children: [
                   _buildAdminCard(
                     context,
@@ -126,43 +129,59 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
                       );
                     },
                   ),
+                  _buildAdminCard(
+                    context,
+                    icon: Icons.star,
+                    title: 'Recommandations',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => GestionRecommandationsPage()),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
 
             SizedBox(height: 16),
 
-            // Section des statistiques en bas
-            _buildStatSection(),
+            // Section des statistiques compacte
+            _buildCompactStatSection(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatSection() {
+  Widget _buildCompactStatSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Statistiques',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+          style: GoogleFonts.robotoSlab(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.blueAccent
+          ),
         ),
-        SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildStatCard("Voyageurs", numVoyageurs, Icons.person),
-            _buildStatCard("Prestataires", numPrestataires, Icons.business),
-          ],
-        ),
-        SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildStatCard("Offres", numOffres, Icons.local_offer),
-            _buildStatCard("Avis", numAvis, Icons.reviews),
-          ],
+        SizedBox(height: 12),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildCompactStatCard("Voyageurs", numVoyageurs, Icons.person),
+              SizedBox(width: 8),
+              _buildCompactStatCard("Prestataires", numPrestataires, Icons.business),
+              SizedBox(width: 8),
+              _buildCompactStatCard("Offres", numOffres, Icons.local_offer),
+              SizedBox(width: 8),
+              _buildCompactStatCard("Avis", numAvis, Icons.reviews),
+              SizedBox(width: 8),
+              _buildCompactStatCard("Recommandations", numRecommandations, Icons.star),
+            ],
+          ),
         ),
       ],
     );
@@ -173,22 +192,27 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     return GestureDetector(
       onTap: onTap,
       child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
             color: isDarkMode ? cardColor : Colors.blue[50],
           ),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 40, color: Colors.blueAccent),
-              SizedBox(height: 12),
+              Icon(icon, size: 32, color: Colors.blueAccent),
+              SizedBox(height: 8),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDarkMode? Colors.white : Colors.black),
+                textAlign: TextAlign.center,
+                style: GoogleFonts.robotoSlab(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode ? Colors.white : Colors.black
+                ),
               ),
             ],
           ),
@@ -197,34 +221,41 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     );
   }
 
-  Widget _buildStatCard(String title, int count, IconData icon) {
+  Widget _buildCompactStatCard(String title, int count, IconData icon) {
     bool isDarkMode = GlobalColors.isDarkMode;
     return Container(
-      width: MediaQuery.of(context).size.width * 0.45, // Largeur fixe, ajustée
-      height: 150, // Hauteur fixe pour uniformité
+      width: 110,
       child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 3,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(10),
             color: isDarkMode ? cardColor : Colors.blue[100],
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center, // Centrer le contenu
             children: [
-              Icon(icon, size: 50, color: Colors.blueAccent), // Icone plus grande
-              SizedBox(height: 1),
+              Icon(icon, size: 28, color: Colors.blueAccent),
+              SizedBox(height: 4),
               Text(
                 title,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isDarkMode? Colors.white : Colors.black),
+                style: GoogleFonts.robotoSlab(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDarkMode ? Colors.white : Colors.black
+                ),
               ),
-              SizedBox(height: 2),
+              SizedBox(height: 4),
               Text(
                 "$count",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.blueAccent),
+                style: GoogleFonts.robotoSlab(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent
+                ),
               ),
             ],
           ),
@@ -233,5 +264,3 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
     );
   }
 }
-
-
