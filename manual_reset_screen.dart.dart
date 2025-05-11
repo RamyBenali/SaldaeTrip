@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login.dart';
 import 'main.dart';
@@ -167,9 +168,9 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Verification Code',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: GoogleFonts.robotoSlab(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         Row(
@@ -182,7 +183,7 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                 textAlign: TextAlign.center,
                 maxLength: 1,
                 keyboardType: TextInputType.number,
-                style: const TextStyle(fontSize: 20),
+                style:  GoogleFonts.robotoSlab(fontSize: 20),
                 decoration: InputDecoration(
                   counterText: '',
                   border: OutlineInputBorder(
@@ -285,7 +286,7 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
           _resendCooldown > 0
               ? 'Resend OTP in $_resendCooldown seconds'
               : 'Resend OTP',
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color: _resendCooldown > 0 ? Colors.grey : const Color(0xFF0D8BFF),
           ),
         ),
@@ -333,17 +334,16 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                           const SizedBox(height: 10),
                           Text(
                             'Reset Password',
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               color: const Color(0xFF0D8BFF),
                               fontWeight: FontWeight.bold,
                               fontSize: 37,
-                              fontFamily: 'Abril Fatface',
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Enter the 6-digit OTP sent to ${widget.email}',
-                            style: const TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               color: Colors.black,
                               fontSize: 16,
                             ),
@@ -365,7 +365,7 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                                     padding: const EdgeInsets.only(bottom: 10),
                                     child: Text(
                                       _successMessage!,
-                                      style: const TextStyle(
+                                      style: GoogleFonts.robotoSlab(
                                         color: Colors.green,
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
@@ -388,9 +388,9 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                                             ? const CircularProgressIndicator(
                                               color: Colors.white,
                                             )
-                                            : const Text(
+                                            : Text(
                                               'Reset Password',
-                                              style: TextStyle(
+                                              style: GoogleFonts.robotoSlab(
                                                 color: Colors.white,
                                                 fontSize: 18,
                                               ),

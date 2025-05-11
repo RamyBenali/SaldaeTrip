@@ -169,10 +169,9 @@ class _SigninScreenState extends State<SigninScreen> {
                       ),
                       Text(
                         'Bienvenue, Veuillez remplir les champs ci-dessous.',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.black,
                           fontSize: 20,
-                          fontFamily: 'Arial',
                         ),
                       ),
                     ],
@@ -211,7 +210,7 @@ class _SigninScreenState extends State<SigninScreen> {
                                 },
                                 decoration: InputDecoration(
                                   labelText: 'Email',
-                                  labelStyle: TextStyle(color: _isEmailValid ? Colors.black : Colors.red),
+                                  labelStyle: GoogleFonts.robotoSlab(color: _isEmailValid ? Colors.black : Colors.red),
                                   focusedBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
                                       color: _isEmailValid ? Colors.blue : Colors.red,
@@ -236,7 +235,7 @@ class _SigninScreenState extends State<SigninScreen> {
                               Text(
                                 "Le mot de passe doit contenir au moins 10 caractères,\n1 minuscule, 1 majuscule, 1 chiffre et 1 symbole.",
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: _isPasswordError ? Colors.red : Colors.grey,
                                   fontSize: 13,
                                 ),
@@ -247,7 +246,7 @@ class _SigninScreenState extends State<SigninScreen> {
                                 obscureText: true,
                                 decoration: InputDecoration(
                                   labelText: 'Mot de passe',
-                                  labelStyle: TextStyle(color: _isPasswordError ? Colors.red : Colors.black),
+                                  labelStyle: GoogleFonts.robotoSlab(color: _isPasswordError ? Colors.red : Colors.black),
                                   border: OutlineInputBorder(),
                                   enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
@@ -274,7 +273,7 @@ class _SigninScreenState extends State<SigninScreen> {
                                 },
                                 decoration: InputDecoration(
                                   labelText: 'Confirmez le mot de passe',
-                                  labelStyle: TextStyle(color: _isPasswordMatchError ? Colors.red : Colors.black),
+                                  labelStyle: GoogleFonts.robotoSlab(color: _isPasswordMatchError ? Colors.red : Colors.black),
                                   border: OutlineInputBorder(),
                                   enabledBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
@@ -292,7 +291,7 @@ class _SigninScreenState extends State<SigninScreen> {
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
                                   minimumSize: Size(double.infinity, 50),
                                 ),
-                                child: Text("S'inscrire", style: TextStyle(color: Colors.white, fontSize: 18)),
+                                child: Text("S'inscrire", style: GoogleFonts.robotoSlab(color: Colors.white, fontSize: 18)),
                               ),
                             ],
                           ),
@@ -312,7 +311,7 @@ class _SigninScreenState extends State<SigninScreen> {
                         child: Text.rich(
                           TextSpan(
                             children: [
-                              TextSpan(text: 'Vous avez déjà un compte? ', style: TextStyle(color: Colors.black, fontSize: 14)),
+                              TextSpan(text: 'Vous avez déjà un compte? ', style: GoogleFonts.robotoSlab(color: Colors.black, fontSize: 14)),
                               TextSpan(text: 'Connectez-vous !', style: GoogleFonts.robotoSlab(color: GlobalColors.bleuTurquoise, fontSize: 14)),
                             ],
                           ),

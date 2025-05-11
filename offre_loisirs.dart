@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
@@ -16,6 +17,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
   final cardColor = GlobalColors.cardColor;
   final textColor = GlobalColors.secondaryColor;
   final accentGlobalColor = GlobalColors.accentColor;
+  final Color accentGoldColor = Color(0xFFFFD54F);
   List<Offre> offres = [];
   bool isLoading = true;
   String searchQuery = '';
@@ -45,21 +47,54 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
 
   Future<void> fetchOffres() async {
     try {
+      debugPrint('Début de la récupération des offres...');
+
       final response = await supabase
           .from('offre')
-          .select()
-          .or("categorie.eq.Loisirs,categorie.eq.Point dintérêt,categorie.eq.Point dintérêt historique,categorie.eq.Point dintérêt religieux");
-      final data = response as List;
+          .select('''
+          idoffre, nom, adresse, categorie, tarifs, images,
+          offre_recommandations (priorite)
+        ''')
+          .or("categorie.eq.Loisirs,categorie.eq.Point dintérêt,categorie.eq.Point dintérêt historique,categorie.eq.Point dintérêt religieux")
+          .order('offre_recommandations(priorite)', ascending: false);
 
-      setState(() {
-        offres = data.map((json) => Offre.fromJson(json)).toList();
-        isLoading = false;
-      });
+      debugPrint('Réponse reçue: ${response.toString()}');
+      debugPrint('Type de réponse: ${response.runtimeType}');
+
+      List<Offre> loadedOffres = [];
+
+      if (response is List) {
+        loadedOffres = response.map((json) {
+          debugPrint('Processing offre: ${json['nom']}');
+          return Offre.fromJson(json);
+        }).toList();
+      } else if (response is Map) {
+        loadedOffres.add(Offre.fromJson(response as Map<String, dynamic>));
+      }
+
+      if (mounted) {
+        setState(() {
+          offres = loadedOffres;
+          isLoading = false;
+        });
+      }
+
+
+      debugPrint('${loadedOffres.length} offres chargées avec succès');
     } catch (e) {
-      print("Erreur lors du fetch : $e");
-      setState(() {
-        isLoading = false;
-      });
+      debugPrint('Erreur fetchAllOffres: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          offres = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de chargement: ${e.toString()}'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -127,7 +162,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
               SizedBox(height: 16),
               Text(
                 'Filtrer les activités',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
@@ -137,7 +172,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
               SizedBox(height: 24),
               Text(
                 'Type d\'activité',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -151,17 +186,17 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 ),
                 child: DropdownButtonFormField<String>(
                   dropdownColor: primaryColor,
-                  style: TextStyle(color: Colors.white),
+                  style: GoogleFonts.robotoSlab(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Type',
-                    labelStyle: TextStyle(color: Colors.white70),
+                    labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
                   items: typesLoisirs.map((type) {
                     return DropdownMenuItem(
                       value: type,
-                      child: Text(type, style: TextStyle(fontSize: 14)),
+                      child: Text(type, style: GoogleFonts.robotoSlab(fontSize: 14)),
                     );
                   }).toList(),
                   onChanged: (value) => setState(() => selectedType = value),
@@ -170,7 +205,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
               SizedBox(height: 20),
               Text(
                 'Localisation',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
@@ -184,17 +219,17 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 ),
                 child: DropdownButtonFormField<String>(
                   dropdownColor: primaryColor,
-                  style: TextStyle(color: Colors.white),
+                  style: GoogleFonts.robotoSlab(color: Colors.white),
                   decoration: InputDecoration(
                     labelText: 'Ville',
-                    labelStyle: TextStyle(color: Colors.white70),
+                    labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
                   items: villes.map((v) {
                     return DropdownMenuItem(
                       value: v,
-                      child: Text(v, style: TextStyle(fontSize: 14)),
+                      child: Text(v, style: GoogleFonts.robotoSlab(fontSize: 14)),
                     );
                   }).toList(),
                   onChanged: (value) => setState(() => selectedVille = value),
@@ -216,7 +251,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 ),
                 child: Text(
                   'Appliquer les filtres',
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -235,7 +270,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 },
                 child: Text(
                   'Réinitialiser les filtres',
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
                   ),
@@ -271,7 +306,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher une activité...',
-                      hintStyle: TextStyle(color: textColor),
+                      hintStyle: GoogleFonts.robotoSlab(color: textColor),
                       prefixIcon: Icon(Icons.search, color: primaryColor),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -380,6 +415,9 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
+                    side: offre.estRecommandee
+                        ? BorderSide(color: accentGoldColor, width: 2)
+                        : BorderSide.none,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -389,7 +427,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                         child: Stack(
                           children: [
                             Image.network(
-                              offre.image,
+                              offre.images.isNotEmpty ? offre.images.first : '',
                               height: 180,
                               width: double.infinity,
                               fit: BoxFit.cover,
@@ -432,7 +470,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                                     ),
                                   ),
                                   child: Icon(
-                                    _getCategoryIcon(offre.categorie),
+                                    Icons.hotel,
                                     color: Colors.white,
                                     size: 50,
                                   ),
@@ -452,34 +490,28 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                                 ),
                               ),
                             ),
-                            Positioned(
-                              bottom: 10,
-                              left: 10,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      _getCategoryIcon(offre.categorie),
-                                      size: 16,
+                            if (offre.estRecommandee)
+                              Positioned(
+                                top: 10,
+                                left: 10,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [accentGoldColor, Colors.amber[700]!],
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    '⭐ Recommandé',
+                                    style: GoogleFonts.robotoSlab(
                                       color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
                                     ),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      offre.categorie,
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -498,7 +530,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                                 Expanded(
                                   child: Text(
                                     offre.nom,
-                                    style: TextStyle(
+                                    style: GoogleFonts.robotoSlab(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: textColor,
@@ -512,7 +544,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                                     children: [
                                       Text(
                                         averageRating.toStringAsFixed(1),
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.amber[800],
                                         ),
@@ -530,7 +562,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                                 Expanded(
                                   child: Text(
                                     offre.adresse,
-                                    style: TextStyle(
+                                    style: GoogleFonts.robotoSlab(
                                       color: accentGlobalColor,
                                       fontSize: 13,
                                     ),
@@ -544,15 +576,19 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                             Row(
                               children: [
                                 Icon(
-                                  offre.tarifs?.isEmpty ?? true ? Icons.money_off : Icons.attach_money,
+                                  offre.tarifs.isEmpty ? Icons.money_off : Icons.attach_money,
                                   size: 16,
-                                  color: offre.tarifs?.isEmpty ?? true ? textColor.withOpacity(0.8) : Colors.green[700],
+                                  color: offre.tarifs.isEmpty
+                                      ? textColor.withOpacity(0.8)
+                                      : Colors.green[700],
                                 ),
                                 SizedBox(width: 4),
                                 Text(
-                                  offre.tarifs?.isEmpty ?? true ? 'Entrée gratuite' : offre.tarifs!,
-                                  style: TextStyle(
-                                    color: offre.tarifs?.isEmpty ?? true ? textColor.withOpacity(0.8) : Colors.green[700],
+                                  offre.tarifs.isEmpty ? 'Entrée gratuite' : offre.tarifs,
+                                  style: GoogleFonts.robotoSlab(
+                                    color: offre.tarifs.isEmpty
+                                        ? textColor.withOpacity(0.8)
+                                        : Colors.green[700],
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -588,7 +624,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                         SizedBox(width: 4),
                         Text(
                           averageRating.toStringAsFixed(1),
-                          style: TextStyle(
+                          style: GoogleFonts.robotoSlab(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                             color: Colors.grey[800],
@@ -605,7 +641,6 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
       },
     );
   }
-
   IconData _getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'loisirs':
@@ -621,26 +656,32 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredOffres = offres.where((offre) {
-      final query = searchQuery.toLowerCase();
-      final matchQuery = offre.nom.toLowerCase().contains(query) ||
-          offre.categorie.toLowerCase().contains(query) ||
-          offre.adresse.toLowerCase().contains(query);
-      final matchVille = selectedVille == null ||
+    final sortedOffres = [...offres]
+      ..sort((a, b) {
+        if (a.estRecommandee != b.estRecommandee) {
+          return b.estRecommandee ? 1 : -1;
+        }
+        if (a.estRecommandee && b.estRecommandee) {
+          return b.prioriteRecommandation.compareTo(a.prioriteRecommandation);
+        }
+        return a.nom.compareTo(b.nom);
+      });
+
+    // Appliquez les filtres
+    final filteredOffres = sortedOffres.where((offre) {
+      final matchesSearch = searchQuery.isEmpty ||
+          offre.nom.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          offre.adresse.toLowerCase().contains(searchQuery.toLowerCase());
+
+      final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
-      final matchTarif = selectedTarifMax == null ||
-          (() {
-            final regex = RegExp(r'(\d+)(?=\s*-|\s*D|\s*da|\s*$)');
-            final match = regex.firstMatch(offre.tarifs);
-            if (match == null) return true;
-            final firstNumberString = match.group(0);
-            final firstNumber = int.tryParse(firstNumberString ?? '0');
-            if (firstNumber == null) return true;
-            return firstNumber <= selectedTarifMax!;
-          })();
+
+      final matchesTarif = selectedTarifMax == null ||
+          offre.tarifs.isEmpty ||
+          _extractFirstNumber(offre.tarifs) <= selectedTarifMax!;
       final matchType = selectedType == null ||
           offre.categorie.toLowerCase() == selectedType!.toLowerCase();
-      return matchQuery && matchVille && matchTarif && matchType;
+      return matchesSearch && matchesVille && matchesTarif;
     }).toList();
 
     return Scaffold(
@@ -650,7 +691,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
         centerTitle: false,
         title: Text(
           'Activités & Loisirs',
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -699,7 +740,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                       SizedBox(height: 16),
                       Text(
                         'Aucune activité trouvée',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.grey[600],
                           fontSize: 18,
                         ),
@@ -707,7 +748,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                       SizedBox(height: 8),
                       Text(
                         'Essayez de modifier vos critères',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.grey[500],
                         ),
                       ),
@@ -728,5 +769,19 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
         ),
       ),
     );
+  }
+  double _extractFirstNumber(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return 0.0;
+
+      final match = RegExp(r'(\d+)').firstMatch(tarifs);
+      if (match == null || match.group(0) == null) return 0.0;
+
+      final numberString = match.group(0)!;
+      return double.tryParse(numberString) ?? 0.0;
+    } catch (e) {
+      debugPrint("Erreur d'extraction du tarif: $e");
+      return 0.0;
+    }
   }
 }

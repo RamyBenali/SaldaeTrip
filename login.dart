@@ -251,7 +251,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: Text(
                                   'Mot de passe oublié ?',
-                                  style: TextStyle(
+                                  style: GoogleFonts.robotoSlab(
                                     color: Colors.black,
                                     fontSize: 15,
                                   ),
@@ -274,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               _isResetPasswordMode
                                   ? 'Envoyer le lien'
                                   : 'Connexion',
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color: Colors.white,
                                 fontSize: 18,
                               ),
@@ -292,7 +292,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 },
                                 child: Text(
                                   'Retour à la connexion',
-                                  style: TextStyle(
+                                  style: GoogleFonts.robotoSlab(
                                     color: Color(0xFF0D8BFF),
                                     fontSize: 16,
                                   ),
@@ -315,14 +315,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   children: [
                                     TextSpan(
                                       text: 'Vous n’avez pas de compte? ',
-                                      style: TextStyle(
+                                      style: GoogleFonts.robotoSlab(
                                         color: Colors.black,
                                         fontSize: 16,
                                       ),
                                     ),
                                     TextSpan(
                                       text: 'Inscrivez-vous !',
-                                      style: TextStyle(
+                                      style: GoogleFonts.robotoSlab(
                                         color: GlobalColors.bleuTurquoise,
                                         fontSize: 16,
                                       ),

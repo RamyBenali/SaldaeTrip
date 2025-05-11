@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -310,17 +311,16 @@ class _HomePageState extends State<HomePage> {
                           children: [
                             Text(
                               "Explorez Béjaïa",
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color: Colors.white,
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
-                                fontFamily: 'Poppins',
                               ),
                             ),
                             SizedBox(height: 8),
                             Text(
                               "Découvrez les meilleures activités",
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color: Colors.white.withOpacity(0.9),
                                 fontSize: 16,
                               ),
@@ -350,7 +350,7 @@ class _HomePageState extends State<HomePage> {
                                     children: [
                                       Text(
                                         "Météo actuelle",
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           color: Colors.white,
                                           fontSize: 14,
                                         ),
@@ -366,7 +366,7 @@ class _HomePageState extends State<HomePage> {
                                           SizedBox(width: 8),
                                           Text(
                                             "${temperature.toStringAsFixed(1)}°C",
-                                            style: TextStyle(
+                                            style: GoogleFonts.robotoSlab(
                                               color: Colors.white,
                                               fontSize: 28,
                                               fontWeight: FontWeight.bold,
@@ -376,7 +376,7 @@ class _HomePageState extends State<HomePage> {
                                       ),
                                       Text(
                                         getWeatherLabel(weatherDescription),
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           color: Colors.white,
                                           fontSize: 16,
                                         ),
@@ -392,14 +392,14 @@ class _HomePageState extends State<HomePage> {
                                           SizedBox(width: 4),
                                           Text(
                                             "${windSpeed.toStringAsFixed(1)} km/h",
-                                            style: TextStyle(color: Colors.white),
+                                            style: GoogleFonts.robotoSlab(color: Colors.white),
                                           ),
                                         ],
                                       ),
                                       SizedBox(height: 8),
                                       Text(
                                         "Mis à jour: $hour:$minute",
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           color: Colors.white.withOpacity(0.8),
                                           fontSize: 12,
                                         ),
@@ -443,7 +443,7 @@ class _HomePageState extends State<HomePage> {
                                   icon: Icon(Icons.admin_panel_settings, color: Colors.white),
                                   label: Text(
                                     "Panneau Admin",
-                                    style: TextStyle(fontSize: 16, color: Colors.white),
+                                    style: GoogleFonts.robotoSlab(fontSize: 16, color: Colors.white),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: GlobalColors.bleuTurquoise,
@@ -461,7 +461,7 @@ class _HomePageState extends State<HomePage> {
                                   icon: Icon(Icons.business, color: Colors.white),
                                   label: Text(
                                     "Espace Prestataire",
-                                    style: TextStyle(fontSize: 16, color: Colors.white),
+                                    style: GoogleFonts.robotoSlab(fontSize: 16, color: Colors.white),
                                   ),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: GlobalColors.bleuTurquoise,
@@ -595,7 +595,7 @@ class _HomePageState extends State<HomePage> {
                       SizedBox(width: 8),
                       Text(
                         activity['title'],
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: GlobalColors.secondaryColor,
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -706,7 +706,7 @@ class _HomePageState extends State<HomePage> {
                 SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -816,7 +816,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 8),
                     Text(
                       activity['title'],
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         color: Colors.white,
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -825,7 +825,7 @@ class _HomePageState extends State<HomePage> {
                     SizedBox(height: 4),
                     Text(
                       "Découvrir →",
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 12,
                       ),

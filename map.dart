@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
@@ -568,7 +569,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         children: [
                           Text(
                             'Filtrer les lieux',
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -641,7 +642,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                 ),
                                 title: Text(
                                   categorie,
-                                  style: TextStyle(
+                                  style: GoogleFonts.robotoSlab(
                                     fontSize: 15,
                                     color:
                                         GlobalColors.isDarkMode
@@ -691,7 +692,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   vertical: 14,
                                 ),
                               ),
-                              child: Text('Tout sélectionner', style: TextStyle(color: GlobalColors.bleuTurquoise),),
+                              child: Text('Tout sélectionner', style: GoogleFonts.robotoSlab(color: GlobalColors.bleuTurquoise),),
                               onPressed: () {
                                 setState(() {
                                   _categoriesSelectionnees =
@@ -731,7 +732,8 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                               ),
                               child: Text(
                                 'Appliquer',
-                                style: TextStyle(fontWeight: FontWeight.w600, color: GlobalColors.bleuTurquoise),
+                                style: GoogleFonts.robotoSlab
+                                  (fontWeight: FontWeight.w600, color: GlobalColors.bleuTurquoise),
                               ),
                               onPressed: _basculerPanneau,
                             ),
@@ -898,7 +900,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           child: Text(
                             lieu.nom,
                             key: ValueKey(lieu.nom),
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
                               height: 1.2,
@@ -945,7 +947,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                               const SizedBox(width: 8),
                               Text(
                                 lieu.categorie,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: _obtenirCouleurPourCategorie(
                                     lieu.categorie,
                                   ),
@@ -963,7 +965,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                           duration: const Duration(milliseconds: 500),
                           child: Text(
                             lieu.description,
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               fontSize: 16,
                               color:
                                   GlobalColors.isDarkMode
@@ -1405,7 +1407,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                   ),
                   child: Text(
                     widget.titreMarqueur ?? 'Destination',
-                    style: const TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -1597,7 +1599,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     child: TextField(
                       controller: _controleurRecherche,
                       focusNode: _focusRecherche,
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: GlobalColors.isDarkMode ? Colors.grey[200] : Colors.black87,
@@ -1643,7 +1645,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                             )
                           : null,
                       hintText: "Rechercher un lieu à Béjaïa...",
-                      hintStyle: TextStyle(
+                      hintStyle: GoogleFonts.robotoSlab(
                         color: GlobalColors.isDarkMode 
                           ? Colors.grey[400]
                           : Colors.grey[500],
@@ -1769,14 +1771,14 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                         title: Text(
                                           resultat['name'],
                                           overflow: TextOverflow.ellipsis,
-                                          style: const TextStyle(
+                                          style:  GoogleFonts.robotoSlab(
                                             fontSize: 15,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                         subtitle: Text(
                                           'Distance: ${resultat['distance'] ?? 'Inconnue'}',
-                                          style: TextStyle(
+                                          style: GoogleFonts.robotoSlab(
                                             fontSize: 12,
                                             color: Colors.grey[600],
                                           ),
@@ -1839,7 +1841,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       const SizedBox(width: 14),
                       Text(
                         'Chargement des lieux...',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           fontWeight: FontWeight.w500,
                           color: Colors.grey[800],
                         ),
@@ -2058,7 +2060,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                         Expanded(
                           child: Text(
                             _erreurLocalisation,
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               color:
                                   GlobalColors.isDarkMode
                                       ? Colors.red[200]
@@ -2183,7 +2185,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,

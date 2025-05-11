@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
@@ -35,18 +36,54 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
 
   Future<void> fetchOffres() async {
     try {
-      final response = await supabase.from('offre').select().eq('categorie', 'Hôtel');
-      final data = response as List;
+      debugPrint('Début de la récupération des offres...');
 
-      setState(() {
-        offres = data.map((json) => Offre.fromJson(json)).toList();
-        isLoading = false;
-      });
+      final response = await supabase
+          .from('offre')
+          .select('''
+          idoffre, nom, adresse, categorie, tarifs, images,
+          offre_recommandations (priorite)
+        ''')
+          .eq('categorie', 'Hôtel')
+          .order('offre_recommandations(priorite)', ascending: false);
+
+      debugPrint('Réponse reçue: ${response.toString()}');
+      debugPrint('Type de réponse: ${response.runtimeType}');
+
+      List<Offre> loadedOffres = [];
+
+      if (response is List) {
+        loadedOffres = response.map((json) {
+          debugPrint('Processing offre: ${json['nom']}');
+          return Offre.fromJson(json);
+        }).toList();
+      } else if (response is Map) {
+        loadedOffres.add(Offre.fromJson(response as Map<String, dynamic>));
+      }
+
+      if (mounted) {
+        setState(() {
+          offres = loadedOffres;
+          isLoading = false;
+        });
+      }
+
+
+      debugPrint('${loadedOffres.length} offres chargées avec succès');
     } catch (e) {
-      print("Erreur lors du fetch : $e");
-      setState(() {
-        isLoading = false;
-      });
+      debugPrint('Erreur fetchAllOffres: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          offres = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de chargement: ${e.toString()}'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -116,7 +153,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                   SizedBox(height: 16),
                   Text(
                     'Filtrer les restaurants',
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -126,7 +163,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                   SizedBox(height: 24),
                   Text(
                     'Localisation',
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -140,17 +177,17 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     ),
                     child: DropdownButtonFormField<String>(
                       dropdownColor: primaryColor,
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.robotoSlab(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: 'Ville',
-                        labelStyle: TextStyle(color: Colors.white70),
+                        labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
                       items: villes.map((v) {
                         return DropdownMenuItem(
                           value: v,
-                          child: Text(v, style: TextStyle(fontSize: 14)),
+                          child: Text(v, style: GoogleFonts.robotoSlab(fontSize: 14)),
                         );
                       }).toList(),
                       onChanged: (value) => setModalState(() => selectedVille = value),
@@ -159,7 +196,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                   SizedBox(height: 20),
                   Text(
                     'Budget maximum',
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -197,7 +234,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     ),
                     child: Text(
                       'Appliquer les filtres',
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -214,7 +251,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     },
                     child: Text(
                       'Réinitialiser les filtres',
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
@@ -252,7 +289,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher un hôtel...',
-                      hintStyle: TextStyle(color: textColor),
+                      hintStyle: GoogleFonts.robotoSlab(color: textColor),
                       prefixIcon: Icon(Icons.search, color: primaryColor),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -327,248 +364,168 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
   }
 
   Widget _buildOffreCard(Offre offre) {
-    return FutureBuilder<double>(
-      future: getAverageRating(offre.id),
-      builder: (context, snapshot) {
-        final averageRating = snapshot.data ?? 0.0;
-
-        return Container(
-          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OffreDetailPage(offre: offre),
-                ),
-              );
-            },
-            child: Stack(
+    return Card(
+      margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: offre.estRecommandee
+            ? BorderSide(color: accentColor, width: 2)
+            : BorderSide.none,
+      ),
+      elevation: 4,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OffreDetailPage(offre: offre)),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Stack(
               children: [
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+                ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  child: Image.network(
+                    offre.images.isNotEmpty ? offre.images.first : '',
+                    height: 150,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      height: 150,
+                      color: secondaryColor.withOpacity(0.2),
+                      child: Icon(Icons.hotel, size: 50, color: primaryColor),
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                        child: Stack(
-                          children: [
-                            Image.network(
-                              offre.image,
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  height: 180,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        primaryColor.withOpacity(0.7),
-                                        secondaryColor.withOpacity(0.7),
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: CircularProgressIndicator(
-                                      value: loadingProgress.expectedTotalBytes != null
-                                          ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                          : null,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                );
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 180,
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topCenter,
-                                      end: Alignment.bottomCenter,
-                                      colors: [
-                                        primaryColor,
-                                        secondaryColor,
-                                      ],
-                                    ),
-                                  ),
-                                  child: Icon(Icons.hotel, color: Colors.white, size: 50),
-                                );
-                              },
-                            ),
-                            Container(
-                              height: 180,
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [
-                                    Colors.black.withOpacity(0.5),
-                                    Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
+                ),
+                if (offre.estRecommandee)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [accentColor, Colors.amber[700]!],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '⭐ Recommandé',
+                        style: GoogleFonts.robotoSlab(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      Container(
-                        padding: EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: cardColor,
-                          borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                    ),
+                  ),
+              ],
+            ),
+            Padding(
+              padding: EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          offre.nom,
+                          style: GoogleFonts.robotoSlab(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: textColor,
+                          ),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    offre.nom,
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: textColor,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                      ),
+                      FutureBuilder<double>(
+                        future: getAverageRating(offre.id),
+                        builder: (context, snapshot) {
+                          final rating = snapshot.data ?? 0.0;
+                          return Row(
+                            children: [
+                              Text(
+                                rating.toStringAsFixed(1),
+                                style: GoogleFonts.robotoSlab(
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryColor,
                                 ),
-                                if (averageRating > 0)
-                                  Row(
-                                    children: [
-                                      Text(
-                                        averageRating.toStringAsFixed(1),
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.amber[800],
-                                        ),
-                                      ),
-                                      Icon(Icons.star, color: Colors.amber, size: 18),
-                                    ],
-                                  ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              offre.categorie,
-                              style: TextStyle(
-                                color: accentGlobalColor,
-                                fontSize: 14,
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.location_on, size: 16, color: primaryColor),
-                                SizedBox(width: 4),
-                                Expanded(
-                                  child: Text(
-                                    offre.adresse,
-                                    style: TextStyle(
-                                      color: accentGlobalColor,
-                                      fontSize: 13,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Icon(Icons.attach_money, size: 16, color: Colors.green[700]),
-                                SizedBox(width: 4),
-                                Text(
-                                  offre.tarifs,
-                                  style: TextStyle(
-                                    color: Colors.green[700],
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              Icon(Icons.star, color: Colors.amber, size: 20),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: primaryColor),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          offre.adresse,
+                          style: GoogleFonts.robotoSlab(color: accentGlobalColor),
                         ),
                       ),
                     ],
                   ),
-                ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(Icons.attach_money, size: 16, color: Colors.green[700]),
+                      SizedBox(width: 4),
+                      Text(
+                        offre.tarifs.isEmpty ? 'Prix non spécifié' : offre.tarifs,
+                        style: GoogleFonts.robotoSlab(
+                          color: Colors.green[700],
+                          fontWeight: FontWeight.w600,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.star, color: accentColor, size: 16),
-                        SizedBox(width: 4),
-                        Text(
-                          averageRating.toStringAsFixed(1),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            color: Colors.blueGrey[800],
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final filteredOffres = offres.where((offre) {
-      final query = searchQuery.toLowerCase();
-      final matchQuery = offre.nom.toLowerCase().contains(query) ||
-          offre.categorie.toLowerCase().contains(query) ||
-          offre.adresse.toLowerCase().contains(query);
-      final matchVille = selectedVille == null ||
+    final sortedOffres = [...offres]
+      ..sort((a, b) {
+        if (a.estRecommandee != b.estRecommandee) {
+          return b.estRecommandee ? 1 : -1;
+        }
+        if (a.estRecommandee && b.estRecommandee) {
+          return b.prioriteRecommandation.compareTo(a.prioriteRecommandation);
+        }
+        return a.nom.compareTo(b.nom);
+      });
+
+    // Appliquez les filtres
+    final filteredOffres = sortedOffres.where((offre) {
+      final matchesSearch = searchQuery.isEmpty ||
+          offre.nom.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          offre.adresse.toLowerCase().contains(searchQuery.toLowerCase());
+
+      final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
-      final matchTarif = selectedTarifMax == null ||
-          (() {
-            final regex = RegExp(r'(\d+)(?=\s*-|\s*D|\s*da|\s*$)', caseSensitive: false);
-            final match = regex.firstMatch(offre.tarifs);
-            if (match == null) return true;
-            final firstNumberString = match.group(0);
-            final firstNumber = int.tryParse(firstNumberString ?? '0');
-            if (firstNumber == null) return true;
-            return firstNumber <= selectedTarifMax!;
-          })();
-      return matchQuery && matchVille && matchTarif;
+
+      final matchesTarif = selectedTarifMax == null ||
+          offre.tarifs.isEmpty ||
+          _extractFirstNumber(offre.tarifs) <= selectedTarifMax!;
+
+      return matchesSearch && matchesVille && matchesTarif;
     }).toList();
+
 
     return Scaffold(
       backgroundColor: primaryBackColor,
@@ -577,7 +534,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
         centerTitle: false,
         title: Text(
           'Hôtels',
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -626,7 +583,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                       SizedBox(height: 16),
                       Text(
                         'Aucun hôtel trouvé',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.grey[600],
                           fontSize: 18,
                         ),
@@ -634,7 +591,8 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                       SizedBox(height: 8),
                       Text(
                         'Essayez de modifier vos critères',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab
+                          (
                           color: Colors.grey[500],
                         ),
                       ),
@@ -655,5 +613,20 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
         ),
       ),
     );
+  }
+
+  double _extractFirstNumber(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return 0.0;
+
+      final match = RegExp(r'(\d+)').firstMatch(tarifs);
+      if (match == null || match.group(0) == null) return 0.0;
+
+      final numberString = match.group(0)!;
+      return double.tryParse(numberString) ?? 0.0;
+    } catch (e) {
+      debugPrint("Erreur d'extraction du tarif: $e");
+      return 0.0;
+    }
   }
 }

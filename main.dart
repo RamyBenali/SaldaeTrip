@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'login.dart';
@@ -7,8 +8,6 @@ import 'manual_reset_screen.dart.dart';
 import 'signin.dart';
 import 'weather_main.dart';
 import 'GlovalColors.dart';
-import 'package:lottie/lottie.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -177,10 +176,10 @@ class _SplashScreenState extends State<SplashScreen>
                       SizedBox(height: 10),
                       Text(
                         'SaldaeTrip',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.white,
                           fontSize: 32,
-                          fontFamily: 'Montserrat',
+
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.56,
                         ),
@@ -189,10 +188,10 @@ class _SplashScreenState extends State<SplashScreen>
                       Text(
                         'Between sea and mountains, \n every step is a story',
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.white,
                           fontSize: 20,
-                          fontFamily: 'ABeeZee',
+
                           fontWeight: FontWeight.w400,
                           letterSpacing: -0.32,
                         ),
@@ -232,7 +231,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             child: Text(
                               "Se connecter",
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color: Colors.white,
                                 fontSize: 18,
                               ),
@@ -258,7 +257,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                             child: Text(
                               "S'inscrire",
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color:  GlobalColors.bleuTurquoise,
                                 fontSize: 18,
                               ),
@@ -312,15 +311,16 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               child:
                                   isLoading
-                                      ?
-                                    Lottie.network(
-                                    'https://lottie.host/101e260f-028d-4057-b80e-cfc6103becd6/lpf4RUKrIc.json',
-                                    width: 30,
-                                    height: 30,
-                                    )
+                                      ? CircularProgressIndicator(
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              GlobalColors.bleuTurquoise,
+                                            ),
+                                        strokeWidth: 2,
+                                      )
                                       : Text(
                                         'Continuer sans se connecter',
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           color: Colors.white.withOpacity(0.6),
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -335,7 +335,7 @@ class _SplashScreenState extends State<SplashScreen>
                           SizedBox(height: 50),
                           Text(
                             "Vous n'êtes pas connecté à internet, Veuillez vérifier votre connexion",
-                            style: TextStyle(
+                            style: GoogleFonts.robotoSlab(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.bold,

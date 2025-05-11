@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
@@ -41,22 +42,54 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
 
   Future<void> fetchOffres() async {
     try {
+      debugPrint('Début de la récupération des offres...');
+
       final response = await supabase
           .from('offre')
-          .select()
-          .eq('categorie', 'Plage');
-      final data = response as List;
+          .select('''
+          idoffre, nom, adresse, categorie, tarifs, images,
+          offre_recommandations (priorite)
+        ''')
+          .eq('categorie', 'Plage')
+          .order('offre_recommandations(priorite)', ascending: false);
 
-      setState(() {
-        offres = data.map((json) => Offre.fromJson(json)).toList();
-        isLoading = false;
-      });
+      debugPrint('Réponse reçue: ${response.toString()}');
+      debugPrint('Type de réponse: ${response.runtimeType}');
 
+      List<Offre> loadedOffres = [];
+
+      if (response is List) {
+        loadedOffres = response.map((json) {
+          debugPrint('Processing offre: ${json['nom']}');
+          return Offre.fromJson(json);
+        }).toList();
+      } else if (response is Map) {
+        loadedOffres.add(Offre.fromJson(response as Map<String, dynamic>));
+      }
+
+      if (mounted) {
+        setState(() {
+          offres = loadedOffres;
+          isLoading = false;
+        });
+      }
+
+
+      debugPrint('${loadedOffres.length} offres chargées avec succès');
     } catch (e) {
-      print("Erreur lors du fetch : $e");
-      setState(() {
-        isLoading = false;
-      });
+      debugPrint('Erreur fetchAllOffres: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          offres = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de chargement: ${e.toString()}'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -126,7 +159,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                   SizedBox(height: 16),
                   Text(
                     'Filtrer les restaurants',
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
                       color: Colors.white,
@@ -136,7 +169,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                   SizedBox(height: 24),
                   Text(
                     'Localisation',
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -150,17 +183,17 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     ),
                     child: DropdownButtonFormField<String>(
                       dropdownColor: primaryColor,
-                      style: TextStyle(color: Colors.white),
+                      style: GoogleFonts.robotoSlab(color: Colors.white),
                       decoration: InputDecoration(
                         labelText: 'Ville',
-                        labelStyle: TextStyle(color: Colors.white70),
+                        labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
                       items: villes.map((v) {
                         return DropdownMenuItem(
                           value: v,
-                          child: Text(v, style: TextStyle(fontSize: 14)),
+                          child: Text(v, style: GoogleFonts.robotoSlab(fontSize: 14)),
                         );
                       }).toList(),
                       onChanged: (value) => setModalState(() => selectedVille = value),
@@ -169,7 +202,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                   SizedBox(height: 20),
                   Text(
                     'Budget maximum',
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -207,7 +240,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     ),
                     child: Text(
                       'Appliquer les filtres',
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
@@ -224,7 +257,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     },
                     child: Text(
                       'Réinitialiser les filtres',
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         color: Colors.white,
                         fontWeight: FontWeight.w600,
                       ),
@@ -262,7 +295,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                   child: TextField(
                     decoration: InputDecoration(
                       hintText: 'Rechercher une plage...',
-                      hintStyle: TextStyle(color: textColor),
+                      hintStyle: GoogleFonts.robotoSlab(color: textColor),
                       prefixIcon: Icon(Icons.search, color: bleuTurquoise),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
@@ -360,6 +393,9 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
+                    side: offre.estRecommandee
+                        ? BorderSide(color: accentColor, width: 2)
+                        : BorderSide.none,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -369,7 +405,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                         child: Stack(
                           children: [
                             Image.network(
-                              offre.image,
+                              offre.images.isNotEmpty ? offre.images.first : '',
                               height: 180,
                               width: double.infinity,
                               fit: BoxFit.cover,
@@ -397,12 +433,10 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                               },
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  color: whiteFoam,
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.umbrella, color: accentColor),
-                                      Text('Plage de...', style: TextStyle(color: darkBlue)),
-                                    ],
+                                  height: 180,
+                                  color: primaryColor.withOpacity(0.1),
+                                  child: Center(
+                                    child: Icon(Icons.hotel, size: 50, color: primaryColor),
                                   ),
                                 );
                               },
@@ -431,11 +465,11 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                 ),
                                 child: Row(
                                   children: [
-                                    Icon(Icons.beach_access, size: 16, color: Colors.white),
+                                    Icon(Icons.hotel, size: 16, color: Colors.white),
                                     SizedBox(width: 4),
                                     Text(
                                       offre.categorie,
-                                      style: TextStyle(
+                                      style: GoogleFonts.robotoSlab(
                                         color: Colors.white,
                                         fontSize: 12,
                                       ),
@@ -462,7 +496,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                 Expanded(
                                   child: Text(
                                     offre.nom,
-                                    style: TextStyle(
+                                    style: GoogleFonts.robotoSlab(
                                       fontSize: 18,
                                       fontWeight: FontWeight.bold,
                                       color: textColor,
@@ -476,7 +510,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                     children: [
                                       Text(
                                         averageRating.toStringAsFixed(1),
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           fontWeight: FontWeight.bold,
                                           color: Colors.amber[800],
                                         ),
@@ -494,7 +528,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                 Expanded(
                                   child: Text(
                                     offre.adresse,
-                                    style: TextStyle(
+                                    style: GoogleFonts.robotoSlab(
                                       color: accentGlobalColor,
                                       fontSize: 13,
                                     ),
@@ -508,15 +542,15 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                             Row(
                               children: [
                                 Icon(
-                                  offre.tarifs?.isEmpty ?? true ? Icons.money_off : Icons.attach_money,
+                                  offre.tarifs.isEmpty ? Icons.money_off : Icons.attach_money,
                                   size: 16,
-                                  color: offre.tarifs?.isEmpty ?? true ? textColor.withOpacity(0.8) : Colors.green[700],
+                                  color: offre.tarifs.isEmpty ? textColor.withOpacity(0.8) : Colors.green[700],
                                 ),
                                 SizedBox(width: 4),
                                 Text(
-                                  offre.tarifs?.isEmpty ?? true ? 'Entrée gratuite' : offre.tarifs!,
-                                  style: TextStyle(
-                                    color: offre.tarifs?.isEmpty ?? true ? textColor.withOpacity(0.8) : Colors.green[700],
+                                  offre.tarifs.isEmpty ? 'Prix non spécifié' : offre.tarifs,
+                                  style: GoogleFonts.robotoSlab(
+                                    color: offre.tarifs.isEmpty ? textColor.withOpacity(0.8) : Colors.green[700],
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -529,6 +563,28 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     ],
                   ),
                 ),
+                if (offre.estRecommandee)
+                  Positioned(
+                    top: 10,
+                    left: 10,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [accentColor, Colors.amber[700]!],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        '⭐ Recommandé',
+                        style: GoogleFonts.robotoSlab(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned(
                   top: 10,
                   right: 10,
@@ -552,7 +608,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                         SizedBox(width: 4),
                         Text(
                           averageRating.toStringAsFixed(1),
-                          style: TextStyle(
+                          style: GoogleFonts.robotoSlab(
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                             color: Colors.grey[800],
@@ -573,24 +629,30 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredOffres = offres.where((offre) {
-      final query = searchQuery.toLowerCase();
-      final matchQuery = offre.nom.toLowerCase().contains(query) ||
-          offre.categorie.toLowerCase().contains(query) ||
-          offre.adresse.toLowerCase().contains(query);
-      final matchVille = selectedVille == null ||
+    final sortedOffres = [...offres]
+      ..sort((a, b) {
+        if (a.estRecommandee != b.estRecommandee) {
+          return b.estRecommandee ? 1 : -1;
+        }
+        if (a.estRecommandee && b.estRecommandee) {
+          return b.prioriteRecommandation.compareTo(a.prioriteRecommandation);
+        }
+        return a.nom.compareTo(b.nom);
+      });
+
+    final filteredOffres = sortedOffres.where((offre) {
+      final matchesSearch = searchQuery.isEmpty ||
+          offre.nom.toLowerCase().contains(searchQuery.toLowerCase()) ||
+          offre.adresse.toLowerCase().contains(searchQuery.toLowerCase());
+
+      final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
-      final matchTarif = selectedTarifMax == null ||
-          (() {
-            final regex = RegExp(r'(\d+)(?=\s*-|\s*D|\s*da|\s*$)', caseSensitive: false);
-            final match = regex.firstMatch(offre.tarifs);
-            if (match == null) return true;
-            final firstNumberString = match.group(0);
-            final firstNumber = int.tryParse(firstNumberString ?? '0');
-            if (firstNumber == null) return true;
-            return firstNumber <= selectedTarifMax!;
-          })();
-      return matchQuery && matchVille && matchTarif;
+
+      final matchesTarif = selectedTarifMax == null ||
+          offre.tarifs.isEmpty ||
+          _extractFirstNumber(offre.tarifs)! <= selectedTarifMax!;
+
+      return matchesSearch && matchesVille && matchesTarif;
     }).toList();
 
     return Scaffold(
@@ -600,7 +662,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
         centerTitle: false,
         title: Text(
           'Plages 🏖️',
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -649,7 +711,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                       SizedBox(height: 16),
                       Text(
                         'Aucune plage trouvé',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.grey[600],
                           fontSize: 18,
                         ),
@@ -657,7 +719,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                       SizedBox(height: 8),
                       Text(
                         'Essayez de modifier vos critères',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           color: Colors.grey[500],
                         ),
                       ),
@@ -678,5 +740,19 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
         ),
       ),
     );
+  }
+  double _extractFirstNumber(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return 0.0;
+
+      final match = RegExp(r'(\d+)').firstMatch(tarifs);
+      if (match == null || match.group(0) == null) return 0.0;
+
+      final numberString = match.group(0)!;
+      return double.tryParse(numberString) ?? 0.0;
+    } catch (e) {
+      debugPrint("Erreur d'extraction du tarif: $e");
+      return 0.0;
+    }
   }
 }

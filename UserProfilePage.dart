@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'GlovalColors.dart';
 
@@ -174,7 +175,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     : (firstName != null && lastName != null
                                     ? '$firstName $lastName'
                                     : 'Profil invité'),
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
                                   color: GlobalColors.secondaryColor,
@@ -226,12 +227,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.info_outline, color: Colors.blue, size: 20),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.info_outline, color: Colors.blue, size: 20),
+              const SizedBox(width: 10),
               Text(
                 'À PROPOS',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.blue,
                 ),
@@ -251,7 +252,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               description != null && description!.isNotEmpty
                   ? description!
                   : 'Pas de description disponible',
-              style: TextStyle(
+              style: GoogleFonts.robotoSlab(
                 fontSize: 16,
                 color: GlobalColors.secondaryColor,
                 height: 1.4,
@@ -284,12 +285,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.interests, color: Colors.green, size: 20),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.interests, color: Colors.green, size: 20),
+              const SizedBox(width: 10),
               Text(
                 'CENTRES D\'INTÉRÊT',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.green,
                 ),
@@ -335,12 +336,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.location_pin, color: Colors.pink, size: 22),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.location_pin, color: Colors.pink, size: 22),
+              const SizedBox(width: 10),
               Text(
                 'ADRESSE',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.pink,
                 ),
@@ -364,7 +365,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
               Expanded(
                 child: Text(
                   userAddress,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     fontSize: 16,
                     color: GlobalColors.isDarkMode
                         ? Colors.white
@@ -400,12 +401,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(Icons.wb_sunny, color: Colors.orange, size: 20),
-              SizedBox(width: 10),
+            children: [
+              const Icon(Icons.wb_sunny, color: Colors.orange, size: 20),
+              const SizedBox(width: 10),
               Text(
                 'PRÉFÉRENCES MÉTÉO',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.orange,
                 ),
@@ -441,7 +442,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color: GlobalColors.isDarkMode
                 ? Colors.white.withOpacity(0.9)
                 : Colors.orange.shade700,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'profile.dart';
 import 'main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -76,10 +77,9 @@ class ParametresPage extends StatelessWidget {
             child: Text(
               'Paramètres et activité',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.robotoSlab(
                 color: Colors.white,
                 fontSize: 16,
-                fontFamily: 'ADLaM Display',
                 fontWeight: FontWeight.w400,
                 letterSpacing: -0.30,
               ),
@@ -91,10 +91,9 @@ class ParametresPage extends StatelessWidget {
             child: Text(
               'Service Client',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.robotoSlab(
                 color: Colors.white,
                 fontSize: 16,
-                fontFamily: 'ADLaM Display',
                 fontWeight: FontWeight.w400,
                 letterSpacing: -0.30,
               ),
@@ -111,10 +110,9 @@ class ParametresPage extends StatelessWidget {
             child: Text(
               'Aide',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.robotoSlab(
                 color: Colors.white,
                 fontSize: 16,
-                fontFamily: 'ADLaM Display',
                 fontWeight: FontWeight.w400,
                 letterSpacing: -0.30,
               ),
@@ -147,10 +145,9 @@ class ParametresPage extends StatelessWidget {
             child: Text(
               'Devenir prestataire officiel',
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: GoogleFonts.robotoSlab(
                 color: Colors.white,
                 fontSize: 16,
-                fontFamily: 'ADLaM Display',
                 fontWeight: FontWeight.w400,
                 letterSpacing: -0.30,
               ),
@@ -192,10 +189,9 @@ class ParametresPage extends StatelessWidget {
               child: Text(
                 'Se déconnecter',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   color: const Color(0xFFE33123),
                   fontSize: 16,
-                  fontFamily: 'ADLaM Display',
                   fontWeight: FontWeight.w400,
                   letterSpacing: -0.30,
                 ),
@@ -220,7 +216,7 @@ class ParametresPage extends StatelessWidget {
                         ),
                         title: Text(
                           "Confirmation",
-                          style: TextStyle(
+                          style: GoogleFonts.robotoSlab(
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
                           ),
@@ -231,13 +227,13 @@ class ParametresPage extends StatelessWidget {
                         ),
                         actions: <Widget>[
                           TextButton(
-                            child: Text("Annuler", style: TextStyle(color: Colors.grey[700])),
+                            child: Text("Annuler", style: GoogleFonts.robotoSlab(color: Colors.grey[700])),
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
                           ),
                           TextButton(
-                            child: Text("Supprimer", style: TextStyle(color: Colors.red)),
+                            child: Text("Supprimer", style: GoogleFonts.robotoSlab(color: Colors.red)),
                             onPressed: () async {
                               final user = Supabase.instance.client.auth.currentUser;
 
@@ -279,10 +275,9 @@ class ParametresPage extends StatelessWidget {
               child: Text(
                 'Supprimer son compte',
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   color: const Color(0xFFE33123),
                   fontSize: 16,
-                  fontFamily: 'ADLaM Display',
                   fontWeight: FontWeight.w400,
                   letterSpacing: -0.30,
                 ),

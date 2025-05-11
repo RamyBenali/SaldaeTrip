@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'login.dart';
 
 class TermsAndConditionsScreen extends StatefulWidget {
@@ -31,7 +32,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                       "4. Les réservations doivent être honorées ou annulées à l'avance.\n"
                       "5. Suivez les consignes de sécurité lors des excursions et visites.\n\n"
                       "En cochant la case ci-dessous, vous acceptez ces conditions générales et acceptez d'utiliser l'application conformément à ces règles.",
-                  style: TextStyle(fontSize: 16),
+                  style: GoogleFonts.robotoSlab(fontSize: 16),
                 ),
               ),
             ),
@@ -65,7 +66,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
                 minimumSize: Size(double.infinity, 50),
               ),
-              child: Text("Continuer", style: TextStyle(color: Colors.white, fontSize: 18)),
+              child: Text("Continuer", style: GoogleFonts.robotoSlab(color: Colors.white, fontSize: 18)),
             ),
           ],
         ),

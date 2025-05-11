@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'models/offre_model.dart';
 import 'offre_details.dart';
@@ -40,33 +41,53 @@ class _OffresPageState extends State<OffresPage> {
 
   Future<void> fetchAllOffres() async {
     try {
+      debugPrint('Début de la récupération des offres...');
+
       final response = await supabase
           .from('offre')
           .select('''
-            *, 
-            offre_recommandations (priorite)
-          ''')
+          idoffre, nom, adresse, categorie, tarifs, images,
+          offre_recommandations (priorite)
+        ''')
           .order('offre_recommandations(priorite)', ascending: false);
 
-      setState(() {
-        offres = (response as List).map((json) {
-          final recommandations = json['offre_recommandations'] as List;
-          return Offre.fromJson({
-            ...json,
-            'offre_recommandations': recommandations.isNotEmpty ? recommandations[0] : null,
-          });
+      debugPrint('Réponse reçue: ${response.toString()}');
+      debugPrint('Type de réponse: ${response.runtimeType}');
+
+      List<Offre> loadedOffres = [];
+
+      if (response is List) {
+        loadedOffres = response.map((json) {
+          debugPrint('Processing offre: ${json['nom']}');
+          return Offre.fromJson(json);
         }).toList();
-        isLoading = false;
-      });
+      } else if (response is Map) {
+        loadedOffres.add(Offre.fromJson(response as Map<String, dynamic>));
+      }
+
+      if (mounted) {
+        setState(() {
+          offres = loadedOffres;
+          isLoading = false;
+        });
+      }
+
+
+      debugPrint('${loadedOffres.length} offres chargées avec succès');
     } catch (e) {
-      print('Erreur fetchAllOffres: $e');
-      setState(() {
-        offres = [];
-        isLoading = false;
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur de chargement des offres')),
-      );
+      debugPrint('Erreur fetchAllOffres: $e');
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+          offres = [];
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de chargement: ${e.toString()}'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+      }
     }
   }
 
@@ -110,7 +131,7 @@ class _OffresPageState extends State<OffresPage> {
               child: TextField(
                 decoration: InputDecoration(
                   hintText: 'Rechercher une offre',
-                  hintStyle: TextStyle(color: textColor),
+                  hintStyle: GoogleFonts.robotoSlab(color: textColor),
                   prefixIcon: Icon(Icons.search, color: GlobalColors.bleuTurquoise),
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
@@ -180,7 +201,7 @@ class _OffresPageState extends State<OffresPage> {
                       ),
                       Text(
                         'Filtrer les offres',
-                        style: TextStyle(
+                        style: GoogleFonts.robotoSlab(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: isDarkMode ? accentGlobalColor : GlobalColors.bleuTurquoise,
@@ -217,7 +238,7 @@ class _OffresPageState extends State<OffresPage> {
                           children: [
                             Text(
                               'Tarif maximum: ${selectedTarifMax?.round() ?? 0} DA',
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 fontSize: 16,
                                 color: isDarkMode ? accentGlobalColor : Colors.grey[800],
                               ),
@@ -253,7 +274,7 @@ class _OffresPageState extends State<OffresPage> {
                                 });
                                 Navigator.pop(context);
                               },
-                              child: Text('Réinitialiser', style: TextStyle(color: isDarkMode ? textColor : GlobalColors.bleuTurquoise)),
+                              child: Text('Réinitialiser', style: GoogleFonts.robotoSlab(color: isDarkMode ? textColor : GlobalColors.bleuTurquoise)),
                             ),
                           ),
                           SizedBox(width: 16),
@@ -267,7 +288,7 @@ class _OffresPageState extends State<OffresPage> {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                               ),
-                              child: Text('Appliquer', style: TextStyle(color: isDarkMode ? Colors.white : Colors.white)),
+                              child: Text('Appliquer', style: GoogleFonts.robotoSlab(color: isDarkMode ? Colors.white : Colors.white)),
                             ),
                           ),
                         ],
@@ -303,7 +324,7 @@ class _OffresPageState extends State<OffresPage> {
           child: Row(
             children: [
               if (icon != null) icon(item),
-              Text(item, style: TextStyle(color: accentGlobalColor)),
+              Text(item, style: GoogleFonts.robotoSlab(color: accentGlobalColor)),
             ],
           ),
         );
@@ -375,7 +396,7 @@ class _OffresPageState extends State<OffresPage> {
                             Expanded(
                               child: Text(
                                 offre.nom,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
                                   color: textColor,
@@ -392,7 +413,7 @@ class _OffresPageState extends State<OffresPage> {
                               ),
                               child: Text(
                                 offre.categorie,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: categoryColor,
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
@@ -409,7 +430,7 @@ class _OffresPageState extends State<OffresPage> {
                             Expanded(
                               child: Text(
                                 offre.adresse,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   fontSize: 12,
                                   color: accentGlobalColor,
                                 ),
@@ -430,7 +451,7 @@ class _OffresPageState extends State<OffresPage> {
                             SizedBox(width: 4),
                             Text(
                               offre.tarifs.isEmpty ? 'Gratuit' : offre.tarifs,
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 fontSize: 12,
                                 color: accentGlobalColor,
                                 fontWeight: FontWeight.w500,
@@ -449,7 +470,7 @@ class _OffresPageState extends State<OffresPage> {
                                 final rating = snapshot.data ?? 0.0;
                                 return Text(
                                   rating.toStringAsFixed(1),
-                                  style: TextStyle(
+                                  style: GoogleFonts.robotoSlab(
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                     color: textColor,
@@ -469,38 +490,38 @@ class _OffresPageState extends State<OffresPage> {
           if (offre.estRecommandee)
             Positioned(
               top: 8,
-              right: 8,
+              left: 12,
               child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.amber, Colors.orange],
+                    colors: [Colors.amber[300]!, Colors.amber[600]!],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(4),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.1),
-                      blurRadius: 4,
-                      offset: Offset(0, 2),
+                      blurRadius: 2,
+                      offset: Offset(0, 1),
                     ),
                   ],
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.star, size: 16, color: Colors.white),
-                    SizedBox(width: 4),
-                    Text(
-                      'Recommandé',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                child: Text(
+                  'Recommandé',
+                  style: GoogleFonts.robotoSlab(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.2),
+                        blurRadius: 1,
+                        offset: Offset(0, 1),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -538,7 +559,7 @@ class _OffresPageState extends State<OffresPage> {
           SizedBox(height: 16),
           Text(
             'Aucune offre trouvée',
-            style: TextStyle(
+            style: GoogleFonts.robotoSlab(
               fontSize: 18,
               color: Colors.grey[600],
             ),
@@ -555,7 +576,7 @@ class _OffresPageState extends State<OffresPage> {
             },
             child: Text(
               'Réinitialiser les filtres',
-              style: TextStyle(color: Colors.blue[800]),
+              style: GoogleFonts.robotoSlab(color: Colors.blue[800]),
             ),
           ),
         ],
@@ -606,7 +627,7 @@ class _OffresPageState extends State<OffresPage> {
       appBar: AppBar(
         title: Text(
           'Toutes les offres',
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color: isDarkMode ? textColor : GlobalColors.bleuTurquoise,
             fontWeight: FontWeight.bold,
           ),

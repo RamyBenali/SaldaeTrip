@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'EditprofilePage.dart';
 
@@ -201,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       children: [
                         Text(
                           '$firstName $lastName',
-                          style: TextStyle(
+                          style: GoogleFonts.robotoSlab(
                             color: GlobalColors.secondaryColor,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -218,7 +219,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               : role == 'Administrateur'
                               ? 'Administrateur'
                               : 'touriste',
-                          style: TextStyle(
+                          style: GoogleFonts.robotoSlab(
                             color: GlobalColors.secondaryColor.withOpacity(0.9),
                             fontSize: 14,
                           ),
@@ -444,7 +445,7 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       title: Text(
         title,
-        style: TextStyle(
+        style: GoogleFonts.robotoSlab(
           fontSize: 15,
           fontWeight: FontWeight.w500,
           color: GlobalColors.secondaryColor,
@@ -590,7 +591,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -632,7 +633,7 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(width: 10),
               Text(
                 'CENTRES D\'INTÉRÊT',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.green,
                 ),
@@ -659,7 +660,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     label: Text(
                       interest,
-                      style: TextStyle(
+                      style: GoogleFonts.robotoSlab(
                         color:
                             GlobalColors.isDarkMode
                                 ? Colors.white70
@@ -729,7 +730,7 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(width: 10),
               Text(
                 'ADRESSE',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.pink,
                 ),
@@ -754,7 +755,7 @@ class _ProfilePageState extends State<ProfilePage> {
               Expanded(
                 child: Text(
                   userAddress,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     fontSize: 16,
                     color:
                         GlobalColors.isDarkMode
@@ -798,7 +799,7 @@ class _ProfilePageState extends State<ProfilePage> {
               SizedBox(width: 10),
               Text(
                 'PRÉFÉRENCES MÉTÉO',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontWeight: FontWeight.bold,
                   color: Colors.orange,
                 ),
@@ -840,7 +841,7 @@ class _ProfilePageState extends State<ProfilePage> {
         SizedBox(height: 8),
         Text(
           label,
-          style: TextStyle(
+          style: GoogleFonts.robotoSlab(
             color:
                 GlobalColors.isDarkMode
                     ? Colors.white.withOpacity(0.9)
@@ -988,7 +989,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                                   lastName != null
                                               ? '$firstName $lastName'
                                               : 'Profil invité'),
-                                      style: TextStyle(
+                                      style: GoogleFonts.robotoSlab(
                                         fontSize: 28,
                                         fontWeight: FontWeight.bold,
                                         color: GlobalColors.secondaryColor,
@@ -1045,7 +1046,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   SizedBox(width: 10),
                                   Text(
                                     'À PROPOS',
-                                    style: TextStyle(
+                                    style: GoogleFonts.robotoSlab(
                                       fontWeight: FontWeight.bold,
                                       color: GlobalColors.bleuTurquoise,
                                     ),
@@ -1067,7 +1068,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   description != null && description!.isNotEmpty
                                       ? description!
                                       : 'Pas de description disponible',
-                                  style: TextStyle(
+                                  style: GoogleFonts.robotoSlab(
                                     fontSize: 16,
                                     color: GlobalColors.secondaryColor,
                                     height: 1.4,
@@ -1092,7 +1093,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               child: Text(
                                 'Veuillez vous connecter ou créer un compte afin de pouvoir personnaliser votre profil',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   fontSize: 18,
                                   color: GlobalColors.secondaryColor
                                       .withOpacity(0.6),

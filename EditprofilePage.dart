@@ -132,7 +132,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               Text(
                 isProfileImage ? "Photo de profil" : "Bannière",
                 style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
+                  textStyle: GoogleFonts.robotoSlab(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: GlobalColors.secondaryColor,
@@ -156,7 +156,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                       Text(
                         "Appareil photo",
-                        style: TextStyle(color: GlobalColors.accentColor),
+                        style: GoogleFonts.robotoSlab(color: GlobalColors.accentColor),
                       ),
                     ],
                   ),
@@ -173,7 +173,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       ),
                       Text(
                         "Galerie",
-                        style: TextStyle(color: GlobalColors.accentColor),
+                        style: GoogleFonts.robotoSlab(color: GlobalColors.accentColor),
                       ),
                     ],
                   ),
@@ -398,7 +398,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             Text(
               "Centres d'intérêt",
               style: GoogleFonts.poppins(
-                textStyle: TextStyle(
+                textStyle: GoogleFonts.robotoSlab(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: GlobalColors.secondaryColor,
@@ -427,7 +427,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       selectedColor: GlobalColors.greenColor.withOpacity(0.2),
                       checkmarkColor: GlobalColors.greenColor,
                       labelStyle: GoogleFonts.poppins(
-                        textStyle: TextStyle(
+                        textStyle: GoogleFonts.robotoSlab(
                           color:
                               isSelected
                                   ? GlobalColors.greenColor
@@ -460,7 +460,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             Text(
               "Préférences météo",
               style: GoogleFonts.poppins(
-                textStyle: TextStyle(
+                textStyle: GoogleFonts.robotoSlab(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: GlobalColors.secondaryColor,
@@ -498,7 +498,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       selectedColor: weatherColor.withOpacity(0.2),
                       checkmarkColor: weatherColor,
                       labelStyle: GoogleFonts.poppins(
-                        textStyle: TextStyle(
+                        textStyle: GoogleFonts.robotoSlab(
                           color:
                               isSelected
                                   ? weatherColor
@@ -563,7 +563,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         title: Text(
           "Modifier le profil",
           style: GoogleFonts.poppins(
-            textStyle: TextStyle(
+            textStyle: GoogleFonts.robotoSlab(
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
@@ -584,7 +584,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         title: Text(
                           "Aide",
                           style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
+                            textStyle: GoogleFonts.robotoSlab(
                               fontWeight: FontWeight.bold,
                               color: GlobalColors.secondaryColor,
                             ),
@@ -592,13 +592,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         ),
                         content: Text(
                           "Modifiez les informations de votre profil ici.",
-                          style: TextStyle(color: GlobalColors.accentColor),
+                          style: GoogleFonts.robotoSlab(color: GlobalColors.accentColor),
                         ),
                         actions: [
                           TextButton(
                             child: Text(
                               "OK",
-                              style: TextStyle(color: GlobalColors.blueColor),
+                              style: GoogleFonts.robotoSlab(color: GlobalColors.blueColor),
                             ),
                             onPressed: () => Navigator.pop(context),
                           ),
@@ -637,7 +637,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 controller: _firstNameController,
                                 decoration: InputDecoration(
                                   labelText: "Prénom*",
-                                  labelStyle: TextStyle(
+                                  labelStyle: GoogleFonts.robotoSlab(
                                     color: GlobalColors.accentColor,
                                   ),
                                   prefixIcon: Icon(
@@ -668,7 +668,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   filled: true,
                                   fillColor: GlobalColors.primaryColor,
                                 ),
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: GlobalColors.secondaryColor,
                                 ),
                                 validator:
@@ -682,7 +682,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 controller: _lastNameController,
                                 decoration: InputDecoration(
                                   labelText: "Nom*",
-                                  labelStyle: TextStyle(
+                                  labelStyle: GoogleFonts.robotoSlab(
                                     color: GlobalColors.accentColor,
                                   ),
                                   prefixIcon: Icon(
@@ -713,7 +713,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   filled: true,
                                   fillColor: GlobalColors.primaryColor,
                                 ),
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: GlobalColors.secondaryColor,
                                 ),
                                 validator:
@@ -727,7 +727,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 controller: _locationController,
                                 decoration: InputDecoration(
                                   labelText: "Localisation",
-                                  labelStyle: TextStyle(
+                                  labelStyle: GoogleFonts.robotoSlab(
                                     color: GlobalColors.accentColor,
                                   ),
                                   prefixIcon: Icon(
@@ -735,7 +735,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     color: GlobalColors.accentColor,
                                   ),
                                   hintText: "Ex: Paris, France",
-                                  hintStyle: TextStyle(
+                                  hintStyle: GoogleFonts.robotoSlab(
                                     color: GlobalColors.accentColor.withOpacity(
                                       0.5,
                                     ),
@@ -764,7 +764,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   filled: true,
                                   fillColor: GlobalColors.primaryColor,
                                 ),
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: GlobalColors.secondaryColor,
                                 ),
                               ),
@@ -774,12 +774,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                 maxLines: 4,
                                 decoration: InputDecoration(
                                   labelText: "Description",
-                                  labelStyle: TextStyle(
+                                  labelStyle: GoogleFonts.robotoSlab(
                                     color: GlobalColors.accentColor,
                                   ),
                                   alignLabelWithHint: true,
                                   hintText: "Décrivez-vous en quelques mots...",
-                                  hintStyle: TextStyle(
+                                  hintStyle: GoogleFonts.robotoSlab(
                                     color: GlobalColors.accentColor.withOpacity(
                                       0.5,
                                     ),
@@ -808,7 +808,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   filled: true,
                                   fillColor: GlobalColors.primaryColor,
                                 ),
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: GlobalColors.secondaryColor,
                                 ),
                               ),
@@ -846,7 +846,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   : Text(
                                     "ENREGISTRER LES MODIFICATIONS",
                                     style: GoogleFonts.poppins(
-                                      textStyle: TextStyle(
+                                      textStyle: GoogleFonts.robotoSlab(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -860,7 +860,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         child: Text(
                           "Annuler",
                           style: GoogleFonts.poppins(
-                            textStyle: TextStyle(
+                            textStyle: GoogleFonts.robotoSlab(
                               color: GlobalColors.blueColor,
                               fontWeight: FontWeight.w500,
                             ),

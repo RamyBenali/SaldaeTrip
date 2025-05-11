@@ -260,12 +260,10 @@ avis:avis(note)
                   SizedBox(width: 8),
                   Text(
                     'Mes Favoris',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                      ),
                     ),
                   ),
                 ],
@@ -358,7 +356,7 @@ avis:avis(note)
                         ),
                       ),
                       hintText: 'Rechercher...',
-                      hintStyle: TextStyle(color: GlobalColors.accentColor),
+                      hintStyle: GoogleFonts.robotoSlab(color: GlobalColors.accentColor),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(vertical: 14),
                     ),
@@ -428,7 +426,7 @@ avis:avis(note)
                         label: Text('Effacer tout'),
                         style: TextButton.styleFrom(
                           foregroundColor: GlobalColors.accentColor,
-                          textStyle: TextStyle(fontSize: 12),
+                          textStyle: GoogleFonts.robotoSlab(fontSize: 12),
                         ),
                       ),
                     ],
@@ -594,7 +592,7 @@ avis:avis(note)
                                     Flexible(
                                       child: Text(
                                         offre.categorie,
-                                        style: TextStyle(
+                                        style: GoogleFonts.robotoSlab(
                                           color: Colors.white,
                                           fontSize: 10,
                                           fontWeight: FontWeight.w500,
@@ -625,7 +623,7 @@ avis:avis(note)
                               child: Text(
                                 offre.nom,
                                 style: GoogleFonts.poppins(
-                                  textStyle: TextStyle(
+                                  textStyle: GoogleFonts.robotoSlab(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                     color: GlobalColors.secondaryColor,
@@ -674,7 +672,7 @@ avis:avis(note)
                               SizedBox(width: 4),
                               Text(
                                 priceText,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: priceTextColor,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 12,
@@ -694,7 +692,7 @@ avis:avis(note)
                             SizedBox(width: 4),
                             Text(
                               offre.noteMoyenne.toStringAsFixed(1),
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color: GlobalColors.secondaryColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
@@ -703,7 +701,7 @@ avis:avis(note)
                             SizedBox(width: 4),
                             Text(
                               '(${(offre.noteMoyenne * 2).round() / 2})',
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color: GlobalColors.accentColor,
                                 fontSize: 12,
                               ),
@@ -722,7 +720,7 @@ avis:avis(note)
                             Expanded(
                               child: Text(
                                 offre.adresse,
-                                style: TextStyle(
+                                style: GoogleFonts.robotoSlab(
                                   color: GlobalColors.accentColor,
                                   fontSize: 12,
                                 ),
@@ -755,7 +753,7 @@ avis:avis(note)
                                   horizontal: 12,
                                   vertical: 4,
                                 ),
-                                textStyle: TextStyle(
+                                textStyle: GoogleFonts.robotoSlab(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -799,7 +797,7 @@ avis:avis(note)
                   SizedBox(width: 6),
                   Text(
                     label,
-                    style: TextStyle(
+                    style: GoogleFonts.robotoSlab(
                       fontSize: 12,
                       color: GlobalColors.bleuTurquoise,
                       fontWeight: FontWeight.w500,
@@ -862,7 +860,7 @@ avis:avis(note)
                 'Connectez-vous pour accéder\nà vos favoris',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
+                  textStyle: GoogleFonts.robotoSlab(
                     fontSize: 18,
                     color: GlobalColors.secondaryColor,
                     fontWeight: FontWeight.w600,
@@ -913,7 +911,7 @@ avis:avis(note)
               Text(
                 'Aucun favori trouvé',
                 style: GoogleFonts.poppins(
-                  textStyle: TextStyle(
+                  textStyle: GoogleFonts.robotoSlab(
                     fontSize: 20,
                     color: GlobalColors.secondaryColor,
                     fontWeight: FontWeight.bold,
@@ -926,7 +924,7 @@ avis:avis(note)
                 child: Text(
                   'Ajoutez des offres à vos favoris pour les retrouver facilement',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     color: GlobalColors.accentColor,
                     fontSize: 14,
                   ),
@@ -1052,7 +1050,7 @@ avis:avis(note)
                 SizedBox(width: 8),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.robotoSlab(
                     color: selectedColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
@@ -1097,7 +1095,7 @@ avis:avis(note)
             children: [
               Text(
                 'Filtrer les favoris',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: GlobalColors.secondaryColor,
@@ -1106,7 +1104,7 @@ avis:avis(note)
               SizedBox(height: 20),
               Text(
                 'Note minimale',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 14,
                   color: GlobalColors.accentColor,
                   fontWeight: FontWeight.w500,
@@ -1156,7 +1154,7 @@ avis:avis(note)
                             SizedBox(width: 4),
                             Text(
                               '+',
-                              style: TextStyle(
+                              style: GoogleFonts.robotoSlab(
                                 color:
                                     selectedRating != null &&
                                             rating <= selectedRating!
@@ -1174,7 +1172,7 @@ avis:avis(note)
               SizedBox(height: 20),
               Text(
                 'Tarif maximum (DA)',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 14,
                   color: GlobalColors.accentColor,
                   fontWeight: FontWeight.w500,
@@ -1198,7 +1196,7 @@ avis:avis(note)
               SizedBox(height: 20),
               Text(
                 'Catégorie',
-                style: TextStyle(
+                style: GoogleFonts.robotoSlab(
                   fontSize: 14,
                   color: GlobalColors.accentColor,
                   fontWeight: FontWeight.w500,
@@ -1229,7 +1227,7 @@ avis:avis(note)
                         ),
                         backgroundColor: GlobalColors.primaryColor,
                         checkmarkColor: GlobalColors.bleuTurquoise,
-                        labelStyle: TextStyle(
+                        labelStyle: GoogleFonts.robotoSlab(
                           color:
                               selectedCategorie == category
                                   ? GlobalColors.bleuTurquoise
@@ -1250,7 +1248,7 @@ avis:avis(note)
                         selectedCategorie = null;
                       });
                     },
-                    child: Text('Réinitialiser', style: TextStyle(color: GlobalColors.bleuTurquoise),),
+                    child: Text('Réinitialiser', style: GoogleFonts.robotoSlab(color: GlobalColors.bleuTurquoise),),
                   ),
                   SizedBox(width: 8),
                   ElevatedButton(
