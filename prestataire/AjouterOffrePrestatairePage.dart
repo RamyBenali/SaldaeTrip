@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -170,7 +171,7 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Ajouter une Offre', style: TextStyle(color: Colors.white)),
+        title: Text('Ajouter une Offre', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.green,
       ),
       body: Padding(
@@ -201,7 +202,7 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
                   padding: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
                     _imageFile == null ? 'Choisir une image' : 'Image sélectionnée',
-                    style: TextStyle(color: Colors.white),
+                    style: GoogleFonts.robotoSlab(color: Colors.white),
                     textAlign: TextAlign.center,
                   ),
                 ),

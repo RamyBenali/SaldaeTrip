@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../offre_details.dart';
 import '../models/offre_model.dart';
@@ -81,7 +82,7 @@ class _ListeOffresPrestatairePageState extends State<ListeOffresPrestatairePage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mes Offres", style: TextStyle(color: Colors.white)),
+        title: Text("Mes Offres", style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.green,
       ),
       body: Column(
@@ -123,10 +124,10 @@ class _ListeOffresPrestatairePageState extends State<ListeOffresPrestatairePage>
                         child: Icon(Icons.image_not_supported, color: Colors.grey[700]),
                       ),
                     ),
-                    title: Text(offre.nom ?? 'Nom inconnu', style: TextStyle(fontWeight: FontWeight.bold)),
+                    title: Text(offre.nom ?? 'Nom inconnu', style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold)),
                     subtitle: Text(
                       "${offre.categorie ?? 'Catégorie inconnue'}\nTarif: ${offre.tarifs ?? 'N/A'} DA",
-                      style: TextStyle(height: 1.4),
+                      style: GoogleFonts.robotoSlab(height: 1.4),
                     ),
                     isThreeLine: true,
                     onTap: () {

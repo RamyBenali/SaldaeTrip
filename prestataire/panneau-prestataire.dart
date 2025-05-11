@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'GestionOffresPrestatairePage.dart';
 import 'AjouterOffrePrestatairePage.dart';
@@ -81,7 +82,7 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Tableau de bord Prestataire', style: TextStyle(color: Colors.white)),
+        title: Text('Tableau de bord Prestataire', style: GoogleFonts.robotoSlab(color: Colors.white)),
         backgroundColor: Colors.green,
         centerTitle: true,
       ),
@@ -142,9 +143,9 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
             children: [
               Icon(icon, size: 36, color: Colors.green),
               SizedBox(height: 12),
-              Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+              Text(title, style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
-              Text('$value', style: TextStyle(fontSize: 24)),
+              Text('$value', style: GoogleFonts.robotoSlab(fontSize: 24)),
             ],
           ),
         ),
@@ -169,7 +170,7 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
             children: [
               Icon(icon, size: 40, color: Colors.green[800]),
               SizedBox(height: 12),
-              Text(title, style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(title, style: GoogleFonts.robotoSlab(fontWeight: FontWeight.w600)),
             ],
           ),
         ),
