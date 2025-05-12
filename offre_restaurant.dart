@@ -24,9 +24,11 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
   double? selectedTarifMax;
   final ScrollController _scrollController = ScrollController();
 
-  final Color primaryColor = Color(0xFFC5283D); // Rouge bordeaux
-  final Color secondaryColor = Color(0xFFE9724C); // Saumon
-  final Color accentColor = Color(0xFFF9C80E); // Jaune doré
+  final Color primaryColor = GlobalColors.bleuTurquoise ;// Rouge bordeaux
+  final Color secondaryColor = GlobalColors.bleuTurquoise; // Saumon
+  final Color accentColor = GlobalColors.bleuTurquoise; // Jaune doré
+  final Color accentGoldColor = Color(0xFFE1AF5A); // Or
+
 
   @override
   void initState() {
@@ -41,7 +43,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
       final response = await supabase
           .from('offre')
           .select('''
-          idoffre, nom, adresse, categorie, tarifs, images,
+          idoffre, nom, adresse,description , categorie, tarifs, images,
           offre_recommandations (priorite)
         ''')
           .eq('categorie', 'Restaurant')
@@ -125,8 +127,8 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                primaryColor.withOpacity(0.95),
-                primaryColor.withOpacity(0.9),
+                GlobalColors.cardColor.withOpacity(0.95),
+                GlobalColors.cardColor.withOpacity(0.9),
               ],
             ),
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -146,7 +148,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                       width: 60,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
+                        color: GlobalColors.bleuTurquoise.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
@@ -157,7 +159,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -167,7 +169,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -177,11 +179,10 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: DropdownButtonFormField<String>(
-                      dropdownColor: primaryColor,
-                      style: GoogleFonts.robotoSlab(color: Colors.white),
+                      dropdownColor: GlobalColors.cardColor,
+                      style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                       decoration: InputDecoration(
-                        labelText: 'Ville',
-                        labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
+                        labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
@@ -200,7 +201,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -209,8 +210,8 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                     min: 500,
                     max: 10000,
                     divisions: 19,
-                    activeColor: accentColor,
-                    inactiveColor: secondaryColor.withOpacity(0.2),
+                    activeColor: GlobalColors.bleuTurquoise,
+                    inactiveColor: GlobalColors.bleuTurquoise.withOpacity(0.2),
                     label: '${(selectedTarifMax ?? 5000).round()} DA',
                     onChanged: (value) {
                       print("Nouvelle valeur du slider: $value");
@@ -226,7 +227,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: accentColor,
+                      backgroundColor: GlobalColors.bleuTurquoise,
                       padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -253,7 +254,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                     child: Text(
                       'Réinitialiser les filtres',
                       style: GoogleFonts.robotoSlab(
-                        color: Colors.white,
+                        color: GlobalColors.bleuTurquoise,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -366,11 +367,12 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
 
   Widget buildOffre(Offre offre) {
     return Card(
+      color: GlobalColors.cardColor,
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: offre.estRecommandee
-            ? BorderSide(color: accentColor, width: 2)
+            ? BorderSide(color: accentGoldColor, width: 2)
             : BorderSide.none,
       ),
       elevation: 4,
@@ -409,7 +411,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [accentColor, Colors.amber[700]!],
+                          colors: [accentGoldColor, Colors.amber[700]!],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),

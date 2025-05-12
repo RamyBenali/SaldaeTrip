@@ -27,16 +27,18 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
   final ScrollController _scrollController = ScrollController();
 
   // Couleurs thématiques pour les loisirs
-  final Color primaryColor = Color(0xFF6A4C93); // Violet profond
-  final Color secondaryColor = Color(0xFF8E6CBF); // Violet clair
-  final Color accentColor = Color(0xFF4FC3F7); // Bleu ciel
+  final Color primaryColor = GlobalColors.bleuTurquoise; // Violet profond
+  final Color secondaryColor = GlobalColors.bleuTurquoise; // Violet clair
+  final Color accentColor = GlobalColors.bleuTurquoise;
 
-  // Types de loisirs disponibles
+
   final List<String> typesLoisirs = [
     'Loisirs',
     'Point d\'intérêt',
     'Point d\'intérêt historique',
-    'Point d\'intérêt religieux'
+    'Point d\'intérêt religieux',
+    'randonnée',
+    'sortie'
   ];
 
   @override
@@ -52,10 +54,10 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
       final response = await supabase
           .from('offre')
           .select('''
-          idoffre, nom, adresse, categorie, tarifs, images,
+          idoffre, nom,description , adresse, categorie, tarifs, images,
           offre_recommandations (priorite)
         ''')
-          .or("categorie.eq.Loisirs,categorie.eq.Point dintérêt,categorie.eq.Point dintérêt historique,categorie.eq.Point dintérêt religieux")
+          .or("categorie.eq.Loisirs,categorie.eq.Point dintérêt,categorie.eq.Point dintérêt historique,categorie.eq.Point dintérêt religieux,categorie.eq.randonnée,categorie.eq.sortie")
           .order('offre_recommandations(priorite)', ascending: false);
 
       debugPrint('Réponse reçue: ${response.toString()}');
@@ -133,8 +135,8 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            primaryColor.withOpacity(0.95),
-            primaryColor.withOpacity(0.9),
+            GlobalColors.cardColor.withOpacity(0.9),
+            GlobalColors.cardColor.withOpacity(0.9),
           ],
         ),
         borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -154,7 +156,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                   width: 60,
                   height: 5,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
+                    color: GlobalColors.bleuTurquoise.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(5),
                   ),
                 ),
@@ -165,7 +167,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 style: GoogleFonts.robotoSlab(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: GlobalColors.bleuTurquoise,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -175,21 +177,20 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 style: GoogleFonts.robotoSlab(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: GlobalColors.bleuTurquoise,
                 ),
               ),
               SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: GlobalColors.accentColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
-                  dropdownColor: primaryColor,
-                  style: GoogleFonts.robotoSlab(color: Colors.white),
+                  dropdownColor: GlobalColors.cardColor,
+                  style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                   decoration: InputDecoration(
-                    labelText: 'Type',
-                    labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
+                    labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.bleuTurquoise),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
@@ -208,21 +209,20 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 style: GoogleFonts.robotoSlab(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white,
+                  color: GlobalColors.bleuTurquoise,
                 ),
               ),
               SizedBox(height: 8),
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: GlobalColors.accentColor.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonFormField<String>(
-                  dropdownColor: primaryColor,
-                  style: GoogleFonts.robotoSlab(color: Colors.white),
+                  dropdownColor: GlobalColors.cardColor,
+                  style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                   decoration: InputDecoration(
-                    labelText: 'Ville',
-                    labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
+                    labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.bleuTurquoise),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                   ),
@@ -271,7 +271,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 child: Text(
                   'Réinitialiser les filtres',
                   style: GoogleFonts.robotoSlab(
-                    color: Colors.white,
+                    color: GlobalColors.bleuTurquoise,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -412,6 +412,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
             child: Stack(
               children: [
                 Card(
+                  color: cardColor,
                   elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
@@ -468,11 +469,6 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                                         secondaryColor,
                                       ],
                                     ),
-                                  ),
-                                  child: Icon(
-                                    Icons.hotel,
-                                    color: Colors.white,
-                                    size: 50,
                                   ),
                                 );
                               },

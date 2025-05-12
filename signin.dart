@@ -213,7 +213,7 @@ class _SigninScreenState extends State<SigninScreen> {
                                   labelStyle: GoogleFonts.robotoSlab(color: _isEmailValid ? Colors.black : Colors.red),
                                   focusedBorder: OutlineInputBorder(
                                     borderSide: BorderSide(
-                                      color: _isEmailValid ? Colors.blue : Colors.red,
+                                      color: _isEmailValid ?  GlobalColors.bleuTurquoise : Colors.red,
                                       width: 2,
                                     ),
                                   ),

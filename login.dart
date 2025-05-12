@@ -56,47 +56,64 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _resetPassword() async {
-  final email = _emailController.text.trim();
-  if (email.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Veuillez entrer votre adresse e-mail.")),
-    );
-    return;
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Veuillez entrer votre adresse e-mail.")),
+      );
+      return;
+    }
+
+    try {
+      setState(() => _isLoading = true);
+
+      // Vérifier si l'email existe dans la table des personnes
+      final response = await _supabase
+          .from('personne') // Remplacez 'personne' par le nom de votre table
+          .select()
+          .eq('email', email)
+          .maybeSingle();
+
+      if (response == null) {
+        // L'email n'existe pas dans la table
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Cet email n'est associé à aucun compte."),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+
+      await DatabaseService().resetPassword(email);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Un OTP a été envoyé à $email. Vérifiez votre boîte de réception."),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ManualResetScreen(email: email),
+        ),
+      );
+
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Erreur lors de la vérification: ${e.toString()}"),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
-
-  try {
-    setState(() => _isLoading = true); 
-    
-    await DatabaseService().resetPassword(email);
-
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Un OTP a été envoyé à $email. Vérifiez votre boîte de réception."),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 3),
-      ),
-    );
-
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ManualResetScreen(email: email),
-      ),
-    );
-
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Erreur lors de l'envoi du lien: ${e.toString()}"),
-        backgroundColor: Colors.red,
-      ),
-    );
-  } finally {
-    if (mounted) setState(() => _isLoading = false); 
-  }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -176,7 +193,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderSide: BorderSide(
                                   color:
                                       !_isFalseConnect
-                                          ? Colors.blue
+                                          ? GlobalColors.bleuTurquoise
                                           : Colors.red,
                                   width: 2,
                                 ),
@@ -212,7 +229,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderSide: BorderSide(
                                   color:
                                   !_isFalseConnect
-                                      ? Colors.blue
+                                      ? GlobalColors.bleuTurquoise
                                       : Colors.red,
                                   width: 2,
                                 ),
@@ -249,15 +266,25 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _isResetPasswordMode = true;
                                   });
                                 },
-                                child: Text(
-                                  'Mot de passe oublié ?',
-                                  style: GoogleFonts.robotoSlab(
-                                    color: Colors.black,
-                                    fontSize: 15,
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: GoogleFonts.robotoSlab(
+                                      fontSize: 15,
+                                      color: Colors.black,
+                                    ),
+                                    children: [
+                                      TextSpan(text: 'Mot de passe '),
+                                      TextSpan(
+                                        text: 'oublié',
+                                        style: TextStyle(color: GlobalColors.bleuTurquoise),
+                                      ),
+                                      TextSpan(text: ' ?'),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
+
                           ],
                           const SizedBox(height: 20),
                           ElevatedButton(
@@ -293,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: Text(
                                   'Retour à la connexion',
                                   style: GoogleFonts.robotoSlab(
-                                    color: Color(0xFF0D8BFF),
+                                    color: GlobalColors.bleuTurquoise,
                                     fontSize: 16,
                                   ),
                                 ),

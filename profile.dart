@@ -901,6 +901,7 @@ class _ProfilePageState extends State<ProfilePage> {
           CustomScrollView(
             slivers: [
               SliverAppBar(
+                backgroundColor: GlobalColors.bleuTurquoise,
                 automaticallyImplyLeading: false,
                 expandedHeight: 200.0,
                 flexibleSpace: FlexibleSpaceBar(
@@ -944,7 +945,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(height: 100),
+                        SizedBox(height: 40),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [

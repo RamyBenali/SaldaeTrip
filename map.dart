@@ -407,15 +407,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         return FontAwesomeIcons.bagShopping;
       case 'centre commercial':
         return FontAwesomeIcons.shop;
-      case 'hôpital':
-      case 'hospital':
+      case 'hopital':
         return FontAwesomeIcons.hospital;
       case 'pharmacie':
         return FontAwesomeIcons.pills;
       case 'gare':
         return FontAwesomeIcons.train;
-      case 'aéroport':
+      case 'aeroport':
         return FontAwesomeIcons.plane;
+      case 'randonnée':
+        return FontAwesomeIcons.personHiking;
       default:
         return FontAwesomeIcons.locationDot;
     }

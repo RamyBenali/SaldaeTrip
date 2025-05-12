@@ -24,9 +24,11 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
   double? selectedTarifMax;
   final ScrollController _scrollController = ScrollController();
 
-  final Color primaryColor = Color(0xFF4169E1); // Bleu profond
-  final Color secondaryColor = Color(0xFF4169E1); // Bleu clair
-  final Color accentColor = Color(0xFFE1AF5A); // Or
+  final Color primaryColor = GlobalColors.bleuTurquoise; // Bleu profond
+  final Color secondaryColor = GlobalColors.bleuTurquoise; // Bleu clair
+  final Color accentColor = GlobalColors.bleuTurquoise;
+  final Color accentGoldColor = Color(0xFFE1AF5A); // Or
+// Or
 
   @override
   void initState() {
@@ -41,7 +43,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
       final response = await supabase
           .from('offre')
           .select('''
-          idoffre, nom, adresse, categorie, tarifs, images,
+          idoffre, nom, adresse,description , categorie, tarifs, images,
           offre_recommandations (priorite)
         ''')
           .eq('categorie', 'Hôtel')
@@ -124,8 +126,8 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                primaryColor.withOpacity(0.95),
-                primaryColor.withOpacity(0.9),
+                GlobalColors.cardColor.withOpacity(0.95),
+                GlobalColors.cardColor.withOpacity(0.9),
               ],
             ),
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -145,7 +147,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                       width: 60,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
+                        color: GlobalColors.bleuTurquoise.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
@@ -156,7 +158,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -166,7 +168,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -176,11 +178,10 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: DropdownButtonFormField<String>(
-                      dropdownColor: primaryColor,
-                      style: GoogleFonts.robotoSlab(color: Colors.white),
+                      dropdownColor: GlobalColors.cardColor,
+                      style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                       decoration: InputDecoration(
-                        labelText: 'Ville',
-                        labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
+                        labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
@@ -199,7 +200,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -208,8 +209,8 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     min: 500,
                     max: 10000,
                     divisions: 19,
-                    activeColor: accentColor,
-                    inactiveColor: secondaryColor.withOpacity(0.2),
+                    activeColor: GlobalColors.bleuTurquoise,
+                    inactiveColor: GlobalColors.bleuTurquoise.withOpacity(0.2),
                     label: '${(selectedTarifMax ?? 5000).round()} DA',
                     onChanged: (value) {
                       print("Nouvelle valeur du slider: $value");
@@ -225,7 +226,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: accentColor,
+                      backgroundColor: GlobalColors.bleuTurquoise,
                       padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -252,7 +253,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                     child: Text(
                       'Réinitialiser les filtres',
                       style: GoogleFonts.robotoSlab(
-                        color: Colors.white,
+                        color: GlobalColors.bleuTurquoise,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -365,11 +366,12 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
 
   Widget _buildOffreCard(Offre offre) {
     return Card(
+      color: GlobalColors.cardColor,
       margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: offre.estRecommandee
-            ? BorderSide(color: accentColor, width: 2)
+            ? BorderSide(color: accentGoldColor, width: 2)
             : BorderSide.none,
       ),
       elevation: 4,
@@ -408,7 +410,7 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [accentColor, Colors.amber[700]!],
+                          colors: [accentGoldColor, Colors.amber[700]!],
                         ),
                         borderRadius: BorderRadius.circular(12),
                       ),

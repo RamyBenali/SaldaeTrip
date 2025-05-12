@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:math';
+import 'GlovalColors.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.blue,
+          seedColor: GlobalColors.bleuTurquoise,
           brightness: Brightness.light,
           secondary: Colors.white,
         ),
@@ -208,12 +209,14 @@ class _ChatBotScreenState extends State<ChatBotScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Saldae Trip Agent", style: GoogleFonts.notoSans()),
+        title: Text("Saldae Trip Agent", style: GoogleFonts.robotoSlab(
+          textStyle: TextStyle(color: Colors.white),
+        )),
         centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [colors.primary, colors.secondary],
+              colors: [GlobalColors.bleuTurquoise, GlobalColors.bleuTurquoise],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -226,7 +229,7 @@ class _ChatBotScreenState extends State<ChatBotScreen>
                 (ctx, child) => Transform.rotate(
                   angle: _animation.value * 2 * pi,
                   child: IconButton(
-                    icon: const Icon(Icons.travel_explore),
+                    icon: const Icon(Icons.travel_explore, color: Colors.white,),
                     onPressed: () {},
                   ),
                 ),

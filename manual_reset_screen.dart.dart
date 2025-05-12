@@ -89,35 +89,20 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
 
       // Step 2: If OTP is valid, update password
       if (authResponse.session != null) {
-        // Update password first
+        // Update password
         await client.auth.updateUser(UserAttributes(password: newPassword));
 
         // Show success message
         _showSnack('✅ Mot de passe réinitialisé avec succès');
 
-        // Optional: Sign out to clear the session
+        // Sign out to clear the session
         await client.auth.signOut();
 
-        // Navigate after successful password update
+        // Navigate to login screen immediately
         if (mounted) {
-          // Small delay to allow snackbar to be visible
-          await Future.delayed(const Duration(milliseconds: 500));
-
           Navigator.of(context).pushAndRemoveUntil(
-            PageRouteBuilder(
-              pageBuilder:
-                  (context, animation, secondaryAnimation) => LoginScreen(),
-              transitionsBuilder: (
-                context,
-                animation,
-                secondaryAnimation,
-                child,
-              ) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              transitionDuration: Duration(milliseconds: 300),
-            ),
-            (route) => false,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+                (Route<dynamic> route) => false,
           );
         }
       } else {

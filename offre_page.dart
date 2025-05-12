@@ -46,7 +46,7 @@ class _OffresPageState extends State<OffresPage> {
       final response = await supabase
           .from('offre')
           .select('''
-          idoffre, nom, adresse, categorie, tarifs, images,
+          idoffre, nom,description , adresse, categorie, tarifs, images,
           offre_recommandations (priorite)
         ''')
           .order('offre_recommandations(priorite)', ascending: false);

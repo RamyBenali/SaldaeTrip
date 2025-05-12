@@ -342,7 +342,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               child: Container(
                 padding: EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: GlobalColors.blueColor,
+                  color: GlobalColors.bleuTurquoise,
                   shape: BoxShape.circle,
                   border: Border.all(color: GlobalColors.cardColor, width: 2),
                 ),
@@ -562,14 +562,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
       appBar: AppBar(
         title: Text(
           "Modifier le profil",
-          style: GoogleFonts.poppins(
-            textStyle: GoogleFonts.robotoSlab(
+          style: GoogleFonts.robotoSlab(
+            textStyle: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.white,
             ),
           ),
         ),
-        backgroundColor: GlobalColors.blueColor,
+        backgroundColor: GlobalColors.bleuTurquoise,
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         actions: [
@@ -825,7 +825,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           onPressed: _isSaving ? null : _saveProfile,
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.symmetric(vertical: 16),
-                            backgroundColor: GlobalColors.blueColor,
+                            backgroundColor: GlobalColors.bleuTurquoise,
                             disabledBackgroundColor: GlobalColors.accentColor
                                 .withOpacity(0.2),
                             shape: RoundedRectangleBorder(
@@ -845,8 +845,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                   )
                                   : Text(
                                     "ENREGISTRER LES MODIFICATIONS",
-                                    style: GoogleFonts.poppins(
-                                      textStyle: GoogleFonts.robotoSlab(
+                                    style: GoogleFonts.robotoSlab(
+                                      textStyle: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -859,9 +859,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         onPressed: () => Navigator.pop(context),
                         child: Text(
                           "Annuler",
-                          style: GoogleFonts.poppins(
-                            textStyle: GoogleFonts.robotoSlab(
-                              color: GlobalColors.blueColor,
+                          style: GoogleFonts.robotoSlab(
+                            textStyle: TextStyle(
+                              color: GlobalColors.bleuTurquoise,
                               fontWeight: FontWeight.w500,
                             ),
                           ),

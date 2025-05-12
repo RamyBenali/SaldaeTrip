@@ -339,8 +339,8 @@ class _HomePageState extends State<HomePage> {
                               child: isLoading
                                   ? Center(child: Lottie.network(
                                 'https://lottie.host/6c851f73-e73d-4900-aa25-9cd5b7133718/EtOGuILcn8.json',
-                                width: 150,
-                                height: 150,
+                                width: 80,
+                                height: 80,
                               ))
                                   : Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

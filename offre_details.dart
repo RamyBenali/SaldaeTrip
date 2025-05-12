@@ -1176,7 +1176,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                     },
                     child: Text(
                       isExpanded ? 'Masquer les réponses' : 'Voir les réponses (${reponses.length})',
-                      style: const TextStyle(color: Colors.blue),
+                      style: TextStyle(color: GlobalColors.bleuTurquoise),
                     ),
                   ),
               ],

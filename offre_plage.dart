@@ -47,7 +47,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
       final response = await supabase
           .from('offre')
           .select('''
-          idoffre, nom, adresse, categorie, tarifs, images,
+          idoffre, nom,description , adresse, categorie, tarifs, images,
           offre_recommandations (priorite)
         ''')
           .eq('categorie', 'Plage')
@@ -130,8 +130,8 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                primaryColor.withOpacity(0.95),
-                primaryColor.withOpacity(0.9),
+                GlobalColors.cardColor.withOpacity(0.9),
+                GlobalColors.cardColor.withOpacity(0.9),
               ],
             ),
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
@@ -151,7 +151,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                       width: 60,
                       height: 5,
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.5),
+                        color: GlobalColors.bleuTurquoise.withOpacity(0.5),
                         borderRadius: BorderRadius.circular(5),
                       ),
                     ),
@@ -162,7 +162,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -172,21 +172,20 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                   ),
                   SizedBox(height: 8),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: GlobalColors.accentColor.withOpacity(0.5),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: DropdownButtonFormField<String>(
-                      dropdownColor: primaryColor,
-                      style: GoogleFonts.robotoSlab(color: Colors.white),
+                      dropdownColor: GlobalColors.cardColor,
+                      style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                       decoration: InputDecoration(
-                        labelText: 'Ville',
-                        labelStyle: GoogleFonts.robotoSlab(color: Colors.white70),
+                        labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
                         border: InputBorder.none,
                         contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
@@ -205,7 +204,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     style: GoogleFonts.robotoSlab(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: GlobalColors.bleuTurquoise,
                     ),
                   ),
                   SizedBox(height: 8),
@@ -214,7 +213,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     min: 500,
                     max: 10000,
                     divisions: 19,
-                    activeColor: accentColor,
+                    activeColor: GlobalColors.bleuTurquoise,
                     inactiveColor: secondaryColor.withOpacity(0.2),
                     label: '${(selectedTarifMax ?? 5000).round()} DA',
                     onChanged: (value) {
@@ -231,7 +230,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                       Navigator.pop(context);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: accentColor,
+                      backgroundColor: GlobalColors.bleuTurquoise,
                       padding: EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -258,7 +257,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     child: Text(
                       'Réinitialiser les filtres',
                       style: GoogleFonts.robotoSlab(
-                        color: Colors.white,
+                        color: GlobalColors.bleuTurquoise,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -450,30 +449,6 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                                   colors: [
                                     Colors.black.withOpacity(0.5),
                                     Colors.transparent,
-                                  ],
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 10,
-                              left: 10,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.6),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.hotel, size: 16, color: Colors.white),
-                                    SizedBox(width: 4),
-                                    Text(
-                                      offre.categorie,
-                                      style: GoogleFonts.robotoSlab(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
