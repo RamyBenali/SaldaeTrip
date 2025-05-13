@@ -753,18 +753,16 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
   Widget _construireMarqueursLieux() {
     return MarkerLayer(
-      markers: _lieuxFiltres.map((lieu) {
-        return Marker(
-          point: LatLng(lieu.latitude, lieu.longitude),
-          width: 80.0, // Augmenter la largeur si nécessaire
-          height: 80.0, // Augmenter la hauteur si nécessaire
-          child: GestureDetector(
-            onTap: () => _afficherDetailsLieu(lieu),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Conteneur pour l'icône
-                Container(
+      markers:
+          _lieuxFiltres.map((lieu) {
+            return Marker(
+              point: LatLng(lieu.latitude, lieu.longitude),
+              width: 50.0,
+              height: 50.0,
+              child: GestureDetector(
+                onTap: () => _afficherDetailsLieu(lieu),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
                   padding: const EdgeInsets.all(8.0),
                   decoration: BoxDecoration(
                     color: Colors.white.withOpacity(0.9),
@@ -832,33 +830,9 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                     ],
                   ),
                 ),
-                // Ajout du nom avec contraintes
-                const SizedBox(height: 4),
-                Container(
-                  constraints: BoxConstraints(
-                    maxWidth: 100, // Largeur maximale pour le texte
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    lieu.nom,
-                    style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    maxLines: 2, // Limite à 2 lignes
-                    overflow: TextOverflow.ellipsis, // Points de suspension si trop long
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+              ),
+            );
+          }).toList(),
     );
   }
 
