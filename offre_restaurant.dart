@@ -524,7 +524,7 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
 
       final matchesTarif = selectedTarifMax == null ||
           offre.tarifs.isEmpty ||
-          _extractFirstNumber(offre.tarifs)! <= selectedTarifMax!;
+          _extractMinPrice(offre.tarifs) <= selectedTarifMax!;
 
       return matchesSearch && matchesVille && matchesTarif;
     }).toList();
@@ -627,6 +627,45 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
     } catch (e) {
       debugPrint("Erreur d'extraction du tarif: $e");
       return 0.0;
+    }
+  }
+  double _extractMinPrice(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return 0.0;
+
+      // Supprime tous les caractères non numériques sauf les points et tirets
+      final cleaned = tarifs.replaceAll(RegExp(r'[^0-9\-.]'), '');
+
+      // Trouve tous les nombres dans la chaîne
+      final matches = RegExp(r'(\d+)').allMatches(cleaned);
+      if (matches.isEmpty) return 0.0;
+
+      // Convertit tous les nombres trouvés
+      final prices = matches.map((m) => double.tryParse(m.group(0)!) ?? 0.0).toList();
+
+      // Retourne le prix minimum trouvé (pour les fourchettes)
+      return prices.reduce((min, current) => current < min ? current : min);
+    } catch (e) {
+      print("Erreur d'extraction du prix min: $e");
+      return 0.0;
+    }
+  }
+
+  double _extractMaxPrice(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return double.infinity;
+
+      final cleaned = tarifs.replaceAll(RegExp(r'[^0-9\-.]'), '');
+      final matches = RegExp(r'(\d+)').allMatches(cleaned);
+      if (matches.isEmpty) return double.infinity;
+
+      final prices = matches.map((m) => double.tryParse(m.group(0)!) ?? 0.0).toList();
+
+      // Retourne le prix maximum trouvé (pour les fourchettes)
+      return prices.reduce((max, current) => current > max ? current : max);
+    } catch (e) {
+      print("Erreur d'extraction du prix max: $e");
+      return double.infinity;
     }
   }
 }

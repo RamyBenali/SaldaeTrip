@@ -24,6 +24,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
   double? selectedTarifMax;
   final ScrollController _scrollController = ScrollController();
   bool isFree = true;
+  bool showFreeOnly = false;
 
   final Color primaryColor = Color(0xFF1E88E5);  // Bleu vif (océan)
   final Color secondaryColor = Color(0xFF4FC3F7); // Bleu clair (vagues)
@@ -208,18 +209,21 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  Slider(
-                    value: selectedTarifMax ?? 5000,
-                    min: 500,
-                    max: 10000,
-                    divisions: 19,
+                  // Dans buildFilterSheet(), remplacez la section du slider par :
+                  SwitchListTile(
+                    title: Text(
+                      'Afficher seulement les plages gratuites',
+                      style: GoogleFonts.robotoSlab(
+                        color: GlobalColors.bleuTurquoise,
+                        fontSize: 16,
+                      ),
+                    ),
+                    value: showFreeOnly,
                     activeColor: GlobalColors.bleuTurquoise,
-                    inactiveColor: secondaryColor.withOpacity(0.2),
-                    label: '${(selectedTarifMax ?? 5000).round()} DA',
+                    inactiveTrackColor: Colors.grey[300],
                     onChanged: (value) {
-                      print("Nouvelle valeur du slider: $value");
                       setModalState(() {
-                        selectedTarifMax = value;
+                        showFreeOnly = value;
                       });
                     },
                   ),
@@ -251,7 +255,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                     onPressed: () {
                       setModalState(() {
                         selectedVille = null;
-                        selectedTarifMax = null;
+                        showFreeOnly = false;
                       });
                     },
                     child: Text(
@@ -335,7 +339,7 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
             ],
           ),
           SizedBox(height: 10),
-          if (selectedVille != null || selectedTarifMax != null)
+          if (selectedVille != null || showFreeOnly)
             Wrap(
               spacing: 8,
               children: [
@@ -350,14 +354,14 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
                       });
                     },
                   ),
-                if (selectedTarifMax != null)
+                if (showFreeOnly)
                   Chip(
-                    label: Text('Max: ${selectedTarifMax!.toInt()} DA'),
+                    label: Text('Gratuites seulement'),
                     backgroundColor: Colors.white,
                     deleteIcon: Icon(Icons.close, size: 16, color: primaryColor),
                     onDeleted: () {
                       setState(() {
-                        selectedTarifMax = null;
+                        showFreeOnly = false;
                       });
                     },
                   ),
@@ -623,11 +627,11 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
       final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
 
-      final matchesTarif = selectedTarifMax == null ||
+      final matchesPriceFilter = !showFreeOnly ||
           offre.tarifs.isEmpty ||
-          _extractFirstNumber(offre.tarifs)! <= selectedTarifMax!;
+          _isFree(offre.tarifs);
 
-      return matchesSearch && matchesVille && matchesTarif;
+      return matchesSearch && matchesVille && matchesPriceFilter;
     }).toList();
 
     return Scaffold(
@@ -720,6 +724,9 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
     try {
       if (tarifs.isEmpty) return 0.0;
 
+      // Vérifie d'abord si c'est gratuit
+      if (tarifs.toLowerCase().contains('gratuit')) return 0.0;
+
       final match = RegExp(r'(\d+)').firstMatch(tarifs);
       if (match == null || match.group(0) == null) return 0.0;
 
@@ -729,5 +736,10 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
       debugPrint("Erreur d'extraction du tarif: $e");
       return 0.0;
     }
+  }
+  bool _isFree(String tarifs) {
+    if (tarifs.isEmpty) return true;
+    return tarifs.toLowerCase().contains('gratuit') ||
+        _extractFirstNumber(tarifs) == 0;
   }
 }

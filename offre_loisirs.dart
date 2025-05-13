@@ -25,6 +25,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
   double? selectedTarifMax;
   String? selectedType;
   final ScrollController _scrollController = ScrollController();
+  bool showFreeOnly = false;
 
   // Couleurs thématiques pour les loisirs
   final Color primaryColor = GlobalColors.bleuTurquoise; // Violet profond
@@ -151,6 +152,7 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+
               Center(
                 child: Container(
                   width: 60,
@@ -238,8 +240,8 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
               SizedBox(height: 30),
               ElevatedButton(
                 onPressed: () {
-                  setState(() {});
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Fermez le bottom sheet
+                  setState(() {}); // Rafraîchissez l'état principal
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: accentColor,
@@ -263,10 +265,8 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                 onPressed: () {
                   setState(() {
                     selectedVille = null;
-                    selectedTarifMax = null;
-                    selectedType = null;
+                    showFreeOnly = false;
                   });
-                  Navigator.pop(context);
                 },
                 child: Text(
                   'Réinitialiser les filtres',
@@ -373,14 +373,14 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
                       });
                     },
                   ),
-                if (selectedTarifMax != null)
+                if (showFreeOnly)
                   Chip(
-                    label: Text('Max: ${selectedTarifMax!.toInt()} DA'),
+                    label: Text('Gratuites seulement'),
                     backgroundColor: Colors.white,
                     deleteIcon: Icon(Icons.close, size: 16, color: primaryColor),
                     onDeleted: () {
                       setState(() {
-                        selectedTarifMax = null;
+                        showFreeOnly = false;
                       });
                     },
                   ),
@@ -672,12 +672,12 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
       final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
 
-      final matchesTarif = selectedTarifMax == null ||
+      final matchesPriceFilter = !showFreeOnly ||
           offre.tarifs.isEmpty ||
-          _extractFirstNumber(offre.tarifs) <= selectedTarifMax!;
+          _isFree(offre.tarifs);
       final matchType = selectedType == null ||
           offre.categorie.toLowerCase() == selectedType!.toLowerCase();
-      return matchesSearch && matchesVille && matchesTarif;
+      return matchesSearch && matchesVille && matchesPriceFilter;
     }).toList();
 
     return Scaffold(
@@ -770,6 +770,9 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
     try {
       if (tarifs.isEmpty) return 0.0;
 
+      // Vérifie d'abord si c'est gratuit
+      if (tarifs.toLowerCase().contains('gratuit')) return 0.0;
+
       final match = RegExp(r'(\d+)').firstMatch(tarifs);
       if (match == null || match.group(0) == null) return 0.0;
 
@@ -779,5 +782,10 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
       debugPrint("Erreur d'extraction du tarif: $e");
       return 0.0;
     }
+  }
+  bool _isFree(String tarifs) {
+    if (tarifs.isEmpty) return true;
+    return tarifs.toLowerCase().contains('gratuit') ||
+        _extractFirstNumber(tarifs) == 0;
   }
 }

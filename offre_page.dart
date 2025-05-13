@@ -32,6 +32,13 @@ class _OffresPageState extends State<OffresPage> {
     'Plage': GlobalColors.bleuTurquoise,
     'Point d\'intérêt': Color(0xFF4CAF50),
   };
+  final List<String> categories = [
+    'Hôtel',
+    'Restaurant',
+    'Loisirs',
+    'Plage',
+    'Point d\'intérêt'
+  ];
 
   @override
   void initState() {
@@ -155,7 +162,14 @@ class _OffresPageState extends State<OffresPage> {
             ),
             child: IconButton(
               icon: Icon(Icons.filter_list, color: Colors.white, size: 22),
-              onPressed: _showFilterSheet,
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  builder: (context) => _buildFilterSheet(context),
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                );
+              },
             ),
           ),
         ],
@@ -163,148 +177,211 @@ class _OffresPageState extends State<OffresPage> {
     );
   }
 
-  void _showFilterSheet() {
-    bool isDarkMode = GlobalColors.isDarkMode;
-    final List<String> villes = ['Béjaïa', 'Melbou', 'Tichy', 'Akbou'];
+  Widget _buildFilterSheet(BuildContext context) {
+    List<String> villes = [
+      'Béjaïa',
+      'Béjaïa centre',
+      'Melbou',
+      'Tichy',
+      'Elkseur',
+      'Akbou'
+    ];
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Container(
-              decoration: BoxDecoration(
-                color: primaryBackColor,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
-              ),
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 50,
-                          height: 4,
-                          margin: EdgeInsets.only(bottom: 16),
-                          decoration: BoxDecoration(
-                            color: isDarkMode ? accentGlobalColor : Colors.grey[300],
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter setModalState) {
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                GlobalColors.cardColor.withOpacity(0.9),
+                GlobalColors.cardColor.withOpacity(0.9),
+              ],
+            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 60,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: GlobalColors.bleuTurquoise.withOpacity(0.5),
+                        borderRadius: BorderRadius.circular(5),
                       ),
-                      Text(
-                        'Filtrer les offres',
-                        style: GoogleFonts.robotoSlab(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: isDarkMode ? accentGlobalColor : GlobalColors.bleuTurquoise,
-                        ),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Filtrer les restaurants',
+                    style: GoogleFonts.robotoSlab(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: GlobalColors.bleuTurquoise,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'Localisation',
+                    style: GoogleFonts.robotoSlab(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: GlobalColors.bleuTurquoise,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: GlobalColors.accentColor.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      dropdownColor: GlobalColors.cardColor,
+                      style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
+                      decoration: InputDecoration(
+                        labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      SizedBox(height: 20),
-                      _buildFilterField(
-                        label: 'Catégorie',
-                        value: selectedCategorie,
-                        items: categoryColors.keys.toList(),
-                        onChanged: (value) => setModalState(() => selectedCategorie = value),
-                        icon: (cat) => Container(
-                          width: 12,
-                          height: 12,
-                          margin: EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            color: categoryColors[cat],
-                            shape: BoxShape.circle,
-                          ),
-                        ),
+                      items: villes.map((v) {
+                        return DropdownMenuItem(
+                          value: v,
+                          child: Text(v, style: GoogleFonts.robotoSlab(fontSize: 14)),
+                        );
+                      }).toList(),
+                      onChanged: (value) => setModalState(() => selectedVille = value),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Catégorie',
+                    style: GoogleFonts.robotoSlab(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: GlobalColors.bleuTurquoise,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: GlobalColors.accentColor.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      dropdownColor: GlobalColors.cardColor,
+                      style: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
+                      decoration: InputDecoration(
+                        labelStyle: GoogleFonts.robotoSlab(color: GlobalColors.secondaryColor),
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16),
                       ),
-                      SizedBox(height: 16),
-                      _buildFilterField(
-                        label: 'Ville',
-                        value: selectedVille,
-                        items: villes,
-                        onChanged: (value) => setModalState(() => selectedVille = value),
-                      ),
-                      SizedBox(height: 16),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Tarif maximum: ${selectedTarifMax?.round() ?? 0} DA',
-                              style: GoogleFonts.robotoSlab(
-                                fontSize: 16,
-                                color: isDarkMode ? accentGlobalColor : Colors.grey[800],
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Slider(
-                              value: selectedTarifMax ?? 5000,
-                              min: 0,
-                              max: 10000,
-                              divisions: 20,
-                              activeColor: GlobalColors.bleuTurquoise,
-                              inactiveColor: Colors.blue[100],
-                              label: '${selectedTarifMax?.round() ?? 0} DA',
-                              onChanged: (value) {
-                                setModalState(() {
-                                  selectedTarifMax = value;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 25),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextButton(
-                              onPressed: () {
-                                setState(() {
-                                  selectedCategorie = null;
-                                  selectedVille = null;
-                                  selectedTarifMax = null;
-                                });
-                                Navigator.pop(context);
-                              },
-                              child: Text('Réinitialiser', style: GoogleFonts.robotoSlab(color: isDarkMode ? textColor : GlobalColors.bleuTurquoise)),
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isDarkMode ? GlobalColors.bleuTurquoise : GlobalColors.bleuTurquoise,
-                                padding: EdgeInsets.symmetric(vertical: 14),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                      value: selectedCategorie,
+                      items: categories.map((categorie) {
+                        return DropdownMenuItem(
+                          value: categorie,
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: categoryColors[categorie],
+                                  shape: BoxShape.circle,
                                 ),
                               ),
-                              child: Text('Appliquer', style: GoogleFonts.robotoSlab(color: isDarkMode ? Colors.white : Colors.white)),
-                            ),
+                              SizedBox(width: 8),
+                              Text(categorie, style: GoogleFonts.robotoSlab(fontSize: 14)),
+                            ],
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 10),
-                    ],
+                        );
+                      }).toList(),
+                      onChanged: (value) => setModalState(() => selectedCategorie = value),
+                    ),
                   ),
-                ),
+                  SizedBox(height: 20),
+                  Text(
+                    'Budget maximum',
+                    style: GoogleFonts.robotoSlab(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: GlobalColors.bleuTurquoise,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Slider(
+                    value: selectedTarifMax ?? 5000,
+                    min: 500,
+                    max: 10000,
+                    divisions: 19,
+                    activeColor: GlobalColors.bleuTurquoise,
+                    inactiveColor: GlobalColors.secondaryColor.withOpacity(0.2),
+                    label: '${(selectedTarifMax ?? 5000).round()} DA',
+                    onChanged: (value) {
+                      print("Nouvelle valeur du slider: $value");
+                      setModalState(() {
+                        selectedTarifMax = value;
+                      });
+                    },
+                  ),
+                  SizedBox(height: 30),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {}); // Met à jour l'écran parent
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: GlobalColors.bleuTurquoise,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 4,
+                    ),
+                    child: Text(
+                      'Appliquer les filtres',
+                      style: GoogleFonts.robotoSlab(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10),
+                  TextButton(
+                    onPressed: () {
+                      setModalState(() {
+                        selectedVille = null;
+                        selectedCategorie = null;
+                        selectedTarifMax = null;
+                      });
+                    },
+                    child: Text(
+                      'Réinitialiser les filtres',
+                      style: GoogleFonts.robotoSlab(
+                        color: GlobalColors.bleuTurquoise,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            );
-          },
+            ),
+          ),
         );
       },
     );
   }
-
   Widget _buildFilterField({
     required String label,
     required String? value,
@@ -591,19 +668,15 @@ class _OffresPageState extends State<OffresPage> {
     // Triez les offres
     final sortedOffres = [...offres]
       ..sort((a, b) {
-        // D'abord par recommandation
         if (a.estRecommandee != b.estRecommandee) {
           return b.estRecommandee ? 1 : -1;
         }
-        // Ensuite par priorité si les deux sont recommandées
         if (a.estRecommandee && b.estRecommandee) {
           return b.prioriteRecommandation.compareTo(a.prioriteRecommandation);
         }
-        // Enfin par nom
         return a.nom.compareTo(b.nom);
       });
 
-    // Appliquez les filtres
     final filteredOffres = sortedOffres.where((offre) {
       final matchesSearch = searchQuery.isEmpty ||
           offre.nom.toLowerCase().contains(searchQuery.toLowerCase()) ||
@@ -612,14 +685,14 @@ class _OffresPageState extends State<OffresPage> {
       final matchesVille = selectedVille == null ||
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
 
-      final matchesCategory = selectedCategorie == null ||
+      final matchesCategorie = selectedCategorie == null ||
           offre.categorie.toLowerCase() == selectedCategorie!.toLowerCase();
 
       final matchesTarif = selectedTarifMax == null ||
           offre.tarifs.isEmpty ||
-          _extractFirstNumber(offre.tarifs) <= selectedTarifMax!;
+          _extractMinPrice(offre.tarifs) <= selectedTarifMax!;
 
-      return matchesSearch && matchesVille && matchesCategory && matchesTarif;
+      return matchesSearch && matchesVille && matchesCategorie && matchesTarif;
     }).toList();
 
     return Scaffold(
@@ -696,6 +769,46 @@ class _OffresPageState extends State<OffresPage> {
         ],
       ),
     );
+  }
+
+  double _extractMinPrice(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return 0.0;
+
+      // Supprime tous les caractères non numériques sauf les points et tirets
+      final cleaned = tarifs.replaceAll(RegExp(r'[^0-9\-.]'), '');
+
+      // Trouve tous les nombres dans la chaîne
+      final matches = RegExp(r'(\d+)').allMatches(cleaned);
+      if (matches.isEmpty) return 0.0;
+
+      // Convertit tous les nombres trouvés
+      final prices = matches.map((m) => double.tryParse(m.group(0)!) ?? 0.0).toList();
+
+      // Retourne le prix minimum trouvé (pour les fourchettes)
+      return prices.reduce((min, current) => current < min ? current : min);
+    } catch (e) {
+      print("Erreur d'extraction du prix min: $e");
+      return 0.0;
+    }
+  }
+
+  double _extractMaxPrice(String tarifs) {
+    try {
+      if (tarifs.isEmpty) return double.infinity;
+
+      final cleaned = tarifs.replaceAll(RegExp(r'[^0-9\-.]'), '');
+      final matches = RegExp(r'(\d+)').allMatches(cleaned);
+      if (matches.isEmpty) return double.infinity;
+
+      final prices = matches.map((m) => double.tryParse(m.group(0)!) ?? 0.0).toList();
+
+      // Retourne le prix maximum trouvé (pour les fourchettes)
+      return prices.reduce((max, current) => current > max ? current : max);
+    } catch (e) {
+      print("Erreur d'extraction du prix max: $e");
+      return double.infinity;
+    }
   }
 
   double _extractFirstNumber(String tarifs) {
