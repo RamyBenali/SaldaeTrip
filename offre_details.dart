@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -964,8 +965,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     );
   }
 
-
-
   Widget _buildLocationButton() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 15),
@@ -984,19 +983,44 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MapScreen(
-                  positionInitiale: LatLng(
-                    widget.offre.latitude,
-                    widget.offre.longitude,
+          onTap: () async {
+            try {
+              final response = await supabase
+                  .from('offre')
+                  .select('latitude, longitude')
+                  .eq('idoffre', widget.offre.id)
+                  .single()
+                  .timeout(const Duration(seconds: 5));
+
+              final double? latitude = response['latitude']?.toDouble();
+              final double? longitude = response['longitude']?.toDouble();
+
+              if (latitude == null || longitude == null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Coordonnées non disponibles'),
+                    duration: Duration(seconds: 2),
                   ),
-                  titreMarqueur: widget.offre.nom,
+                );
+                return;
+              }
+
+              _navigateToMapScreen(latitude, longitude);
+            } on TimeoutException {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('La requête a pris trop de temps'),
+                  duration: Duration(seconds: 2),
                 ),
-              ),
-            );
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Erreur: ${e.toString()}'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
           },
           child: Center(
             child: Text(
@@ -1012,6 +1036,23 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
       ),
     );
   }
+
+  void _navigateToMapScreen(double latitude, double longitude) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MapScreen(
+          positionInitiale: LatLng(latitude, longitude),
+          titreMarqueur: widget.offre.nom,
+        ),
+      ),
+    );
+  }
+
+
+
+
+
 
   Widget _buildModernSection(BuildContext context, String title, Widget content) {
     return Column(
