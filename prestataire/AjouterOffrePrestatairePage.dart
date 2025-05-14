@@ -25,6 +25,8 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   final serviceController = TextEditingController();
   final etoilesController = TextEditingController();
   final user = Supabase.instance.client.auth.currentUser;
+  final latitudeController = TextEditingController();
+  final longitudeController = TextEditingController();
 
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFile;
@@ -102,6 +104,8 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
         'adresse': adresseController.text,
         'offre_insta': instaController.text,
         'offre_fb': fbController.text,
+        'latitude' : latitudeController.text,
+        'longitude' : longitudeController.text,
       }).select().single();
 
       final idOffre = insertResult['idoffre'];
@@ -410,6 +414,40 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
                 style: TextStyle(color: textColor),
                 decoration: InputDecoration(
                   labelText: 'Lien Facebook',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: latitudeController,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Latitude',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: longitudeController,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Longitude',
                   labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
                   filled: true,
                   fillColor: cardColor,
