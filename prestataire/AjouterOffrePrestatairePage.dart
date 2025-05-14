@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../GlovalColors.dart';
 
 class AjouterOffrePrestatairePage extends StatefulWidget {
   const AjouterOffrePrestatairePage({super.key});
@@ -25,7 +26,6 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   final etoilesController = TextEditingController();
   final user = Supabase.instance.client.auth.currentUser;
 
-
   final ImagePicker _picker = ImagePicker();
   XFile? _imageFile;
 
@@ -38,14 +38,15 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
     'Loisirs',
     'Point dintérêt',
     'Point dintérêt historique',
-    'Point dintérêt religieux'
+    'Point dintérêt religieux',
+    'randonnée',
+    'sortie'
   ];
 
   @override
   void initState() {
     super.initState();
   }
-
 
   Future<void> pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
@@ -78,7 +79,10 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
     if (!_formKey.currentState!.validate()) return;
     if (idPrestataire == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Identifiant du prestataire introuvable')),
+        SnackBar(
+          content: Text('Identifiant du prestataire introuvable'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
       return;
     }
@@ -121,13 +125,19 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Offre ajoutée avec succès')),
+        SnackBar(
+          content: Text('Offre ajoutée avec succès'),
+          backgroundColor: GlobalColors.bleuTurquoise,
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
       print('Erreur lors de l\'ajout : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'ajout de l\'offre')),
+        SnackBar(
+          content: Text('Erreur lors de l\'ajout de l\'offre: $e'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
 
@@ -135,10 +145,27 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
   }
 
   Widget buildCategorieSpecificFields() {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final secondaryTextColor = GlobalColors.isDarkMode ? Colors.white70 : Colors.black54;
+
     if (selectedCategorie == 'Restaurant') {
       return TextFormField(
         controller: typeController,
-        decoration: InputDecoration(labelText: 'Type du restaurant'),
+        style: TextStyle(color: textColor),
+        decoration: InputDecoration(
+          labelText: 'Type du restaurant',
+          labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+          filled: true,
+          fillColor: cardColor,
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: borderColor),
+          ),
+        ),
         validator: (value) => value!.isEmpty ? 'Champ requis' : null,
       );
     } else if (selectedCategorie == 'Hôtel') {
@@ -146,12 +173,37 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
         children: [
           TextFormField(
             controller: serviceController,
-            decoration: InputDecoration(labelText: 'Service de l\'hôtel'),
+            style: TextStyle(color: textColor),
+            decoration: InputDecoration(
+              labelText: 'Service de l\'hôtel',
+              labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+              filled: true,
+              fillColor: cardColor,
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: borderColor),
+              ),
+            ),
             validator: (value) => value!.isEmpty ? 'Champ requis' : null,
           ),
+          SizedBox(height: 16),
           TextFormField(
             controller: etoilesController,
-            decoration: InputDecoration(labelText: 'Nombre d\'étoiles'),
+            style: TextStyle(color: textColor),
+            decoration: InputDecoration(
+              labelText: 'Nombre d\'étoiles',
+              labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+              filled: true,
+              fillColor: cardColor,
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: borderColor),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: borderColor),
+              ),
+            ),
             keyboardType: TextInputType.number,
             validator: (value) => value!.isEmpty ? 'Champ requis' : null,
           ),
@@ -160,7 +212,19 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
     } else if (selectedCategorie != null) {
       return TextFormField(
         controller: typeController,
-        decoration: InputDecoration(labelText: 'Type d\'activité'),
+        style: TextStyle(color: textColor),
+        decoration: InputDecoration(
+          labelText: 'Type d\'activité',
+          labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+          filled: true,
+          fillColor: cardColor,
+          border: OutlineInputBorder(
+            borderSide: BorderSide(color: borderColor),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderSide: BorderSide(color: borderColor),
+          ),
+        ),
         validator: (value) => value!.isEmpty ? 'Champ requis' : null,
       );
     }
@@ -169,10 +233,21 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final secondaryTextColor = GlobalColors.isDarkMode ? Colors.white70 : Colors.black54;
+    final buttonColor = GlobalColors.bleuTurquoise;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Ajouter une Offre', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.green,
+        title: Text(
+          'Ajouter une Offre',
+          style: GoogleFonts.robotoSlab(color: Colors.white),
+        ),
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -182,23 +257,62 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
             children: [
               TextFormField(
                 controller: nomController,
-                decoration: InputDecoration(labelText: 'Nom'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Nom',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: imageController,
-                decoration: InputDecoration(labelText: 'Image (URL)'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Image (URL)',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 enabled: false,
               ),
+              SizedBox(height: 8),
               GestureDetector(
                 onTap: pickImage,
                 child: Container(
-                  color: Colors.green,
+                  color: buttonColor,
                   padding: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
                     _imageFile == null ? 'Choisir une image' : 'Image sélectionnée',
@@ -207,43 +321,120 @@ class _AjouterOffrePrestatairePageState extends State<AjouterOffrePrestatairePag
                   ),
                 ),
               ),
+              SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Catégorie'),
+                dropdownColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Catégorie',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 value: selectedCategorie,
                 items: categories.map((cat) {
-                  return DropdownMenuItem(value: cat, child: Text(cat));
+                  return DropdownMenuItem(
+                    value: cat,
+                    child: Text(cat, style: TextStyle(color: textColor)),
+                  );
                 }).toList(),
                 onChanged: (value) {
                   setState(() => selectedCategorie = value);
                 },
                 validator: (value) => value == null ? 'Choisir une catégorie' : null,
               ),
+              SizedBox(height: 16),
               buildCategorieSpecificFields(),
+              SizedBox(height: 16),
               TextFormField(
                 controller: tarifsController,
-                decoration: InputDecoration(labelText: 'Tarifs'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Tarifs',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: adresseController,
-                decoration: InputDecoration(labelText: 'Adresse'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Adresse',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: instaController,
-                decoration: InputDecoration(labelText: 'Lien Instagram'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Lien Instagram',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: fbController,
-                decoration: InputDecoration(labelText: 'Lien Facebook'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Lien Facebook',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: isLoading ? null : ajouterOffre,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
                 child: isLoading
                     ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Ajouter'),
-              )
+                    : Text(
+                  'Ajouter',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
             ],
           ),
         ),

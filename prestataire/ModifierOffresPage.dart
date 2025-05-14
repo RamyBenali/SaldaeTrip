@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/offre_model.dart';
+import '../GlovalColors.dart';
 
 class ModifierOffrePage extends StatefulWidget {
-  final Offre offre; // Reçoit l'offre à modifier
+  final Offre offre;
 
-  ModifierOffrePage({required this.offre});
+  const ModifierOffrePage({Key? key, required this.offre}) : super(key: key);
 
   @override
   _ModifierOffrePageState createState() => _ModifierOffrePageState();
@@ -21,14 +22,12 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
   late TextEditingController _adresseController;
   late TextEditingController _offreInstaController;
   late TextEditingController _offreFbController;
-  late String _imageUrl;
-  bool isLoading = false; // Variable pour gérer l'état de chargement
-
+  late TextEditingController _imageController;
+  bool isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // Initialiser les contrôleurs avec les valeurs actuelles de l'offre
     _nomController = TextEditingController(text: widget.offre.nom);
     _descriptionController = TextEditingController(text: widget.offre.description);
     _categorieController = TextEditingController(text: widget.offre.categorie);
@@ -36,7 +35,7 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
     _adresseController = TextEditingController(text: widget.offre.adresse);
     _offreInstaController = TextEditingController(text: widget.offre.offreInsta);
     _offreFbController = TextEditingController(text: widget.offre.offreFb);
-    _imageUrl = widget.offre.image;
+    _imageController = TextEditingController(text: widget.offre.image);
   }
 
   @override
@@ -48,18 +47,17 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
     _adresseController.dispose();
     _offreInstaController.dispose();
     _offreFbController.dispose();
+    _imageController.dispose();
     super.dispose();
   }
 
   Future<void> modifierOffre() async {
-    // Valider le formulaire
-    if (!_formKey.currentState!.validate()) return; // Si la validation échoue, ne rien faire
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() => isLoading = true); // Afficher l'indicateur de chargement
+    setState(() => isLoading = true);
 
     try {
-      // Appeler la méthode Supabase pour mettre à jour l'offre
-      final response = await Supabase.instance.client.from('offre').update({
+      await Supabase.instance.client.from('offre').update({
         'nom': _nomController.text,
         'description': _descriptionController.text,
         'categorie': _categorieController.text,
@@ -67,33 +65,46 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
         'adresse': _adresseController.text,
         'offre_insta': _offreInstaController.text,
         'offre_fb': _offreFbController.text,
-        'image': _imageUrl, // URL de l'image
-      }).eq('idoffre', widget.offre.id).select().single(); // Utiliser maybeSingle() pour récupérer une seule ligne ou null
+        'image': _imageController.text,
+      }).eq('idoffre', widget.offre.id);
 
-      // Vérification des erreurs
-        // Si la mise à jour a réussi, revenir à la page précédente
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Offre modifiée avec succès')),
-        );
-        Navigator.pop(context, true); // Indiquer que la modification a été effectuée
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Offre modifiée avec succès'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
+      );
+      Navigator.pop(context, true);
     } catch (e) {
-      // Gérer les erreurs si une exception se produit
       print('Erreur : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la modification de l\'offre')),
+        SnackBar(
+          content: Text('Erreur lors de la modification: $e'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
 
-    setState(() => isLoading = false); // Masquer l'indicateur de chargement
+    setState(() => isLoading = false);
   }
-
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final secondaryTextColor = GlobalColors.isDarkMode ? Colors.white70 : Colors.black54;
+    final buttonColor = GlobalColors.isDarkMode ? Colors.blueGrey : Colors.blueAccent;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Modifier l\'offre', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.green,
+        title: Text(
+          'Modifier l\'offre',
+          style: GoogleFonts.robotoSlab(color: Colors.white),
+        ),
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -103,73 +114,155 @@ class _ModifierOffrePageState extends State<ModifierOffrePage> {
             children: [
               TextFormField(
                 controller: _nomController,
-                decoration: InputDecoration(labelText: 'Nom de l\'offre'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Le nom est requis';
-                  }
-                  return null;
-                },
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Nom de l\'offre',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+                validator: (value) => value!.isEmpty ? 'Le nom est requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'La description est requise';
-                  }
-                  return null;
-                },
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+                validator: (value) => value!.isEmpty ? 'La description est requise' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _categorieController,
-                decoration: InputDecoration(labelText: 'Catégorie'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'La catégorie est requise';
-                  }
-                  return null;
-                },
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Catégorie',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+                validator: (value) => value!.isEmpty ? 'La catégorie est requise' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _tarifsController,
-                decoration: InputDecoration(labelText: 'Tarifs'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Les tarifs sont requis';
-                  }
-                  return null;
-                },
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Tarifs',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+                validator: (value) => value!.isEmpty ? 'Les tarifs sont requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _adresseController,
-                decoration: InputDecoration(labelText: 'Adresse'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Adresse',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _offreInstaController,
-                decoration: InputDecoration(labelText: 'Instagram'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Instagram',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: _offreFbController,
-                decoration: InputDecoration(labelText: 'Facebook'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Facebook',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
-              // Champ d'image - tu peux utiliser un champ pour l'URL de l'image
+              SizedBox(height: 16),
               TextFormField(
-                controller: TextEditingController(text: _imageUrl),
-                decoration: InputDecoration(labelText: 'URL de l\'image'),
-                onChanged: (value) {
-                  setState(() {
-                    _imageUrl = value;
-                  });
-                },
+                controller: _imageController,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'URL de l\'image',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 24),
               ElevatedButton(
-                onPressed: modifierOffre,
-                child: Text('Mettre à jour l\'offre'),
+                onPressed: isLoading ? null : modifierOffre,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: EdgeInsets.symmetric(vertical: 14),
+                  backgroundColor: GlobalColors.bleuTurquoise,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                  'Mettre à jour l\'offre',
+                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ],

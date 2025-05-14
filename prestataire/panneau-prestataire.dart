@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'GestionOffresPrestatairePage.dart';
 import 'AjouterOffrePrestatairePage.dart';
+import '../GlovalColors.dart';
 
 class PanneauPrestatairePage extends StatefulWidget {
   const PanneauPrestatairePage({super.key});
@@ -23,7 +24,6 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
     super.initState();
     fetchStats();
   }
-
 
   Future<void> fetchStats() async {
     final user = Supabase.instance.client.auth.currentUser;
@@ -80,10 +80,21 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final statCardColor = GlobalColors.cardColor;
+    final actionCardColor = GlobalColors.cardColor;
+    final textColor = GlobalColors.bleuTurquoise;
+    final iconColor = GlobalColors.isDarkMode ? GlobalColors.bleuTurquoise : GlobalColors.bleuTurquoise;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Tableau de bord Prestataire', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.green,
+        title: Text(
+            'Tableau de bord Prestataire',
+            style: GoogleFonts.robotoSlab(color: Colors.white)
+        ),
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
       body: Padding(
@@ -94,9 +105,9 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _buildStatCard("Visites", nbVisites, Icons.visibility),
-                _buildStatCard("Avis", nbAvis, Icons.reviews),
-                _buildStatCard("Offres", nbOffres, Icons.local_offer),
+                _buildStatCard("Visites", nbVisites, Icons.visibility, statCardColor!, iconColor!, textColor),
+                _buildStatCard("Avis", nbAvis, Icons.reviews, statCardColor, iconColor!, textColor),
+                _buildStatCard("Offres", nbOffres, Icons.local_offer, statCardColor, iconColor, textColor),
               ],
             ),
             SizedBox(height: 30),
@@ -107,17 +118,32 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
                 children: [
-                  _buildActionCard("Voir mes Offres", Icons.list, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => ListeOffresPrestatairePage()),
-                    );                  }),
-                  _buildActionCard("Ajouter une Offre", Icons.add_business, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => AjouterOffrePrestatairePage()),
-                    );
-                  }),
+                  _buildActionCard(
+                      "Voir mes Offres",
+                      Icons.list,
+                      actionCardColor!,
+                      iconColor!,
+                      textColor,
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => ListeOffresPrestatairePage()),
+                        );
+                      }
+                  ),
+                  _buildActionCard(
+                      "Ajouter une Offre",
+                      Icons.add_business,
+                      actionCardColor!,
+                      iconColor!,
+                      textColor,
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => AjouterOffrePrestatairePage()),
+                        );
+                      }
+                  ),
                 ],
               ),
             )
@@ -127,25 +153,34 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
     );
   }
 
-  Widget _buildStatCard(String title, int value, IconData icon) {
+  Widget _buildStatCard(String title, int value, IconData icon, Color bgColor, Color iconColor, Color textColor) {
     return Expanded(
       child: Card(
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: bgColor,
         child: Container(
           padding: EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.green[50],
-            borderRadius: BorderRadius.circular(16),
-          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 36, color: Colors.green),
+              Icon(icon, size: 36, color: iconColor),
               SizedBox(height: 12),
-              Text(title, style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold)),
+              Text(
+                  title,
+                  style: GoogleFonts.robotoSlab(
+                      fontWeight: FontWeight.bold,
+                      color: textColor
+                  )
+              ),
               SizedBox(height: 8),
-              Text('$value', style: GoogleFonts.robotoSlab(fontSize: 24)),
+              Text(
+                  '$value',
+                  style: GoogleFonts.robotoSlab(
+                      fontSize: 24,
+                      color: textColor
+                  )
+              ),
             ],
           ),
         ),
@@ -153,24 +188,27 @@ class _PanneauPrestatairePageState extends State<PanneauPrestatairePage> {
     );
   }
 
-  Widget _buildActionCard(String title, IconData icon, VoidCallback onTap) {
+  Widget _buildActionCard(String title, IconData icon, Color bgColor, Color iconColor, Color textColor, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Card(
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        color: bgColor,
         child: Container(
-          decoration: BoxDecoration(
-            color: Colors.green[100],
-            borderRadius: BorderRadius.circular(16),
-          ),
           padding: EdgeInsets.all(20),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 40, color: Colors.green[800]),
+              Icon(icon, size: 40, color: iconColor),
               SizedBox(height: 12),
-              Text(title, style: GoogleFonts.robotoSlab(fontWeight: FontWeight.w600)),
+              Text(
+                  title,
+                  style: GoogleFonts.robotoSlab(
+                      fontWeight: FontWeight.w600,
+                      color: textColor
+                  )
+              ),
             ],
           ),
         ),
