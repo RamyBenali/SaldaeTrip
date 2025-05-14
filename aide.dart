@@ -34,7 +34,7 @@ class _AidePageState extends State<AidePage> {
     FAQItem(
       question: "Comment contacter le support client ?",
       answer:
-      "Notre chatbot est disponible 24/7 via le menu latéral. Pour un contact humain, envoyez un email à support@voyageo.com ou appelez le +33 1 23 45 67 89 (9h-18h, du lundi au vendredi).",
+      "Notre chatbot est disponible 24/7 via le menu latéral. Pour un contact humain, envoyez un email à saldaeTrip@gmail.com ou appelez le +213 555354681 (9h-18h, du dimanche au jeudi).",
     ),
     FAQItem(
       question: "Comment modifier mes informations personnelles ?",

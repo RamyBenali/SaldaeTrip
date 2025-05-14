@@ -677,8 +677,8 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
           offre.tarifs.isEmpty ||
           _isFree(offre.tarifs);
       final matchType = selectedType == null ||
-          offre.categorie.toLowerCase() == selectedType!.toLowerCase();
-      return matchesSearch && matchesVille && matchesPriceFilter;
+          offre.categorie.toLowerCase() == selectedType!.toLowerCase().replaceAll("'", "");
+      return matchesSearch && matchesVille && matchesPriceFilter && matchType;
     }).toList();
 
     return Scaffold(

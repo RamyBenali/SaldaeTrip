@@ -387,6 +387,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         return FontAwesomeIcons.utensils;
       case 'pizzeria':
         return FontAwesomeIcons.pizzaSlice;
+      case 'randonnée':
+        return FontAwesomeIcons.personHiking;
+      case 'sortie':
+        return FontAwesomeIcons.tree;
       case 'café':
       case 'cafe':
         return FontAwesomeIcons.mugHot;
@@ -1769,9 +1773,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                       child: IconButton(
                         icon: Icon(
                         Icons.navigation,
-                        color: GlobalColors.isDarkMode 
-                          ? Colors.blue[300]
-                          : Colors.blue[600],
+                        color: Colors.white,
                         size: 28,
                         ),
                         onPressed: () {
@@ -1988,9 +1990,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                                   : Icon(
                                     Icons.my_location,
                                     color:
-                                        GlobalColors.isDarkMode
-                                            ? Colors.blue[200]
-                                            : Colors.blue[600],
+                                        GlobalColors.bleuTurquoise,
                                     size: 24,
                                   ),
                         ),

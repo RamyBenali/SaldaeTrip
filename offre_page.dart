@@ -691,7 +691,8 @@ class _OffresPageState extends State<OffresPage> {
           offre.adresse.toLowerCase().contains(selectedVille!.toLowerCase());
 
       final matchesCategorie = selectedCategorie == null ||
-          offre.categorie.toLowerCase() == selectedCategorie!.toLowerCase();
+        offre.categorie.toLowerCase() == selectedCategorie!.toLowerCase().replaceAll("'", "");
+
 
       final matchesTarif = selectedTarifMax == null ||
           offre.tarifs.isEmpty ||

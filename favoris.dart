@@ -1068,13 +1068,10 @@ avis:avis(note)
     final Map<String, IconData> categoryIcons = {
       'Restaurant': Icons.restaurant_rounded,
       'Hôtel': Icons.hotel_rounded,
-      'Café': Icons.local_cafe_rounded,
-      'Centre commercial': Icons.shopping_cart_rounded,
-      'Attraction': Icons.attractions_rounded,
       'Plage': Icons.beach_access_rounded,
-      'Sport': Icons.sports_rounded,
-      'Art': Icons.palette_rounded,
-      'Musée': Icons.museum_rounded,
+      'Loisirs' : Icons.attractions,
+      'sortie' : Icons.hiking,
+      'randonnée' : Icons.hiking,
     };
 
     return categoryIcons[category] ?? Icons.place_rounded;
@@ -1210,9 +1207,11 @@ avis:avis(note)
                     [
                       'Restaurant',
                       'Hôtel',
-                      'Café',
-                      'Centre commercial',
-                      'Attraction',
+                      'Loisirs',
+                      'randonnée',
+                      'sortie',
+                      'Plage',
+                      "point d'interet"
                     ].map((category) {
                       return FilterChip(
                         label: Text(category),
