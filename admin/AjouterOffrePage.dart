@@ -36,6 +36,8 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
   final idPrestataireController = TextEditingController();
   final instaController = TextEditingController();
   final fbController = TextEditingController();
+  final latitudeController = TextEditingController();
+  final longitudeController = TextEditingController();
 
   final typeController = TextEditingController();
   final serviceController = TextEditingController();
@@ -128,6 +130,8 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
         'adresse': adresseController.text,
         'offre_insta': instaController.text,
         'offre_fb': fbController.text,
+        'latitude' : latitudeController.text,
+        'longitude' : longitudeController.text,
       }).select().single();
 
       final idOffre = insertResult['idoffre'];
@@ -384,6 +388,40 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
                   labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
                 ),
                 style: TextStyle(color: textColor),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: latitudeController,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Latitude',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              TextFormField(
+                controller: latitudeController,
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Longitude',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
               ),
               SizedBox(height: 24),
               ElevatedButton(

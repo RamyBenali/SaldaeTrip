@@ -39,16 +39,29 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
   }
 
   Future<void> ajouterPrestataire() async {
-    if (!_formKey.currentState!.validate() || selectedVoyageur == null) return;
+    if (!_formKey.currentState!.validate() || selectedVoyageur == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Veuillez sélectionner un voyageur'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => isLoading = true);
 
     try {
+      // Vérification que user_id existe
+      if (selectedVoyageur['user_id'] == null) {
+        throw Exception('ID utilisateur (user_id) non trouvé');
+      }
+
       await supabase.from('personne').update({'role': 'Prestataire'})
-          .eq('idpersonne', selectedVoyageur['idpersonne']);
+          .eq('user_id', selectedVoyageur['user_id']);
 
       await supabase.from('prestataire').insert({
-        'user_id': selectedVoyageur['idpersonne'],
+        'user_id': selectedVoyageur['user_id'],
         'typeservice': typeServiceController.text,
         'entreprise': entrepriseController.text,
       });
@@ -56,7 +69,7 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Prestataire ajouté avec succès'),
-          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+          backgroundColor: Colors.green,
         ),
       );
       Navigator.pop(context);
@@ -64,7 +77,7 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Erreur lors de l\'ajout: ${e.toString()}'),
-          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+          backgroundColor: Colors.red,
         ),
       );
     } finally {
