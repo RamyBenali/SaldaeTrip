@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../favoris.dart';
+import '../GlovalColors.dart';
 
 class ModifierPrestatairePage extends StatefulWidget {
   final Map<String, dynamic> prestataire;
@@ -63,14 +63,20 @@ class _ModifierPrestatairePageState extends State<ModifierPrestatairePage> {
       }).eq('idpersonne', id);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Prestataire modifié avec succès')),
+        SnackBar(
+          content: Text('Prestataire modifié avec succès'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
 
       Navigator.pop(context);
     } catch (e) {
       print('Erreur : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la modification')),
+        SnackBar(
+          content: Text('Erreur lors de la modification: $e'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
 
@@ -79,10 +85,21 @@ class _ModifierPrestatairePageState extends State<ModifierPrestatairePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final secondaryTextColor = GlobalColors.isDarkMode ? Colors.white70 : Colors.black54;
+    final buttonColor = GlobalColors.isDarkMode ? Colors.blueGrey : Colors.blue;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Modifier Prestataire', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        title: Text(
+          'Modifier Prestataire',
+          style: GoogleFonts.robotoSlab(color: Colors.white),
+        ),
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -92,47 +109,120 @@ class _ModifierPrestatairePageState extends State<ModifierPrestatairePage> {
             children: [
               TextFormField(
                 controller: nomController,
-                decoration: InputDecoration(labelText: 'Nom'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Nom',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: prenomController,
-                decoration: InputDecoration(labelText: 'Prénom'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Prénom',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: adresseController,
-                decoration: InputDecoration(labelText: 'Adresse'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Adresse',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: dateNaissController,
-                decoration: InputDecoration(labelText: 'Date de naissance'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Date de naissance',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
-              Divider(),
+              Divider(color: borderColor),
+              SizedBox(height: 16),
               TextFormField(
                 controller: entrepriseController,
-                decoration: InputDecoration(labelText: 'Entreprise'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Entreprise',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: typeServiceController,
-                decoration: InputDecoration(labelText: 'Type de service'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Type de service',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: isLoading ? null : modifierPrestataire,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
                 child: isLoading
                     ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Modifier'),
-              )
+                    : Text('Modifier', style: TextStyle(color: Colors.white)),
+              ),
             ],
           ),
         ),

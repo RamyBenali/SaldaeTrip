@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../GlovalColors.dart';
 import '../favoris.dart';
 import 'AjouterPrestatairePage.dart';
 import 'ModificationPrestataire.dart';
@@ -89,12 +90,14 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
         title: Text('Gestion des Prestataires', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: Icon(Icons.add),
+            icon: Icon(Icons.add, color: Colors.white,),
             onPressed: () async {
               await Navigator.push(
                 context,
@@ -113,9 +116,11 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
             padding: const EdgeInsets.all(12),
             child: TextField(
               controller: searchController,
+              style: TextStyle(color: GlobalColors.secondaryColor), // Couleur du texte
               decoration: InputDecoration(
                 hintText: 'Rechercher par nom, prénom ou entreprise',
-                prefixIcon: Icon(Icons.search),
+                labelStyle: TextStyle(color: GlobalColors.secondaryColor), // Couleur du label
+                prefixIcon: Icon(Icons.search, color: GlobalColors.secondaryColor,),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -130,11 +135,12 @@ class _GestionPrestatairePageState extends State<GestionPrestatairePage> {
                 final infos = p['prestataire'];
 
                 return Card(
+                  color: GlobalColors.cardColor,
                   margin: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
-                    leading: CircleAvatar(child: Text(p['prenom'][0])),
-                    title: Text('${p['prenom']} ${p['nom']}'),
-                    subtitle: Text('Service: ${infos['typeservice']} • Entreprise: ${infos['entreprise']}'),
+                    leading: CircleAvatar(child: Text(p['prenom'][0], style: TextStyle(color: GlobalColors.secondaryColor),)),
+                    title: Text('${p['prenom']} ${p['nom']}',style: TextStyle(color: GlobalColors.secondaryColor)),
+                    subtitle: Text('Service: ${infos['typeservice']} • Entreprise: ${infos['entreprise']}', style: TextStyle(color: GlobalColors.secondaryColor)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

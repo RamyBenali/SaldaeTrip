@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import '../GlovalColors.dart';
 import '../favoris.dart';
 
 class AjouterPrestatairePage extends StatefulWidget {
@@ -14,10 +15,8 @@ class AjouterPrestatairePage extends StatefulWidget {
 class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
   final supabase = Supabase.instance.client;
   final _formKey = GlobalKey<FormState>();
-
   final typeServiceController = TextEditingController();
   final entrepriseController = TextEditingController();
-
   bool isLoading = false;
   dynamic selectedVoyageur;
   List<dynamic> voyageurs = [];
@@ -44,40 +43,56 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
 
     setState(() => isLoading = true);
 
-    final idPersonne = selectedVoyageur['idpersonne'];
-
     try {
-      // 1. Mettre à jour le rôle
-      await supabase.from('personne').update({
-        'role': 'Prestataire',
-      }).eq('idpersonne', idPersonne);
+      await supabase.from('personne').update({'role': 'Prestataire'})
+          .eq('idpersonne', selectedVoyageur['idpersonne']);
 
       await supabase.from('prestataire').insert({
-        'user_id': idPersonne,
+        'user_id': selectedVoyageur['idpersonne'],
         'typeservice': typeServiceController.text,
         'entreprise': entrepriseController.text,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Prestataire ajouté avec succès')),
+        SnackBar(
+          content: Text('Prestataire ajouté avec succès'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
-      print('Erreur : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'ajout du prestataire')),
+        SnackBar(
+          content: Text('Erreur lors de l\'ajout: ${e.toString()}'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
+    } finally {
+      if (mounted) setState(() => isLoading = false);
     }
-
-    setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
+    final textColor = GlobalColors.secondaryColor;
+    final cardColor = GlobalColors.isDarkMode
+        ? Colors.grey[800]!.withOpacity(0.5)
+        : Colors.white;
+    final borderColor = GlobalColors.isDarkMode
+        ? Colors.grey[600]!
+        : Colors.grey[300]!;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Ajouter un Prestataire', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        title: Text(
+          'Ajouter un Prestataire',
+          style: GoogleFonts.robotoSlab(color: Colors.white),
+        ),
+        backgroundColor: GlobalColors.isDarkMode
+            ? GlobalColors.bleuTurquoise
+            : GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -85,57 +100,147 @@ class _AjouterPrestatairePageState extends State<AjouterPrestatairePage> {
           key: _formKey,
           child: ListView(
             children: [
-              DropdownSearch<dynamic>(
-                items: voyageurs,
-                itemAsString: (voyageur) =>
-                "${voyageur['nom']} ${voyageur['prenom']} - ${voyageur['email']}",
-                onChanged: (value) {
-                  setState(() {
-                    selectedVoyageur = value;
-                  });
-                },
-                selectedItem: selectedVoyageur,
-                dropdownDecoratorProps: DropDownDecoratorProps(
-                  dropdownSearchDecoration: InputDecoration(
-                    labelText: "Sélectionner un voyageur",
-                    border: OutlineInputBorder(),
-                  ),
+              // Dropdown pour sélectionner le voyageur
+              Card(
+                color: cardColor,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(color: borderColor),
                 ),
-                filterFn: (voyageur, filter) {
-                  final nom = voyageur['nom'].toString().toLowerCase();
-                  final prenom = voyageur['prenom'].toString().toLowerCase();
-                  return nom.contains(filter.toLowerCase()) ||
-                      prenom.contains(filter.toLowerCase());
-                },
-                validator: (value) =>
-                value == null ? 'Veuillez sélectionner un voyageur' : null,
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
-                    decoration: InputDecoration(
-                      hintText: 'Rechercher par nom ou prénom',
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: DropdownSearch<dynamic>(
+                    items: voyageurs,
+                    itemAsString: (voyageur) =>
+                    "${voyageur['nom']} ${voyageur['prenom']} - ${voyageur['email']}",
+                    onChanged: (value) => setState(() => selectedVoyageur = value),
+                    selectedItem: selectedVoyageur,
+                    dropdownDecoratorProps: DropDownDecoratorProps(
+                      dropdownSearchDecoration: InputDecoration(
+                        labelText: "Sélectionner un voyageur",
+                        labelStyle: TextStyle(color: GlobalColors.secondaryColor),
+                        border: InputBorder.none,
+                      ),
                     ),
+                    popupProps: PopupProps.modalBottomSheet(
+                      showSearchBox: true,
+                      searchFieldProps: TextFieldProps(
+                        decoration: InputDecoration(
+                          hintText: 'Rechercher...',
+                          prefixIcon: Icon(Icons.search, color: textColor),
+                        ),
+                      ),
+                      containerBuilder: (context, popupWidget) => Container(
+                        decoration: BoxDecoration(
+                          color: GlobalColors.isDarkMode
+                              ? Colors.grey[900]
+                              : Colors.white,
+                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                        ),
+                        child: Column(
+                          children: [
+                            AppBar(
+                              title: Text('Sélectionner un voyageur',
+                                  style: TextStyle(color: textColor)),
+                              backgroundColor: GlobalColors.isDarkMode
+                                  ? Colors.grey[800]
+                                  : Colors.blue,
+                              automaticallyImplyLeading: false,
+                              actions: [
+                                IconButton(
+                                  icon: Icon(Icons.close, color: Colors.white),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ],
+                            ),
+                            Expanded(child: popupWidget),
+                          ],
+                        ),
+                      ),
+                    ),
+                    dropdownBuilder: (context, selectedItem) => Text(
+                      selectedItem != null
+                          ? "${selectedItem['nom']} ${selectedItem['prenom']}"
+                          : "Sélectionner un voyageur",
+                      style: TextStyle(color: textColor),
+                    ),
+                    validator: (value) =>
+                    value == null ? 'Veuillez sélectionner un voyageur' : null,
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+
+              const SizedBox(height: 20),
+
+              // Champ Type de service
               TextFormField(
                 controller: typeServiceController,
-                decoration: InputDecoration(labelText: 'Type de service'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Type de service',
+                  labelStyle: TextStyle(color: textColor),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+
+              const SizedBox(height: 16),
+
+              // Champ Entreprise
               TextFormField(
                 controller: entrepriseController,
-                decoration: InputDecoration(labelText: 'Entreprise'),
+                style: TextStyle(color: textColor),
+                decoration: InputDecoration(
+                  labelText: 'Entreprise',
+                  labelStyle: TextStyle(color: textColor),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(color: borderColor),
+                  ),
+                ),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
-              SizedBox(height: 24),
+
+              const SizedBox(height: 30),
+
+              // Bouton d'ajout
               ElevatedButton(
                 onPressed: isLoading ? null : ajouterPrestataire,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: GlobalColors.isDarkMode
+                      ? GlobalColors.bleuTurquoise
+                      : Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 child: isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Ajouter le prestataire'),
-              )
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                  'Ajouter le prestataire',
+                  style: GoogleFonts.robotoSlab(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
             ],
           ),
         ),

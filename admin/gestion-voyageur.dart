@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../favoris.dart';
 import 'modifier-voyageur.dart';
+import '../GlovalColors.dart';
 
 class GestionVoyageurPage extends StatefulWidget {
   const GestionVoyageurPage({super.key});
@@ -83,9 +84,12 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
         title: Text('Gestion des Voyageurs', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
+
       ),
       body: Column(
         children: [
@@ -93,16 +97,19 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
             padding: const EdgeInsets.all(12.0),
             child: TextField(
               controller: searchController,
+              style: TextStyle(color: GlobalColors.secondaryColor), // Couleur du texte
               decoration: InputDecoration(
                 labelText: 'Rechercher par nom ou prénom',
+                labelStyle: TextStyle(color: GlobalColors.secondaryColor), // Couleur du label
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: GlobalColors.secondaryColor), // Couleur de l'icône
               ),
               onChanged: rechercherVoyageurs,
             ),
           ),
+
           Expanded(
             child: voyageursFiltres.isEmpty
                 ? Center(child: Text('Aucun voyageur trouvé.'))
@@ -111,13 +118,14 @@ class _GestionVoyageurPageState extends State<GestionVoyageurPage> {
               itemBuilder: (context, index) {
                 final voyageur = voyageursFiltres[index];
                 return Card(
+                  color: GlobalColors.cardColor,
                   margin:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: ListTile(
                     leading: CircleAvatar(
-                        child: Text(voyageur['prenom'][0].toUpperCase())),
-                    title: Text('${voyageur['prenom']} ${voyageur['nom']}'),
-                    subtitle: Text(voyageur['email']),
+                        child: Text(voyageur['prenom'][0].toUpperCase(), style: TextStyle(color: GlobalColors.secondaryColor))),
+                    title: Text('${voyageur['prenom']} ${voyageur['nom']}', style: TextStyle(color: GlobalColors.secondaryColor)),
+                    subtitle: Text(voyageur['email'], style: TextStyle(color: GlobalColors.secondaryColor)),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [

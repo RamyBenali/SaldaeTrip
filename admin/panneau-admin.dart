@@ -69,7 +69,8 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           'Panneau Administrateur',
           style: GoogleFonts.robotoSlab(color: Colors.white),
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
       body: Padding(
@@ -163,7 +164,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           style: GoogleFonts.robotoSlab(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.blueAccent
+              color: GlobalColors.bleuTurquoise
           ),
         ),
         SizedBox(height: 12),
@@ -203,7 +204,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 32, color: Colors.blueAccent),
+              Icon(icon, size: 32, color: GlobalColors.bleuTurquoise),
               SizedBox(height: 8),
               Text(
                 title,
@@ -224,7 +225,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
   Widget _buildCompactStatCard(String title, int count, IconData icon) {
     bool isDarkMode = GlobalColors.isDarkMode;
     return Container(
-      width: 110,
+      width: 150,
       child: Card(
         elevation: 3,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -238,7 +239,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 28, color: Colors.blueAccent),
+              Icon(icon, size: 28, color: GlobalColors.bleuTurquoise),
               SizedBox(height: 4),
               Text(
                 title,
@@ -254,7 +255,7 @@ class _AdminPanelPageState extends State<AdminPanelPage> {
                 style: GoogleFonts.robotoSlab(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blueAccent
+                    color: GlobalColors.bleuTurquoise,
                 ),
               ),
             ],

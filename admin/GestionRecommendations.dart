@@ -11,10 +11,6 @@ class GestionRecommandationsPage extends StatefulWidget {
 
 class _GestionRecommandationsPageState extends State<GestionRecommandationsPage> {
   final supabase = Supabase.instance.client;
-  final primaryBackColor = GlobalColors.primaryColor;
-  final cardColor = GlobalColors.cardColor;
-  final textColor = GlobalColors.secondaryColor;
-
   List<Map<String, dynamic>> recommandations = [];
   bool isLoading = true;
   String? selectedOffreId;
@@ -66,7 +62,10 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
         selectedDateDebut == null ||
         selectedDateFin == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez remplir tous les champs')),
+        SnackBar(
+          content: Text('Veuillez remplir tous les champs'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
       return;
     }
@@ -92,11 +91,17 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
       await _fetchRecommandations();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Recommandation ajoutée avec succès')),
+        SnackBar(
+          content: Text('Recommandation ajoutée avec succès'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'ajout: $e')),
+        SnackBar(
+          content: Text('Erreur lors de l\'ajout: $e'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
   }
@@ -106,11 +111,17 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
       await supabase.from('offre_recommandations').delete().eq('id', id);
       await _fetchRecommandations();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Recommandation supprimée avec succès')),
+        SnackBar(
+          content: Text('Recommandation supprimée avec succès'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la suppression: $e')),
+        SnackBar(
+          content: Text('Erreur lors de la suppression: $e'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
   }
@@ -121,6 +132,19 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: GlobalColors.isDarkMode ? Colors.blueGrey : Colors.blue,
+              onPrimary: Colors.white,
+              onSurface: GlobalColors.isDarkMode ? Colors.white : Colors.black,
+            ),
+            dialogBackgroundColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       setState(() {
@@ -139,8 +163,16 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final cardColor = GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white;
+            final textColor = GlobalColors.secondaryColor;
+            final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+
             return AlertDialog(
-              title: Text('Ajouter une recommandation'),
+              backgroundColor: GlobalColors.isDarkMode ? Colors.grey[900] : Colors.white,
+              title: Text(
+                'Ajouter une recommandation',
+                style: TextStyle(color: textColor),
+              ),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -154,19 +186,29 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
                         final offres = snapshot.data ?? [];
                         return DropdownButtonFormField<String>(
                           value: selectedOffreId,
+                          dropdownColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
                           decoration: InputDecoration(
                             labelText: 'Offre',
-                            border: OutlineInputBorder(),
+                            labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                            border: OutlineInputBorder(
+                              borderSide: BorderSide(color: borderColor),
+                            ),
                             contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                            filled: true,
+                            fillColor: cardColor,
                           ),
-                          isExpanded: true, // Cette ligne est cruciale
+                          isExpanded: true,
+                          style: TextStyle(color: textColor),
                           items: offres.map((offre) {
                             return DropdownMenuItem<String>(
                               value: offre['idoffre'].toString(),
                               child: Text(
                                 offre['nom'],
-                                overflow: TextOverflow.ellipsis, // Gère le texte trop long
-                                style: GoogleFonts.robotoSlab(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.robotoSlab(
+                                  fontSize: 14,
+                                  color: textColor,
+                                ),
                               ),
                             );
                           }).toList(),
@@ -177,9 +219,15 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
                     SizedBox(height: 16),
                     TextField(
                       controller: prioriteController,
+                      style: TextStyle(color: textColor),
                       decoration: InputDecoration(
                         labelText: 'Priorité (1-5)',
-                        border: OutlineInputBorder(),
+                        labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                        border: OutlineInputBorder(
+                          borderSide: BorderSide(color: borderColor),
+                        ),
+                        filled: true,
+                        fillColor: cardColor,
                       ),
                       keyboardType: TextInputType.number,
                     ),
@@ -189,8 +237,9 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
                         selectedDateDebut == null
                             ? 'Sélectionner date début'
                             : 'Date début: ${DateFormat('dd/MM/yyyy').format(selectedDateDebut!)}',
+                        style: TextStyle(color: textColor),
                       ),
-                      trailing: Icon(Icons.calendar_today),
+                      trailing: Icon(Icons.calendar_today, color: textColor),
                       onTap: () => _selectDate(context, true),
                     ),
                     ListTile(
@@ -198,8 +247,9 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
                         selectedDateFin == null
                             ? 'Sélectionner date fin'
                             : 'Date fin: ${DateFormat('dd/MM/yyyy').format(selectedDateFin!)}',
+                        style: TextStyle(color: textColor),
                       ),
-                      trailing: Icon(Icons.calendar_today),
+                      trailing: Icon(Icons.calendar_today, color: textColor),
                       onTap: () => _selectDate(context, false),
                     ),
                   ],
@@ -208,14 +258,22 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text('Annuler'),
+                  child: Text(
+                    'Annuler',
+                    style: TextStyle(
+                      color: GlobalColors.isDarkMode ? Colors.blue[200] : Colors.blue,
+                    ),
+                  ),
                 ),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: GlobalColors.isDarkMode ? Colors.blueGrey : Colors.blue,
+                  ),
                   onPressed: () async {
                     await _addRecommandation();
                     Navigator.pop(context);
                   },
-                  child: Text('Ajouter'),
+                  child: Text('Ajouter', style: TextStyle(color: Colors.white)),
                 ),
               ],
             );
@@ -227,11 +285,20 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final secondaryTextColor = GlobalColors.isDarkMode ? Colors.white70 : Colors.black54;
+
     return Scaffold(
-      backgroundColor: primaryBackColor,
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Gestion des recommandations', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        title: Text(
+          'Gestion des recommandations',
+          style: GoogleFonts.robotoSlab(color: Colors.white),
+        ),
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: Icon(Icons.add, color: Colors.white),
@@ -242,7 +309,12 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : recommandations.isEmpty
-          ? Center(child: Text('Aucune recommandation trouvée'))
+          ? Center(
+        child: Text(
+          'Aucune recommandation trouvée',
+          style: TextStyle(color: textColor),
+        ),
+      )
           : ListView.builder(
         padding: EdgeInsets.all(16),
         itemCount: recommandations.length,
@@ -259,15 +331,35 @@ class _GestionRecommandationsPageState extends State<GestionRecommandationsPage>
           return Card(
             elevation: 2,
             margin: EdgeInsets.only(bottom: 12),
+            color: cardColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+              side: BorderSide(color: borderColor),
+            ),
             child: ListTile(
-              title: Text(offreNom, style: GoogleFonts.robotoSlab(fontWeight: FontWeight.bold)),
+              title: Text(
+                offreNom,
+                style: GoogleFonts.robotoSlab(
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
+              ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Priorité: ${reco['priorite']}'),
+                  Text(
+                    'Priorité: ${reco['priorite']}',
+                    style: TextStyle(color: secondaryTextColor),
+                  ),
                   SizedBox(height: 4),
-                  Text('Début: $dateDebut'),
-                  Text('Fin: $dateFin'),
+                  Text(
+                    'Début: $dateDebut',
+                    style: TextStyle(color: secondaryTextColor),
+                  ),
+                  Text(
+                    'Fin: $dateFin',
+                    style: TextStyle(color: secondaryTextColor),
+                  ),
                 ],
               ),
               trailing: IconButton(

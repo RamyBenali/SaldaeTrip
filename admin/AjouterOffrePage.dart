@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'dart:io'; // Pour gérer le fichier de l'image
+import 'dart:io';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../GlovalColors.dart';
 
 class AjouterOffrePage extends StatefulWidget {
   const AjouterOffrePage({super.key});
@@ -19,12 +20,11 @@ class Prestataire {
 
   factory Prestataire.fromJson(Map<String, dynamic> json) {
     return Prestataire(
-      id: json['user_id'], // Corrigé ici
-      nom: json['entreprise'], // Corrigé ici
+      id: json['user_id'],
+      nom: json['entreprise'],
     );
   }
 }
-
 
 class _AjouterOffrePageState extends State<AjouterOffrePage> {
   final _formKey = GlobalKey<FormState>();
@@ -43,7 +43,7 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
 
   String? selectedCategorie;
   bool isLoading = false;
-  bool isLoadingPrestataires = true; // Pour gérer le chargement des prestataires
+  bool isLoadingPrestataires = true;
   List<Prestataire> prestataires = [];
   Prestataire? selectedPrestataire;
 
@@ -56,31 +56,35 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
     'Loisirs',
     'Point dintérêt',
     'Point dintérêt historique',
-    'Point dintérêt religieux'
+    'Point dintérêt religieux',
+    'randonnée',
+    'sortie'
   ];
-
-  Future<void> fetchPrestataires() async {
-    try {
-      final response = await Supabase.instance.client
-          .from('prestataire')  // Nom de la table
-          .select('user_id, entreprise');  // Utilisez seulement .select()
-
-        final List<dynamic> data = response;  // Accédez directement aux données via response.data
-        setState(() {
-          prestataires = data
-              .map((prestataire) => Prestataire.fromJson(prestataire)).cast<Prestataire>()
-              .toList();
-        });
-    } catch (e) {
-      print('Erreur : $e');
-    }
-  }
-
 
   @override
   void initState() {
     super.initState();
     fetchPrestataires();
+  }
+
+  Future<void> fetchPrestataires() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('prestataire')
+          .select('user_id, entreprise');
+
+      final List<dynamic> data = response;
+      setState(() {
+        prestataires = data
+            .map((prestataire) => Prestataire.fromJson(prestataire))
+            .cast<Prestataire>()
+            .toList();
+        isLoadingPrestataires = false;
+      });
+    } catch (e) {
+      print('Erreur : $e');
+      setState(() => isLoadingPrestataires = false);
+    }
   }
 
   Future<void> pickImage() async {
@@ -89,7 +93,7 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
     if (pickedFile != null) {
       setState(() {
         _imageFile = pickedFile;
-        imageController.text = _imageFile!.path; // Mettre le chemin du fichier dans le champ
+        imageController.text = _imageFile!.path;
       });
     }
   }
@@ -101,25 +105,25 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
 
     try {
       final prestataireId = idPrestataireController.text;
-      if (prestataireId == null) {
-        print('ID du prestataire invalide');
+      if (prestataireId.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('ID du prestataire invalide')),
+          SnackBar(
+            content: Text('ID du prestataire invalide'),
+            backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+          ),
         );
         setState(() => isLoading = false);
         return;
       }
 
-      // Ici tu devras uploader l'image sur un service, comme Supabase Storage
       String? imageUrl = await uploadImageToStorage(_imageFile);
 
-      // Ajouter l'offre dans la base de données
       final insertResult = await Supabase.instance.client.from('offre').insert({
         'nom': nomController.text,
         'description': descriptionController.text,
-        'image': imageUrl, // Lien de l'image après upload
+        'image': imageUrl,
         'categorie': selectedCategorie,
-        'user_id': prestataireId,  // Utilisation de prestataireId valide
+        'user_id': prestataireId,
         'tarifs': tarifsController.text,
         'adresse': adresseController.text,
         'offre_insta': instaController.text,
@@ -128,7 +132,6 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
 
       final idOffre = insertResult['idoffre'];
 
-      // Selon la catégorie, on ajoute les données dans la table spécifique
       if (selectedCategorie == 'Restaurant') {
         await Supabase.instance.client.from('restaurant').insert({
           'idoffre': idOffre,
@@ -146,17 +149,21 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
           'type': typeController.text,
         });
       }
-      if (selectedPrestataire == null) {
-        throw Exception('ID du prestataire manquant');
-      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Offre ajoutée avec succès')),
+        SnackBar(
+          content: Text('Offre ajoutée avec succès'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
       Navigator.pop(context);
     } catch (e) {
       print('Erreur : $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de l\'ajout de l\'offre')),
+        SnackBar(
+          content: Text('Erreur lors de l\'ajout de l\'offre: $e'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
 
@@ -168,9 +175,8 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
 
     try {
       final filePath = 'offres/${DateTime.now().millisecondsSinceEpoch}.png';
-      final response = await Supabase.instance.client.storage.from('offre-image').upload(filePath, File(imageFile.path));
-      final imageUrl = Supabase.instance.client.storage.from('offre-image').getPublicUrl(filePath);
-      return imageUrl;
+      await Supabase.instance.client.storage.from('offre-image').upload(filePath, File(imageFile.path));
+      return Supabase.instance.client.storage.from('offre-image').getPublicUrl(filePath);
     } catch (e) {
       print('Erreur lors de l\'upload : $e');
       return null;
@@ -178,10 +184,16 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
   }
 
   Widget buildCategorieSpecificFields() {
+    final textColor = GlobalColors.secondaryColor;
+
     if (selectedCategorie == 'Restaurant') {
       return TextFormField(
         controller: typeController,
-        decoration: InputDecoration(labelText: 'Type du restaurant'),
+        decoration: InputDecoration(
+          labelText: 'Type du restaurant',
+          labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+        ),
+        style: TextStyle(color: textColor),
         validator: (value) => value!.isEmpty ? 'Champ requis' : null,
       );
     } else if (selectedCategorie == 'Hôtel') {
@@ -189,12 +201,20 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
         children: [
           TextFormField(
             controller: serviceController,
-            decoration: InputDecoration(labelText: 'Service de l\'hôtel'),
+            decoration: InputDecoration(
+              labelText: 'Service de l\'hôtel',
+              labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+            ),
+            style: TextStyle(color: textColor),
             validator: (value) => value!.isEmpty ? 'Champ requis' : null,
           ),
           TextFormField(
             controller: etoilesController,
-            decoration: InputDecoration(labelText: 'Nombre d\'étoiles'),
+            decoration: InputDecoration(
+              labelText: 'Nombre d\'étoiles',
+              labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+            ),
+            style: TextStyle(color: textColor),
             keyboardType: TextInputType.number,
             validator: (value) => value!.isEmpty ? 'Champ requis' : null,
           ),
@@ -203,7 +223,11 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
     } else if (selectedCategorie != null) {
       return TextFormField(
         controller: typeController,
-        decoration: InputDecoration(labelText: 'Type d\'activité'),
+        decoration: InputDecoration(
+          labelText: 'Type d\'activité',
+          labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+        ),
+        style: TextStyle(color: textColor),
         validator: (value) => value!.isEmpty ? 'Champ requis' : null,
       );
     }
@@ -212,10 +236,20 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final buttonColor = GlobalColors.isDarkMode ? Colors.blueGrey : Colors.blue;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
-        title: Text('Ajouter une Offre', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        title: Text(
+          'Ajouter une Offre',
+          style: GoogleFonts.robotoSlab(color: Colors.white),
+        ),
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -225,23 +259,38 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
             children: [
               TextFormField(
                 controller: nomController,
-                decoration: InputDecoration(labelText: 'Nom'),
+                decoration: InputDecoration(
+                  labelText: 'Nom',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                decoration: InputDecoration(
+                  labelText: 'Description',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: imageController,
-                decoration: InputDecoration(labelText: 'Image (URL)'),
-                enabled: false, // Désactive le champ pour éviter la saisie manuelle
+                decoration: InputDecoration(
+                  labelText: 'Image (URL)',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
+                enabled: false,
               ),
+              SizedBox(height: 8),
               GestureDetector(
                 onTap: pickImage,
                 child: Container(
-                  color: Colors.blueAccent,
+                  color: buttonColor,
                   padding: EdgeInsets.symmetric(vertical: 15),
                   child: Text(
                     _imageFile == null ? 'Choisir une image' : 'Image sélectionnée',
@@ -250,61 +299,103 @@ class _AjouterOffrePageState extends State<AjouterOffrePage> {
                   ),
                 ),
               ),
+              SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                decoration: InputDecoration(labelText: 'Catégorie'),
+                decoration: InputDecoration(
+                  labelText: 'Catégorie',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                dropdownColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
+                style: TextStyle(color: textColor),
                 value: selectedCategorie,
                 items: categories.map((cat) {
-                  return DropdownMenuItem(value: cat, child: Text(cat));
+                  return DropdownMenuItem(
+                    value: cat,
+                    child: Text(cat, style: TextStyle(color: textColor)),
+                  );
                 }).toList(),
                 onChanged: (value) {
                   setState(() => selectedCategorie = value);
                 },
                 validator: (value) => value == null ? 'Choisir une catégorie' : null,
               ),
+              SizedBox(height: 16),
               buildCategorieSpecificFields(),
+              SizedBox(height: 16),
               DropdownButtonFormField<Prestataire>(
-                decoration: InputDecoration(labelText: 'ID du Prestataire'),
+                decoration: InputDecoration(
+                  labelText: 'Prestataire',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                dropdownColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
+                style: TextStyle(color: textColor),
                 value: selectedPrestataire,
                 items: prestataires.map((prestataire) {
                   return DropdownMenuItem(
                     value: prestataire,
-                    child: Text(prestataire.nom),
+                    child: Text(
+                      prestataire.nom,
+                      style: TextStyle(color: textColor),
+                    ),
                   );
                 }).toList(),
                 onChanged: (Prestataire? value) {
                   setState(() {
                     selectedPrestataire = value;
-                    // Vérifier si selectedPrestataire n'est pas null avant de mettre à jour le contrôleur
-                    idPrestataireController.text = value?.id.toString() ?? ''; // Mettre l'ID dans le contrôleur de texte
+                    idPrestataireController.text = value?.id ?? '';
                   });
                 },
                 validator: (value) => value == null ? 'Choisir un prestataire' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: tarifsController,
-                decoration: InputDecoration(labelText: 'Tarifs'),
+                decoration: InputDecoration(
+                  labelText: 'Tarifs',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: adresseController,
-                decoration: InputDecoration(labelText: 'Adresse'),
+                decoration: InputDecoration(
+                  labelText: 'Adresse',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
                 validator: (value) => value!.isEmpty ? 'Champ requis' : null,
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: instaController,
-                decoration: InputDecoration(labelText: 'Lien Instagram'),
+                decoration: InputDecoration(
+                  labelText: 'Lien Instagram',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
               ),
+              SizedBox(height: 16),
               TextFormField(
                 controller: fbController,
-                decoration: InputDecoration(labelText: 'Lien Facebook'),
+                decoration: InputDecoration(
+                  labelText: 'Lien Facebook',
+                  labelStyle: TextStyle(color: textColor.withOpacity(0.7)),
+                ),
+                style: TextStyle(color: textColor),
               ),
               SizedBox(height: 24),
               ElevatedButton(
                 onPressed: isLoading ? null : ajouterOffre,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: buttonColor,
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                ),
                 child: isLoading
                     ? CircularProgressIndicator(color: Colors.white)
-                    : Text('Ajouter'),
-              )
+                    : Text('Ajouter', style: TextStyle(color: Colors.white)),
+              ),
             ],
           ),
         ),

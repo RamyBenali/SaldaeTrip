@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../GlovalColors.dart';
 
 class AdminAvisPage extends StatefulWidget {
   const AdminAvisPage({Key? key}) : super(key: key);
@@ -16,7 +17,7 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
   bool isLoading = true;
   final TextEditingController searchController = TextEditingController();
   final TextEditingController reponseController = TextEditingController();
-  int? selectedAvisId; // Pour gérer les réponses
+  int? selectedAvisId;
 
   @override
   void initState() {
@@ -34,21 +35,18 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
         .order('idavis', ascending: false);
 
     for (var avis in data) {
-      // Récupération du voyageur
       final voyageur = await Supabase.instance.client
           .from('personne')
           .select('user_id, nom, prenom')
           .eq('user_id', avis['user_id'])
           .maybeSingle();
 
-      // Récupération des réponses pour cet avis
       final reponses = await Supabase.instance.client
           .from('reponses_avis')
           .select()
           .eq('id_avis', avis['idavis'])
           .order('date', ascending: true);
 
-      // Récupération des infos utilisateur pour chaque réponse
       for (var reponse in reponses) {
         final auteurReponse = await Supabase.instance.client
             .from('personne')
@@ -61,7 +59,7 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
 
       avis['voyageur'] = voyageur;
       avis['reponses'] = reponses;
-      avis['isExpanded'] = false; // Pour gérer l'affichage des réponses
+      avis['isExpanded'] = false;
     }
 
     setState(() {
@@ -88,12 +86,13 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
     final confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: const Text('Voulez-vous vraiment supprimer cet avis ?'),
+        title: Text('Confirmer la suppression', style: TextStyle(color: GlobalColors.secondaryColor)),
+        content: Text('Voulez-vous vraiment supprimer cet avis ?', style: TextStyle(color: GlobalColors.secondaryColor)),
+        backgroundColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text('Annuler', style: TextStyle(color: GlobalColors.isDarkMode ? Colors.blue[200] : Colors.blue)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -104,20 +103,21 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
     );
 
     if (confirm == true) {
-      // D'abord supprimer les réponses associées
       await Supabase.instance.client
           .from('reponses_avis')
           .delete()
           .eq('id_avis', idavis);
 
-      // Puis supprimer l'avis
       await Supabase.instance.client
           .from('avis')
           .delete()
           .eq('idavis', idavis);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Avis et réponses supprimés')),
+        SnackBar(
+          content: Text('Avis et réponses supprimés'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
 
       await chargerAvis();
@@ -128,12 +128,13 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
     final confirm = await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: const Text('Voulez-vous vraiment supprimer cette réponse ?'),
+        title: Text('Confirmer la suppression', style: TextStyle(color: GlobalColors.secondaryColor)),
+        content: Text('Voulez-vous vraiment supprimer cette réponse ?', style: TextStyle(color: GlobalColors.secondaryColor)),
+        backgroundColor: GlobalColors.isDarkMode ? Colors.grey[800] : Colors.white,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text('Annuler', style: TextStyle(color: GlobalColors.isDarkMode ? Colors.blue[200] : Colors.blue)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
@@ -150,7 +151,10 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
           .eq('id', idReponse);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Réponse supprimée')),
+        SnackBar(
+          content: Text('Réponse supprimée'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.green[800] : Colors.green,
+        ),
       );
 
       await chargerAvis();
@@ -175,7 +179,10 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
       await chargerAvis();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur: ${e.toString()}')),
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
+          backgroundColor: GlobalColors.isDarkMode ? Colors.red[800] : Colors.red,
+        ),
       );
     }
   }
@@ -189,31 +196,47 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = GlobalColors.isDarkMode ? Colors.grey[800]!.withOpacity(0.5) : Colors.white;
+    final borderColor = GlobalColors.isDarkMode ? Colors.grey[600]! : Colors.grey[300]!;
+    final textColor = GlobalColors.secondaryColor;
+    final secondaryTextColor = GlobalColors.isDarkMode ? Colors.white70 : Colors.black54;
+
     return Scaffold(
+      backgroundColor: GlobalColors.primaryColor,
       appBar: AppBar(
         title: Text('Gestion des Avis', style: GoogleFonts.robotoSlab(color: Colors.white)),
-        backgroundColor: Colors.blue,
+        backgroundColor: GlobalColors.bleuTurquoise,
+        iconTheme: IconThemeData(color: Colors.white),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
               controller: searchController,
+              style: TextStyle(color: textColor),
               decoration: InputDecoration(
                 hintText: 'Rechercher par nom ou prénom',
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(color: secondaryTextColor),
+                prefixIcon: Icon(Icons.search, color: secondaryTextColor),
+                filled: true,
+                fillColor: cardColor,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: borderColor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: borderColor),
                 ),
               ),
             ),
           ),
           Expanded(
             child: filteredAvisList.isEmpty
-                ? const Center(child: Text('Aucun avis trouvé'))
+                ? Center(child: Text('Aucun avis trouvé', style: TextStyle(color: textColor)))
                 : ListView.builder(
               itemCount: filteredAvisList.length,
               itemBuilder: (context, index) {
@@ -223,25 +246,30 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
                 final isExpanded = avis['isExpanded'] as bool;
 
                 return Card(
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: cardColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(color: borderColor),
+                  ),
+                  elevation: 2,
                   child: Column(
                     children: [
                       ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.blue[100],
-                          child: Text('${avis['note']}'),
+                          backgroundColor: GlobalColors.isDarkMode ? Colors.blueGrey : Colors.blue[100],
+                          child: Text('${avis['note']}', style: TextStyle(color: Colors.white)),
                         ),
-                        title: Text(utilisateur != null
-                            ? '${utilisateur['prenom']} ${utilisateur['nom']}'
-                            : 'Voyageur inconnu'),
+                        title: Text(
+                          utilisateur != null ? '${utilisateur['prenom']} ${utilisateur['nom']}' : 'Voyageur inconnu',
+                          style: TextStyle(color: textColor),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (avis['commentaire'] != null)
-                              Text(avis['commentaire']),
-                            if (avis['image'] != null &&
-                                avis['image'] != '')
+                              Text(avis['commentaire'], style: TextStyle(color: secondaryTextColor)),
+                            if (avis['image'] != null && avis['image'] != '')
                               Padding(
                                 padding: const EdgeInsets.only(top: 8),
                                 child: Image.network(
@@ -258,9 +286,8 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
                           children: [
                             IconButton(
                               icon: Icon(
-                                isExpanded
-                                    ? Icons.expand_less
-                                    : Icons.expand_more,
+                                isExpanded ? Icons.expand_less : Icons.expand_more,
+                                color: textColor,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -269,73 +296,72 @@ class _AdminAvisPageState extends State<AdminAvisPage> {
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete,
-                                  color: Colors.red),
-                              onPressed: () =>
-                                  supprimerAvis(avis['idavis']),
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => supprimerAvis(avis['idavis']),
                             ),
                           ],
                         ),
                       ),
                       if (isExpanded) ...[
                         Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
                           child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Divider(),
+                              Divider(color: borderColor),
                               Text('Réponses:',
                                   style: GoogleFonts.robotoSlab(
-                                      fontWeight: FontWeight.bold)),
+                                    fontWeight: FontWeight.bold,
+                                    color: textColor,
+                                  )),
                               if (reponses.isEmpty)
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text(
-                                      'Aucune réponse pour cet avis'),
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text('Aucune réponse pour cet avis', style: TextStyle(color: secondaryTextColor)),
                                 )
                               else
                                 ...reponses.map((reponse) {
                                   final auteur = reponse['auteur'];
                                   return ListTile(
-                                    leading: const Icon(Icons.reply),
-                                    title: Text(auteur != null
-                                        ? '${auteur['prenom']} ${auteur['nom']}'
-                                        : 'Auteur inconnu'),
+                                    leading: Icon(Icons.reply, color: textColor),
+                                    title: Text(
+                                      auteur != null ? '${auteur['prenom']} ${auteur['nom']}' : 'Auteur inconnu',
+                                      style: TextStyle(color: textColor),
+                                    ),
                                     subtitle: Column(
-                                      crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(reponse['reponse']),
+                                        Text(reponse['reponse'], style: TextStyle(color: secondaryTextColor)),
                                         Text(
-                                          DateFormat('dd/MM/yyyy HH:mm')
-                                              .format(DateTime.parse(
-                                              reponse['date'])),
+                                          DateFormat('dd/MM/yyyy HH:mm').format(DateTime.parse(reponse['date'])),
                                           style: GoogleFonts.robotoSlab(
-                                              fontSize: 12),
+                                            fontSize: 12,
+                                            color: secondaryTextColor,
+                                          ),
                                         ),
                                       ],
                                     ),
                                     trailing: IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.red,
-                                          size: 20),
-                                      onPressed: () =>
-                                          supprimerReponse(
-                                              reponse['id']),
+                                      icon: Icon(Icons.delete, color: Colors.red, size: 20),
+                                      onPressed: () => supprimerReponse(reponse['id']),
                                     ),
                                   );
                                 }).toList(),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: reponseController,
+                                style: TextStyle(color: textColor),
                                 decoration: InputDecoration(
                                   hintText: 'Ajouter une réponse...',
+                                  hintStyle: TextStyle(color: secondaryTextColor),
+                                  filled: true,
+                                  fillColor: GlobalColors.isDarkMode ? Colors.grey[700] : Colors.grey[100],
                                   suffixIcon: IconButton(
-                                    icon: const Icon(Icons.send),
-                                    onPressed: () =>
-                                        ajouterReponse(avis['idavis']),
+                                    icon: Icon(Icons.send, color: textColor),
+                                    onPressed: () => ajouterReponse(avis['idavis']),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(color: borderColor),
                                   ),
                                 ),
                               ),
