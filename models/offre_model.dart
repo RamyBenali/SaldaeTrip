@@ -1,3 +1,4 @@
+
 class Offre {
   final int id;
   final String nom;
@@ -14,6 +15,8 @@ class Offre {
   final List<String> images;
   final bool estRecommandee;
   final int prioriteRecommandation;
+  final String lienReservation;
+
 
   Offre({
     required this.id,
@@ -31,6 +34,7 @@ class Offre {
     required this.noteMoyenne,
     this.estRecommandee = false,
     this.prioriteRecommandation = 0,
+    required this.lienReservation,
   });
 
   factory Offre.fromJson(Map<String, dynamic> json) {
@@ -54,6 +58,8 @@ class Offre {
       noteMoyenne: json['note_moyenne']?.toDouble() ?? 0.0,
       estRecommandee: recommandation != null,
       prioriteRecommandation: recommandation?['priorite'] ?? 0,
+      lienReservation: json['lien_reservation'] ?? '',
+
     );
   }
 
@@ -72,5 +78,4 @@ class Offre {
       'longitude': longitude,
     };
   }
-
 }
