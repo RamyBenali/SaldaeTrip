@@ -116,7 +116,8 @@ class _OffreRestaurantPageState extends State<OffreRestaurantPage> {
       'Melbou',
       'Tichy',
       'Elkseur',
-      'Akbou'
+      'Akbou',
+      'Aokas'
     ];
 
     return StatefulBuilder(

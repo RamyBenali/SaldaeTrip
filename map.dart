@@ -12,9 +12,11 @@ import 'dart:convert';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:lottie/lottie.dart' hide Marker;
 import 'GlovalColors.dart';
+import 'models/offre_model.dart';
 import 'profile.dart';
 import 'weather_main.dart';
 import 'favoris.dart';
+import 'offre_details.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,32 +45,42 @@ class MyApp extends StatelessWidget {
 }
 
 class Lieu {
+  final int id;
+  final String adresse;
   final String nom;
   final String description;
   final String categorie;
   final String? image;
   final double latitude;
   final double longitude;
+  final String lien_reservation;
 
   Lieu({
+    required this.id,
+    required this.adresse,
     required this.nom,
     required this.description,
     required this.categorie,
     this.image,
     required this.latitude,
     required this.longitude,
+    required this.lien_reservation
   });
 
   factory Lieu.fromJson(Map<String, dynamic> json) {
     return Lieu(
+      id: json['idoffre'] ?? 0,
+      adresse: json['adresse'] ?? '',
       nom: json['nom'] ?? json['name'] ?? '',
       description: json['description'] ?? '',
       categorie: json['categorie'] ?? json['category'] ?? 'autre',
       image: json['image'],
       latitude: double.parse(json['latitude'].toString()),
       longitude: double.parse(json['longitude'].toString()),
+      lien_reservation: json['lien_reservation'] ?? '',
     );
   }
+
 }
 
 class MapScreen extends StatefulWidget {
@@ -272,12 +284,15 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
 
     try {
       final List<dynamic> donnees = await _supabase.from('offre').select(''' 
+        idoffre,
         nom, 
         description, 
         categorie, 
         image, 
         latitude, 
-        longitude
+        longitude,
+        adresse,
+        lien_reservation
       ''');
 
       if (!mounted) return;
@@ -1098,7 +1113,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
             duration: const Duration(milliseconds: 300),
             child: OutlinedButton.icon(
               icon: const Icon(Icons.map, size: 20),
-              label: const Text('Voir sur carte'),
+              label: const Text('Voir les détails'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: Colors.blue,
                 padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1108,11 +1123,21 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 ),
               ),
               onPressed: () {
-                setState(() {
-                  _positionRecherchee = LatLng(lieu.latitude, lieu.longitude);
-                });
-                Navigator.pop(context);
-                _controleurCarte.move(_positionRecherchee!, 15.0);
+                Navigator.push(
+                  context,
+                  PageRouteBuilder(
+                    transitionDuration: Duration(milliseconds: 500),
+                    pageBuilder: (_, __, ___) => OffreDetailPage(
+                      offre: _convertLieuToOffre(lieu), // Conversion ici
+                    ),
+                    transitionsBuilder: (_, animation, __, child) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
+                      );
+                    },
+                  ),
+                );
               },
             ),
           ),
@@ -1140,6 +1165,25 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
         pointsAnimes.clamp(0, totalPoints),
       );
     });
+  }
+
+  Offre _convertLieuToOffre(Lieu lieu) {
+    return Offre(
+      id: lieu.id ?? 0, // Donnez une valeur par défaut si lieu.id est nullable
+      nom: lieu.nom,
+      description: lieu.description,
+      categorie: lieu.categorie,
+      image: lieu.image ?? '', // Valeur par défaut si null
+      images: lieu.image != null ? [lieu.image!] : [], // Crée une liste avec l'image unique
+      tarifs: '0', // Valeur par défaut ou récupérez depuis Lieu si disponible
+      adresse: lieu.adresse,
+      offreInsta: '', // Laissez vide ou récupérez depuis Lieu si disponible
+      offreFb: '', // Laissez vide ou récupérez depuis Lieu si disponible
+      latitude: lieu.latitude,
+      longitude: lieu.longitude,
+      lienReservation : lieu.lien_reservation,
+      noteMoyenne: 0.0, // Valeur par défaut
+    );
   }
 
   Future<void> _centrerSurMaPosition() async {
@@ -1388,54 +1432,85 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           Marker(
             point: _positionRecherchee!,
             width: 80,
-            height: 80,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 4,
-                        spreadRadius: 1,
+            height: 100,
+            child: GestureDetector(
+              onTap: _zoomSurDestination,
+              behavior: HitTestBehavior.opaque,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Center(
+                      child: AnimatedBuilder(
+                        animation: _animationPulse,
+                        builder: (context, child) {
+                          return Transform.scale(
+                            scale: _animationPulse.value,
+                            child: Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.red,
+                                border: Border.all(color: Colors.white, width: 3),
+                              ),
+                            ),
+                          );
+                        },
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    widget.titreMarqueur ?? 'Destination',
-                    style: GoogleFonts.robotoSlab(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                AnimatedBuilder(
-                  animation: _animationPulse,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _animationPulse.value,
+                  Positioned(
+                    bottom: 75,
+                    left: 0,
+                    right: 0,
+                    child: Center(
                       child: Container(
-                        width: 24,
-                        height: 24,
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.red,
-                          border: Border.all(color: Colors.white, width: 3),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Text(
+                          widget.titreMarqueur ?? 'Destination',
+                          style: GoogleFonts.robotoSlab(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    );
-                  },
-                ),
-              ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
       ],
     );
+  }
+
+// Ajoutez cette méthode dans votre classe
+  void _zoomSurDestination() {
+    if (_positionRecherchee != null) {
+      final bounds = LatLngBounds(_positionRecherchee!, _positionRecherchee!);
+      _controleurCarte.fitBounds(
+        bounds,
+        options: FitBoundsOptions(
+          padding: EdgeInsets.all(40), // Marge autour du point
+          maxZoom: 15.0, // Niveau de zoom
+        ),
+      );
+    }
   }
 
   Widget _construireCoucheItineraire() {

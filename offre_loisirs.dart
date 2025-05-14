@@ -127,7 +127,8 @@ class _OffreLoisirsPageState extends State<OffreLoisirsPage> {
       'Melbou',
       'Tichy',
       'Elkseur',
-      'Akbou'
+      'Akbou',
+      'Aokas'
     ];
 
     return Container(

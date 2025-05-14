@@ -43,15 +43,14 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
       final response = await supabase
           .from('offre')
           .select('''
-          idoffre, nom, adresse,description , categorie, tarifs, images,
-          offre_recommandations (priorite)
-        ''')
+      idoffre, nom, adresse, description, categorie, tarifs, images, lien_reservation,
+      offre_recommandations (priorite), offre_fb, offre_insta
+    ''')
           .eq('categorie', 'Hôtel')
           .order('offre_recommandations(priorite)', ascending: false);
 
       debugPrint('Réponse reçue: ${response.toString()}');
       debugPrint('Type de réponse: ${response.runtimeType}');
-
       List<Offre> loadedOffres = [];
 
       if (response is List) {
@@ -115,7 +114,8 @@ class _OffreHotelPageState extends State<OffreHotelPage> {
       'Melbou',
       'Tichy',
       'Elkseur',
-      'Akbou'
+      'Akbou',
+      'Aokas'
     ];
 
     return StatefulBuilder(

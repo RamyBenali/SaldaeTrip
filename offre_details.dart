@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'login.dart';
 import 'map.dart';
 import 'models/offre_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -69,6 +70,41 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   }
 
   Future<void> addFavori(int idOffre) async {
+    final user = supabase.auth.currentUser;
+    if (user == null) {
+      setState(() {
+        var isAnonymous = true;
+      });
+      return;
+    }
+
+    if (user.isAnonymous == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Vous devez vous connecter ou créer un compte pour ajouter aux favoris',
+              style: GoogleFonts.robotoSlab(),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Se connecter',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      setState(() => isPublishing = false);
+      return;
+    }
     try {
       final user = supabase.auth.currentUser;
 
@@ -220,10 +256,39 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
   Future<void> toggleLike(int avisId) async {
     final user = supabase.auth.currentUser;
+
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vous devez être connecté pour liker')),
-      );
+      setState(() {
+        var isAnonymous = true;
+      });
+      return;
+    }
+
+    if (user.isAnonymous == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Vous devez vous connecter ou créer un compte pour liker un avis',
+              style: GoogleFonts.robotoSlab(),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Se connecter',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      setState(() => isPublishing = false);
       return;
     }
 
@@ -258,9 +323,37 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
   Future<void> addReponse(int avisId, String reponseText) async {
     final user = supabase.auth.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Vous devez être connecté pour répondre')),
-      );
+      setState(() {
+        var isAnonymous = true;
+      });
+      return;
+    }
+
+    if (user.isAnonymous == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Vous devez vous connecter ou créer un compte pour laisser un avis',
+              style: GoogleFonts.robotoSlab(),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Se connecter',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      setState(() => isPublishing = false);
       return;
     }
 
@@ -293,13 +386,46 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
     setState(() => isPublishing = true);
     final user = supabase.auth.currentUser;
 
-    if (user == null) return;
+
+    if (user == null) {
+      setState(() {
+        var isAnonymous = true;
+      });
+      return;
+    }
+
+    if (user.isAnonymous == true) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Vous devez vous connecter ou créer un compte pour laisser un avis',
+              style: GoogleFonts.robotoSlab(),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            action: SnackBarAction(
+              label: 'Se connecter',
+              textColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      }
+      setState(() => isPublishing = false);
+      return;
+    }
 
     String? imageUrl;
     if (imageFile != null) {
       final pickedImage = imageFile!;
-      final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${user.id}.jpg';
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${user.id}.jpg';
       final fileBytes = await pickedImage.readAsBytes();
 
       try {
@@ -311,29 +437,80 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
             .from('avis-images')
             .getPublicUrl('avis/$fileName');
       } on StorageException catch (error) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Erreur lors de l'envoi de l'image",
+                style: GoogleFonts.robotoSlab(),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         print("Erreur lors de l'upload de l'image : ${error.message}");
       } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "Une erreur inattendue est survenue",
+                style: GoogleFonts.robotoSlab(),
+              ),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         print("Erreur inattendue : $e");
       }
     }
 
-    await supabase.from('avis').insert({
-      'user_id': user.id,
-      'note': selectedRating,
-      'commentaire': commentaire,
-      'image': imageUrl,
-      'idoffre': widget.offre.id,
-      'idadministrateur': null,
-      'idstatistique': null,
-    });
+    try {
+      await supabase.from('avis').insert({
+        'user_id': user.id,
+        'note': selectedRating,
+        'commentaire': commentaire,
+        'image': imageUrl,
+        'idoffre': widget.offre.id,
+        'idadministrateur': null,
+        'idstatistique': null,
+      });
 
-    commentaire = '';
-    selectedRating = 0;
-    imageFile = null;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Votre avis a été publié avec succès',
+              style: GoogleFonts.robotoSlab(),
+            ),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
 
-    await fetchAvis();
+      commentaire = '';
+      selectedRating = 0;
+      imageFile = null;
 
-    setState(() => isPublishing = false);
+      await fetchAvis();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Erreur lors de la publication de l'avis",
+              style: GoogleFonts.robotoSlab(),
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      print("Erreur lors de la publication : $e");
+    } finally {
+      if (mounted) {
+        setState(() => isPublishing = false);
+      }
+    }
   }
 
   Future<void> pickImage() async {
@@ -589,43 +766,48 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                                   ],
                                 ),
                                 const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      tarifs,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF41A6B4),
-                                      ),
-                                    ),
-                                    if (offre.offreFb != null || offre.offreInsta != null) // Condition d'affichage
-                                      Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (offre.offreFb != null && offre.offreFb.isNotEmpty) // Facebook si URL existe
-                                            Padding(
-                                              padding: const EdgeInsets.only(left: 8),
-                                              child: IconButton(
-                                                icon: Icon(FontAwesomeIcons.facebook,
-                                                    size: 40,
-                                                    color: Colors.blue[800]),
-                                                onPressed: () => _launchUrl(offre.offreFb),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          tarifs,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Color(0xFF41A6B4),
+                                          ),
+                                        ),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (offre.lienReservation != null && offre.lienReservation.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 8.0),
+                                                child: IconButton(
+                                                  icon: Icon(Icons.calendar_today, size: 40, color: GlobalColors.bleuTurquoise),
+                                                  onPressed: () => _launchUrl(offre.lienReservation),
+                                                  tooltip: 'Réserver sur le site',
+                                                ),
                                               ),
-                                            ),
-                                          if (offre.offreInsta != null && offre.offreInsta.isNotEmpty) // Instagram si URL existe
-                                            Padding(
-                                              padding: const EdgeInsets.only(left: 8),
-                                              child: IconButton(
+                                            if (offre.offreFb != null && offre.offreFb.isNotEmpty)
+                                              Padding(
+                                                padding: const EdgeInsets.only(right: 8.0),
+                                                child: IconButton(
+                                                  icon: Icon(FontAwesomeIcons.facebook,
+                                                      size: 40,
+                                                      color: Colors.blue[800]),
+                                                  onPressed: () => _launchUrl(offre.offreFb),
+                                                ),
+                                              ),
+                                            if (offre.offreInsta != null && offre.offreInsta.isNotEmpty)
+                                              IconButton(
                                                 icon: Icon(FontAwesomeIcons.instagram,
                                                     size: 40,
                                                     color: Colors.pink),
                                                 onPressed: () => _launchUrl(offre.offreInsta),
                                               ),
-                                            ),
-                                        ],
-                                      ),
+                                          ],
+                                    ),
                                   ],
                                 ),
                               ],
@@ -1188,7 +1370,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                 ),
               ),
             ],
-            // Boutons Like et Répondre
             Row(
               children: [
                 IconButton(
@@ -1198,7 +1379,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                   ),
                   onPressed: () => toggleLike(avis['idavis']),
                 ),
-                Text('${(avis['likes'] as List).length}'),
+                Text('${(avis['likes'] as List).length}', style: TextStyle(color: GlobalColors.secondaryColor),),
                 const SizedBox(width: 10),
                 IconButton(
                   icon: const Icon(Icons.reply),
@@ -1222,7 +1403,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                   ),
               ],
             ),
-            // Champ de réponse
             if (showReplyField)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
@@ -1252,7 +1432,6 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                   ],
                 ),
               ),
-            // Affichage des réponses
             if (isExpanded && reponses.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 16.0, top: 8.0),
@@ -1284,7 +1463,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      color: Colors.grey[100],
+      color: GlobalColors.cardColor,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Column(
@@ -1305,7 +1484,8 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                     children: [
                       Text(
                         userName,
-                        style: const TextStyle(
+                        style: TextStyle(
+                          color: GlobalColors.accentColor,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -1314,7 +1494,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
                         DateFormat('dd/MM/yyyy HH:mm').format(
                             DateTime.parse(reponseMap['date'].toString())
                         ),
-                        style: TextStyle(color: Colors.grey, fontSize: 10),
+                        style: TextStyle(color: GlobalColors.accentColor, fontSize: 10),
                       ),
                     ],
                   ),
@@ -1324,7 +1504,7 @@ class _OffreDetailPageState extends State<OffreDetailPage> {
             const SizedBox(height: 4),
             Padding(
               padding: const EdgeInsets.only(left: 40.0),
-              child: Text(reponseMap['reponse']?.toString() ?? ''),
+              child: Text(reponseMap['reponse']?.toString() ?? '', style: TextStyle(color: GlobalColors.accentColor),),
             ),
           ],
         ),

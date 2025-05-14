@@ -31,13 +31,17 @@ class _OffresPageState extends State<OffresPage> {
     'Loisirs': Color(0xFF6A4C93),
     'Plage': GlobalColors.bleuTurquoise,
     'Point d\'intérêt': Color(0xFF4CAF50),
+    'randonnée': Color(0xFFF44336),
+    'sortie' : Color(0xFFF44336),
   };
   final List<String> categories = [
     'Hôtel',
     'Restaurant',
     'Loisirs',
     'Plage',
-    'Point d\'intérêt'
+    'Point d\'intérêt',
+    'randonnée',
+    'sortie'
   ];
 
   @override
@@ -184,7 +188,8 @@ class _OffresPageState extends State<OffresPage> {
       'Melbou',
       'Tichy',
       'Elkseur',
-      'Akbou'
+      'Akbou',
+      'Aokas'
     ];
 
     return StatefulBuilder(

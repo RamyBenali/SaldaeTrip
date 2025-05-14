@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'GlovalColors.dart';
 import 'login.dart';
 import 'main.dart';
 import 'signin.dart';
@@ -17,6 +18,7 @@ class ManualResetScreen extends StatefulWidget {
 }
 
 class _ManualResetScreenState extends State<ManualResetScreen> {
+  bool _resetSuccess = false;
   final _otpControllers = List.generate(6, (_) => TextEditingController());
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -39,12 +41,16 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
 
   void _startResendCooldown() {
     _resendTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_resendCooldown <= 0) {
+      if (!mounted) {
         timer.cancel();
-        if (mounted) setState(() {});
         return;
       }
-      if (mounted) setState(() => _resendCooldown--);
+      if (_resendCooldown <= 0) {
+        timer.cancel();
+        setState(() {});
+        return;
+      }
+      setState(() => _resendCooldown--);
     });
   }
 
@@ -74,47 +80,51 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
       return;
     }
 
+    if (!mounted) return; // Vérifiez si le widget est toujours monté
+
     setState(() => _isLoading = true);
 
     try {
       final client = Supabase.instance.client;
       final newPassword = _newPasswordController.text.trim();
 
-      // Step 1: Verify OTP
+      // Vérifiez que le token OTP n'est pas null
+      if (_enteredOtp.isEmpty) {
+        throw AuthException('Code OTP invalide');
+      }
+
       final authResponse = await client.auth.verifyOTP(
         email: widget.email,
         token: _enteredOtp,
         type: OtpType.recovery,
       );
 
-      // Step 2: If OTP is valid, update password
       if (authResponse.session != null) {
-        // Update password
         await client.auth.updateUser(UserAttributes(password: newPassword));
 
-        // Show success message
+        if (!mounted) return;
+
+        setState(() {
+          _resetSuccess = true;
+          _successMessage = 'Mot de passe modifié avec succès!';
+          _isLoading = false;
+        });
+
         _showSnack('✅ Mot de passe réinitialisé avec succès');
-
-        // Sign out to clear the session
-        await client.auth.signOut();
-
-        // Navigate to login screen immediately
-        if (mounted) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => LoginScreen()),
-                (Route<dynamic> route) => false,
-          );
-        }
       } else {
         throw AuthException('Code OTP invalide');
       }
     } on AuthException catch (e) {
-      _showSnack('❌ ${e.message}');
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showSnack('❌ ${e.message}');
+      }
     } catch (e) {
-      _showSnack('❌ Erreur: ${e.toString()}');
-      debugPrint('Reset error: $e');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showSnack('❌ Erreur: ${e.toString()}');
+        debugPrint('Reset error: $e');
+      }
     }
   }
 
@@ -122,13 +132,11 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).clearSnackBars();
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
-
         margin: EdgeInsets.only(
           bottom: MediaQuery.of(context).size.height * 0.1,
           left: 20,
@@ -320,7 +328,7 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                           Text(
                             'Reset Password',
                             style: GoogleFonts.robotoSlab(
-                              color: const Color(0xFF0D8BFF),
+                              color: GlobalColors.bleuTurquoise,
                               fontWeight: FontWeight.bold,
                               fontSize: 37,
                             ),
@@ -363,7 +371,7 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                                   child: ElevatedButton(
                                     onPressed: _isLoading ? null : _submit,
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0D8BFF),
+                                      backgroundColor: GlobalColors.bleuTurquoise,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(8),
                                       ),
@@ -383,6 +391,25 @@ class _ManualResetScreenState extends State<ManualResetScreen> {
                                   ),
                                 ),
                               ],
+                            ),
+                          ),
+                          SizedBox(height: 30,),
+                          Align(
+                            alignment: Alignment.center,
+                            child: GestureDetector(
+                              onTap: () {
+                                Navigator.of(context).pushAndRemoveUntil(
+                                  MaterialPageRoute(builder: (context) => LoginScreen()),
+                                      (Route<dynamic> route) => false,
+                                );
+                              },
+                              child: Text(
+                                'Retour à la connexion',
+                                style: GoogleFonts.robotoSlab(
+                                  color: GlobalColors.bleuTurquoise,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
                           ),
                           const Spacer(),

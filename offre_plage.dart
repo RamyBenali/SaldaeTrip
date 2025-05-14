@@ -120,7 +120,8 @@ class _OffrePlagePageState extends State<OffrePlagePage> {
       'Melbou',
       'Tichy',
       'Elkseur',
-      'Akbou'
+      'Akbou',
+      'Aokas'
     ];
 
     return StatefulBuilder(

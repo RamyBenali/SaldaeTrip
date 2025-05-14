@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'EditprofilePage.dart';
-
+import 'aide.dart';
 import 'GlovalColors.dart';
 import 'map.dart';
 import 'weather_main.dart';
@@ -287,23 +287,18 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
 
                   _buildMenuItem(
-                    icon: Icons.settings_outlined,
-                    iconColor:
-                        GlobalColors.isDarkMode
-                            ? Colors.orange[200]!
-                            : Colors.orange.shade600,
-                    iconBg:
-                        GlobalColors.isDarkMode
-                            ? Colors.orange[900]!.withOpacity(0.3)
-                            : Colors.orange.shade50,
-                    title: "Paramètres",
-                    onTap:
-                        () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ParametresPage(),
-                          ),
-                        ),
+                    icon: Icons.help_outline,
+                    iconColor: GlobalColors.isDarkMode
+                        ? Colors.lightBlue[200]!
+                        : Colors.blue.shade600,
+                    iconBg: GlobalColors.isDarkMode
+                        ? Colors.blueGrey[800]!.withOpacity(0.3)
+                        : Colors.blue.shade50,
+                    title: "Aide",
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => AidePage()),
+                    ),
                   ),
 
                   _buildMenuItem(
